@@ -1,9 +1,12 @@
 import { createClient } from "@supabase/supabase-js"
 
-export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Create client only if we have valid credentials
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : createClient("https://placeholder.supabase.co", "placeholder-key")
 
 let _supabaseAdmin: ReturnType<typeof createClient> | null = null
 
