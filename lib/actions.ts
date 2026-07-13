@@ -30,13 +30,14 @@ export async function createOrGetProfile(username: string) {
 
 // Links a Supabase Auth identity (created via email OTP) to a profile by username.
 // Handles both brand-new usernames and legacy usernames that never had an email.
+// Username lookups are case-insensitive: "Juan" and "juan" are the same account.
 export async function linkProfileToAuthUser(username: string, email: string, authUserId: string) {
   const normalizedEmail = email.trim().toLowerCase()
 
   const { data: existingProfile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("username", username)
+    .ilike("username", username)
     .maybeSingle()
 
   if (existingProfile) {
@@ -47,10 +48,12 @@ export async function linkProfileToAuthUser(username: string, email: string, aut
       return { success: false, error: "Ese nombre de usuario ya está vinculado a otra cuenta." }
     }
 
+    // Use the canonical (originally stored) username, not whatever casing was typed
+    // this time, so it keeps matching existing rows in groups/activities/etc.
     const { data, error } = await supabase
       .from("profiles")
       .update({ email: normalizedEmail, auth_user_id: authUserId })
-      .eq("username", username)
+      .eq("username", existingProfile.username)
       .select()
       .single()
 
@@ -88,8 +91,9 @@ export async function getProfileByAuthUserId(authUserId: string) {
 
 // Legacy username-only lookup, used to detect accounts that predate email login
 // so we can ask them for an email once instead of creating a duplicate profile.
+// Case-insensitive: "Juan" and "juan" resolve to the same profile.
 export async function findProfileByUsername(username: string) {
-  const { data, error } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle()
+  const { data, error } = await supabase.from("profiles").select("*").ilike("username", username).maybeSingle()
 
   if (error) return { success: false, error: error.message }
   return { success: true, profile: data }

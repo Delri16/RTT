@@ -92,7 +92,8 @@ export default function LoginScreen() {
         return
       }
 
-      login(trimmedUsername)
+      // Use the canonical stored username (could differ in casing from what was typed)
+      login(linkResult.profile.username)
     } catch {
       setError("Error de conexión")
     } finally {
