@@ -6,7 +6,7 @@ Guía para trabajar en este repo con Claude Code. Para el detalle completo de do
 
 RTT ("Road To Toro" / ToroApp) es una PWA mobile-first para trackear actividades físicas en grupo: grupos, registro de actividades con puntos, rankings, "rodeos" (duelos 1v1 semanales), reportes de peso, logros, tags entre usuarios y notificaciones. Generada originalmente con v0 (Vercel), ahora se trabaja localmente.
 
-**Stack:** Next.js 14.2.35 (App Router) + React 19 + TypeScript, Tailwind + shadcn/ui, Supabase (Postgres) como backend, autenticación propia por username en `localStorage` (sin Supabase Auth).
+**Stack:** Next.js 14.2.35 (App Router) + React 19 + TypeScript, Tailwind + shadcn/ui, Supabase (Postgres) como backend. Login por username + email con código OTP (Supabase Auth) — ver sección abajo.
 
 ## Setup local
 
@@ -43,6 +43,21 @@ Cómo está armado, sin borrar ni romper nada de la app original:
 [app/api/feedback/route.ts](app/api/feedback/route.ts) arma un solo mensaje de texto con todos los votos + el comentario libre y lo postea al webhook de Discord (hardcodeado ahí mismo, a pedido). Server-side a propósito: evita exponer lógica de formato en el bundle del cliente y evita cualquier tema de CORS con Discord.
 
 Si en algún momento se agregan más features a la app, actualizar el array `FEATURES` en `feature-vote-form.tsx` para que la encuesta siga reflejando la realidad.
+
+## Login: username + email con OTP (Supabase Auth)
+
+El login dejó de ser "solo username". Ahora (`components/login-screen.tsx`):
+
+1. El usuario ingresa username + email.
+2. `supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })` manda un código de 6 dígitos al mail, usando el SMTP que tenga configurado el proyecto Supabase (Project Settings → Auth → SMTP). **Esto no está probado contra el proyecto real** — este entorno no tiene acceso a ese proyecto Supabase vía MCP, así que hay que confirmar en Supabase que el SMTP esté andando y que las plantillas de "Magic Link / OTP" tengan el `{{ .Token }}` visible.
+3. El usuario ingresa el código → `supabase.auth.verifyOtp(...)` → sesión de Supabase Auth creada.
+4. `lib/actions.ts` → `linkProfileToAuthUser(username, email, authUserId)` crea o completa la fila en `profiles` (username sigue siendo la PK de negocio en todo el resto del código, no se tocó nada de eso).
+
+Cuentas viejas (username sin email todavía): la primera vez que vuelvan a entrar pasan por el mismo flujo y `linkProfileToAuthUser` les completa `email`/`auth_user_id` sin perder su historial.
+
+Sesión persistente ("nunca más se desloguea salvo manual"): es el comportamiento default de `supabase-js` (`persistSession` + `autoRefreshToken`), no hay nada custom armado para eso — `app/app-provider.tsx` solo lee `supabase.auth.getSession()` al montar y escucha `onAuthStateChange`. Logout real = `supabase.auth.signOut()` (en `app/logout/page.tsx`, sin cambios).
+
+**Falta correr en Supabase:** [scripts/33-add-email-auth.sql](scripts/33-add-email-auth.sql) (agrega `profiles.email` y `profiles.auth_user_id`). No se aplicó automáticamente — correrlo a mano contra el proyecto real antes de probar el login nuevo.
 
 ## Convenciones existentes (no introducidas por este cambio)
 

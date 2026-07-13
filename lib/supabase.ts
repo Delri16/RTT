@@ -35,6 +35,8 @@ export function getSupabaseAdmin() {
 
 export type Profile = {
   username: string
+  email?: string
+  auth_user_id?: string
   avatar_url?: string
   current_weight?: number
   target_weight?: number

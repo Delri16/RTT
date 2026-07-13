@@ -28,6 +28,73 @@ export async function createOrGetProfile(username: string) {
   return { success: true, profile: data }
 }
 
+// Links a Supabase Auth identity (created via email OTP) to a profile by username.
+// Handles both brand-new usernames and legacy usernames that never had an email.
+export async function linkProfileToAuthUser(username: string, email: string, authUserId: string) {
+  const normalizedEmail = email.trim().toLowerCase()
+
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("username", username)
+    .maybeSingle()
+
+  if (existingProfile) {
+    if (existingProfile.email && existingProfile.email.toLowerCase() !== normalizedEmail) {
+      return { success: false, error: "Ese nombre de usuario ya está registrado con otro email." }
+    }
+    if (existingProfile.auth_user_id && existingProfile.auth_user_id !== authUserId) {
+      return { success: false, error: "Ese nombre de usuario ya está vinculado a otra cuenta." }
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ email: normalizedEmail, auth_user_id: authUserId })
+      .eq("username", username)
+      .select()
+      .single()
+
+    if (error) return { success: false, error: error.message }
+    return { success: true, profile: data }
+  }
+
+  const { data: emailOwner } = await supabase
+    .from("profiles")
+    .select("username")
+    .ilike("email", normalizedEmail)
+    .maybeSingle()
+
+  if (emailOwner) {
+    return { success: false, error: "Ese email ya está en uso por otro usuario." }
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert([{ username, email: normalizedEmail, auth_user_id: authUserId, avatar: "default", avatar_url: "default" }])
+    .select()
+    .single()
+
+  if (error) return { success: false, error: error.message }
+  return { success: true, profile: data }
+}
+
+export async function getProfileByAuthUserId(authUserId: string) {
+  const { data, error } = await supabase.from("profiles").select("*").eq("auth_user_id", authUserId).maybeSingle()
+
+  if (error) return { success: false, error: error.message }
+  if (!data) return { success: false, error: "No hay perfil vinculado a esta cuenta" }
+  return { success: true, profile: data }
+}
+
+// Legacy username-only lookup, used to detect accounts that predate email login
+// so we can ask them for an email once instead of creating a duplicate profile.
+export async function findProfileByUsername(username: string) {
+  const { data, error } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle()
+
+  if (error) return { success: false, error: error.message }
+  return { success: true, profile: data }
+}
+
 export async function loginWithPassword(username: string, password?: string) {
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("username", username).single()
 

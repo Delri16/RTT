@@ -8,7 +8,7 @@ ToroApp es una aplicacion movil-first (PWA) para tracking de actividades fisicas
 - Frontend: Next.js 14.2.35 (App Router), React 19, TypeScript
 - Estilos: Tailwind CSS con shadcn/ui
 - Base de datos: Supabase (PostgreSQL)
-- Autenticacion: Sistema propio basado en username (sin Supabase Auth)
+- Autenticacion: username + email, verificado con codigo OTP de Supabase Auth (ver seccion "Autenticacion" mas abajo). El username sigue siendo la clave usada en el resto del dominio (grupos, actividades, rankings, etc.)
 - PWA: Service Worker para funcionalidad offline
 
 ---
@@ -58,6 +58,8 @@ ToroApp es una aplicacion movil-first (PWA) para tracking de actividades fisicas
 Usuarios del sistema.
 ```sql
 username: text (PK)
+email: text (unico, case-insensitive; nullable para cuentas legacy sin migrar)
+auth_user_id: uuid (FK auth.users.id; nullable hasta que el usuario verifica su email)
 avatar: text
 avatar_url: text
 current_weight: numeric
@@ -475,7 +477,19 @@ Las fotos se comprimen antes de subir (max 480px, calidad 0.4, max 800KB).
 Todo el sistema usa zona horaria Argentina (UTC-3) para calculos de semanas y fechas.
 
 ### Autenticacion
-El sistema NO usa Supabase Auth. La autenticacion es basada en username almacenado en localStorage del cliente.
+Registro/login por **username + email**, verificado con un codigo OTP de 6 digitos que envia Supabase Auth (usando el SMTP configurado en el proyecto). El username sigue siendo la clave de negocio en todas las tablas (grupos, actividades, rankings, etc.) — Supabase Auth solo se usa para probar que el usuario controla ese email y para persistir la sesion.
+
+Flujo (`components/login-screen.tsx`):
+1. El usuario ingresa username + email. Si el username ya existe con un email distinto, se corta ahi (`lib/actions.ts` → `findProfileByUsername`).
+2. `supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })` dispara el mail con el codigo.
+3. El usuario ingresa el codigo. `supabase.auth.verifyOtp({ email, token, type: "email" })` crea/recupera el `auth.users` correspondiente y abre una sesion.
+4. `lib/actions.ts` → `linkProfileToAuthUser(username, email, authUserId)` crea el `profiles` row (usuarios nuevos) o completa `email`/`auth_user_id` en un `profiles` row legacy que solo tenia username.
+
+Persistencia: la sesion de Supabase (`persistSession` + `autoRefreshToken`, default del cliente) queda en `localStorage` y se renueva sola — el usuario no se desloguea solo. `app/app-provider.tsx` hidrata el `username` en el arranque leyendo la sesion activa (`getProfileByAuthUserId`) y escucha `onAuthStateChange`. Logout explicito = `supabase.auth.signOut()`.
+
+Cuentas legacy (creadas antes de este cambio, sin `email`): al intentar loguearse de nuevo, como no tienen `auth_user_id`, pasan igual por el flujo de arriba y `linkProfileToAuthUser` completa su fila existente sin perder su historial de actividades/grupos.
+
+Migracion de base necesaria: `scripts/33-add-email-auth.sql` (agrega `email` y `auth_user_id` a `profiles`). No se aplico automaticamente porque este entorno no tiene acceso al proyecto Supabase real de RTT — hay que correrlo a mano.
 
 ---
 

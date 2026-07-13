@@ -5,6 +5,8 @@ import LoginScreen from "@/components/login-screen"
 import BottomNav from "@/components/bottom-nav"
 import { ActivityTagsBadge } from "@/components/activity-tags-badge"
 import { NotificationListener } from "@/components/notification-listener"
+import { supabase } from "@/lib/supabase"
+import { getProfileByAuthUserId } from "@/lib/actions"
 
 type AppContextType = {
   username: string | null
@@ -19,20 +21,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("toro_username")
-    if (storedUser) {
-      setUsername(storedUser)
+    let active = true
+
+    async function hydrateFromSession(userId: string | undefined) {
+      if (!userId) {
+        if (active) setUsername(null)
+        return
+      }
+      const result = await getProfileByAuthUserId(userId)
+      if (active) setUsername(result.success ? result.profile.username : null)
     }
-    setLoading(false)
+
+    supabase.auth.getSession().then(({ data }) => {
+      hydrateFromSession(data.session?.user.id).finally(() => {
+        if (active) setLoading(false)
+      })
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      hydrateFromSession(session?.user.id)
+    })
+
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
   }, [])
 
+  // Session persistence (never expires until signOut) is handled by supabase-js
+  // itself: it keeps the refresh token in localStorage and auto-refreshes it.
+  // Once verifyOtp succeeds client-side, the session already exists — this just
+  // updates local state so the rest of the app renders immediately.
   const login = (user: string) => {
-    localStorage.setItem("toro_username", user)
     setUsername(user)
   }
 
   const logout = () => {
-    localStorage.removeItem("toro_username")
+    supabase.auth.signOut()
     setUsername(null)
   }
 

@@ -9,72 +9,91 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useApp } from "@/app/app-provider"
-import { loginWithPassword, createOrGetProfile } from "@/lib/actions"
-import { Eye, EyeOff, User, Lock, LogIn } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { findProfileByUsername, linkProfileToAuthUser } from "@/lib/actions"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { Mail, User, LogIn, ShieldCheck } from "lucide-react"
 
 export default function LoginScreen() {
   const { login } = useApp()
   const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("")
+  const [code, setCode] = useState("")
+  const [step, setStep] = useState<"identify" | "verify">("identify")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [needsPassword, setNeedsPassword] = useState(false)
-  const [isNewUser, setIsNewUser] = useState(false)
 
-  const handleUsernameSubmit = async (e: React.FormEvent) => {
+  const handleIdentifySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!username.trim()) return
+    const trimmedUsername = username.trim()
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!trimmedUsername || !normalizedEmail) return
 
     setLoading(true)
     setError("")
 
     try {
-      // First, try to get or create the profile
-      const profileResult = await createOrGetProfile(username.trim())
-
-      if (profileResult.success) {
-        // Check if user has a password
-        const loginResult = await loginWithPassword(username.trim())
-
-        if (loginResult.success) {
-          if (loginResult.hasPassword) {
-            // User has password, show password field
-            setNeedsPassword(true)
-            setIsNewUser(false)
-          } else {
-            // User doesn't have password, login directly
-            login(username.trim())
-          }
-        } else {
-          setError(loginResult.error || "Error al verificar usuario")
-        }
-      } else {
-        setError(profileResult.error || "Error al crear perfil")
+      const existing = await findProfileByUsername(trimmedUsername)
+      if (existing.success && existing.profile?.email && existing.profile.email.toLowerCase() !== normalizedEmail) {
+        setError("Ese nombre de usuario ya está registrado con otro email.")
+        setLoading(false)
+        return
       }
-    } catch (err) {
+
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: { shouldCreateUser: true },
+      })
+
+      if (otpError) {
+        setError(otpError.message || "No pudimos enviar el código. Probá de nuevo.")
+        setLoading(false)
+        return
+      }
+
+      setStep("verify")
+    } catch {
       setError("Error de conexión")
     } finally {
       setLoading(false)
     }
   }
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
+  const handleVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!password.trim()) return
+    if (code.trim().length < 6) return
 
     setLoading(true)
     setError("")
 
     try {
-      const result = await loginWithPassword(username.trim(), password.trim())
+      const normalizedEmail = email.trim().toLowerCase()
+      const trimmedUsername = username.trim()
 
-      if (result.success) {
-        login(username.trim())
-      } else {
-        setError(result.error || "Contraseña incorrecta")
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: normalizedEmail,
+        token: code.trim(),
+        type: "email",
+      })
+
+      if (verifyError || !data.session) {
+        setError(verifyError?.message || "Código inválido o vencido.")
+        setLoading(false)
+        return
       }
-    } catch (err) {
+
+      const linkResult = await linkProfileToAuthUser(trimmedUsername, normalizedEmail, data.session.user.id)
+
+      if (!linkResult.success) {
+        await supabase.auth.signOut()
+        setError(linkResult.error || "No pudimos vincular tu cuenta.")
+        setStep("identify")
+        setLoading(false)
+        return
+      }
+
+      login(trimmedUsername)
+    } catch {
       setError("Error de conexión")
     } finally {
       setLoading(false)
@@ -82,15 +101,14 @@ export default function LoginScreen() {
   }
 
   const handleBack = () => {
-    setNeedsPassword(false)
-    setPassword("")
+    setStep("identify")
+    setCode("")
     setError("")
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-toro-background via-toro-secondary/10 to-toro-accent/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
-        {/* Logo y título */}
         <div className="text-center space-y-4">
           <div className="text-8xl">🐂</div>
           <div>
@@ -102,15 +120,15 @@ export default function LoginScreen() {
         <Card className="shadow-xl border-toro-primary/20">
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2">
-              {needsPassword ? (
+              {step === "verify" ? (
                 <>
-                  <Lock className="w-5 h-5" />
-                  Ingresa tu contraseña
+                  <ShieldCheck className="w-5 h-5" />
+                  Ingresá el código
                 </>
               ) : (
                 <>
                   <User className="w-5 h-5" />
-                  {isNewUser ? "Crear cuenta" : "Iniciar sesión"}
+                  Iniciar sesión
                 </>
               )}
             </CardTitle>
@@ -122,8 +140,8 @@ export default function LoginScreen() {
               </Alert>
             )}
 
-            {!needsPassword ? (
-              <form onSubmit={handleUsernameSubmit} className="space-y-4">
+            {step === "identify" ? (
+              <form onSubmit={handleIdentifySubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="username">Nombre de usuario</Label>
                   <Input
@@ -137,15 +155,30 @@ export default function LoginScreen() {
                     autoFocus
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={loading}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
                 <Button
                   type="submit"
                   className="w-full bg-toro-primary hover:bg-toro-primary/90 text-white"
-                  disabled={loading || !username.trim()}
+                  disabled={loading || !username.trim() || !email.trim()}
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      Verificando...
+                      Enviando código...
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
@@ -156,36 +189,25 @@ export default function LoginScreen() {
                 </Button>
               </form>
             ) : (
-              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <form onSubmit={handleVerifySubmit} className="space-y-4">
                 <div className="text-center p-3 bg-toro-background/50 rounded-lg">
-                  <div className="text-2xl mb-1">👋</div>
+                  <div className="text-2xl mb-1">📧</div>
                   <p className="text-sm text-toro-foreground/70">
-                    ¡Hola <strong>{username}</strong>!
+                    Te mandamos un código a <strong>{email}</strong>
                   </p>
-                  <p className="text-xs text-toro-foreground/60">Tu cuenta está protegida con contraseña</p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Contraseña</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Ingresa tu contraseña"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      disabled={loading}
-                      className="pr-10"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+                <div className="flex justify-center">
+                  <InputOTP maxLength={6} value={code} onChange={setCode} disabled={loading} autoFocus>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
                 </div>
 
                 <div className="flex gap-2">
@@ -201,7 +223,7 @@ export default function LoginScreen() {
                   <Button
                     type="submit"
                     className="flex-1 bg-toro-primary hover:bg-toro-primary/90 text-white"
-                    disabled={loading || !password.trim()}
+                    disabled={loading || code.trim().length < 6}
                   >
                     {loading ? (
                       <div className="flex items-center gap-2">
@@ -220,9 +242,9 @@ export default function LoginScreen() {
             )}
 
             <div className="text-center text-xs text-toro-foreground/60 pt-4 border-t">
-              {needsPassword
-                ? "Si olvidaste tu contraseña, contacta al administrador"
-                : "Si no tienes cuenta, se creará automáticamente"}
+              {step === "verify"
+                ? "Revisá también la carpeta de spam si no lo ves."
+                : "Si no tienes cuenta, se creará automáticamente."}
             </div>
           </CardContent>
         </Card>
