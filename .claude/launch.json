@@ -5,7 +5,7 @@
       "name": "rtt-dev",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 3000,
+      "port": 51367,
       "autoPort": true
     }
   ]

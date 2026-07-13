@@ -1,6 +1,6 @@
 "use server"
 
-import { supabase } from "./supabase"
+import { supabase, getSupabaseAdmin } from "./supabase"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@supabase/supabase-js"
 import { supabaseAnonKey, supabaseUrl } from "./supabase"
@@ -31,10 +31,17 @@ export async function createOrGetProfile(username: string) {
 // Links a Supabase Auth identity (created via email OTP) to a profile by username.
 // Handles both brand-new usernames and legacy usernames that never had an email.
 // Username lookups are case-insensitive: "Juan" and "juan" are the same account.
+//
+// Uses the service-role client: `profiles` has RLS policies (profiles_insert_own /
+// profiles_update_own) written against an `auth.uid() = id` check that doesn't match
+// this table's actual shape (PK is `username`, not `id`) — those look like leftovers
+// from an earlier, unfinished attempt at wiring Supabase Auth directly to this table.
+// Rather than touch policies we can't fully audit, this write goes through admin.
 export async function linkProfileToAuthUser(username: string, email: string, authUserId: string) {
   const normalizedEmail = email.trim().toLowerCase()
+  const admin = getSupabaseAdmin()
 
-  const { data: existingProfile } = await supabase
+  const { data: existingProfile } = await admin
     .from("profiles")
     .select("*")
     .ilike("username", username)
@@ -49,8 +56,8 @@ export async function linkProfileToAuthUser(username: string, email: string, aut
     }
 
     // Use the canonical (originally stored) username, not whatever casing was typed
-    // this time, so it keeps matching existing rows in groups/activities/etc.
-    const { data, error } = await supabase
+    // this time, so it keeps matching existing rows in groups/actividades/etc.
+    const { data, error } = await admin
       .from("profiles")
       .update({ email: normalizedEmail, auth_user_id: authUserId })
       .eq("username", existingProfile.username)
@@ -61,7 +68,7 @@ export async function linkProfileToAuthUser(username: string, email: string, aut
     return { success: true, profile: data }
   }
 
-  const { data: emailOwner } = await supabase
+  const { data: emailOwner } = await admin
     .from("profiles")
     .select("username")
     .ilike("email", normalizedEmail)
@@ -71,7 +78,7 @@ export async function linkProfileToAuthUser(username: string, email: string, aut
     return { success: false, error: "Ese email ya está en uso por otro usuario." }
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from("profiles")
     .insert([{ username, email: normalizedEmail, auth_user_id: authUserId, avatar: "default", avatar_url: "default" }])
     .select()
