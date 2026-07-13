@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 48 83% 94%; /* toro-background */
+    --foreground: 0 0% 23%; /* toro-foreground */
+    --card: 48 83% 94%;
+    --card-foreground: 0 0% 23%;
+    --popover: 48 83% 94%;
+    --popover-foreground: 0 0% 23%;
+    --primary: 0 100% 71%; /* toro-primary */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 42 100% 70%; /* toro-secondary */
+    --secondary-foreground: 0 0% 23%;
+    --muted: 42 20% 85%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 160 95% 43%; /* toro-accent */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 0 100% 71%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Define dark mode colors if needed */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    /* Changed from bg-toro-background to use the CSS variable directly */
+    background-color: #fdf7e4;
+    color: #3a3a3a;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+}
