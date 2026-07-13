@@ -1,10 +1,12 @@
 import Image from "next/image"
 import { Countdown } from "@/components/landing/countdown"
 import { FeatureVoteForm } from "@/components/landing/feature-vote-form"
+import { SecretAppKey } from "@/components/landing/secret-app-key"
 
 export function LandingPage() {
   return (
     <main className="min-h-screen bg-toro-background flex flex-col items-center px-4 py-10 sm:py-16">
+      <SecretAppKey />
       <div className="w-full max-w-2xl flex flex-col items-center text-center">
         <Image
           src="/logo.png"
