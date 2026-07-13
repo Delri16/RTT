@@ -1,8 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
-import { AppProvider } from "@/app/app-provider"
-import UploadProgressIndicator from "@/components/upload-progress-indicator"
+import { AppShell } from "@/components/app-shell"
 
 export const metadata: Metadata = {
   title: "Road To Toro",
@@ -38,12 +37,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body className="bg-toro-background">
-        <AppProvider>
-          <div className="w-full max-w-md mx-auto bg-white min-h-screen flex flex-col shadow-2xl">
-            {children}
-            <UploadProgressIndicator />
-          </div>
-        </AppProvider>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   )
