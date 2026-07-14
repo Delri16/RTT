@@ -21,6 +21,7 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
   const [cameraReady, setCameraReady] = useState(false)
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user")
   const [isMirror, setIsMirror] = useState(true)
+  const [switchingCamera, setSwitchingCamera] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
@@ -55,15 +56,20 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
       setStream(mediaStream)
       setFacingMode(mode)
       setIsMirror(mode === "user")
+      setSwitchingCamera(false)
     } catch (err) {
-      const message =
-        err instanceof Error && err.name === "NotAllowedError"
-          ? "Permiso de cámara denegado. Actívalo en configuración."
-          : err instanceof Error && err.name === "NotFoundError"
-            ? "No se encontró cámara en el dispositivo."
-            : "No se pudo acceder a la cámara."
+      let message = "No se pudo acceder a la cámara."
+
+      if (err instanceof Error) {
+        if (err.name === "NotAllowedError") {
+          message = "Permiso de cámara denegado. Actívalo en configuración."
+        } else if (err.name === "NotFoundError") {
+          message = "No hay cámara disponible en este dispositivo."
+        }
+      }
 
       setError(message)
+      setSwitchingCamera(false)
       console.error("[camera] error:", err)
     }
   }
@@ -83,7 +89,9 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
   }
 
   const toggleCamera = async () => {
+    setSwitchingCamera(true)
     stopCamera()
+    await new Promise((r) => setTimeout(r, 300))
     const newMode = facingMode === "user" ? "environment" : "user"
     await startCamera(newMode)
   }
@@ -107,7 +115,6 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
 
-      // Si es espejo (frontal), voltear horizontalmente
       if (isMirror) {
         ctx.translate(canvas.width, 0)
         ctx.scale(-1, 1)
@@ -183,106 +190,83 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
                 <div className="w-4/5 h-4/5 border-4 border-toro-primary rounded-2xl opacity-70" />
               </div>
             )}
+
+            {cameraReady && !capturedImage && (
+              <div className="absolute top-4 left-4 z-20">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    stopCamera()
+                    onClose()
+                  }}
+                  className="bg-black/50 text-white hover:bg-black/70 w-12 h-12"
+                >
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
+            )}
+
+            {cameraReady && !capturedImage && (
+              <div className="absolute top-4 right-4 z-20">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleCamera}
+                  disabled={switchingCamera}
+                  className="bg-black/50 text-white hover:bg-black/70 w-12 h-12 disabled:opacity-50"
+                >
+                  <RotateCw className="w-6 h-6" />
+                </Button>
+              </div>
+            )}
           </>
         ) : (
           <img src={capturedImage} alt="preview" className="w-full h-full object-cover" />
         )}
-
-        {cameraReady && !capturedImage && (
-          <div className="absolute top-4 left-4">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                stopCamera()
-                onClose()
-              }}
-              className="bg-black/50 text-white hover:bg-black/70"
-            >
-              <X className="w-6 h-6" />
-            </Button>
-          </div>
-        )}
-
-        {cameraReady && !capturedImage && (
-          <div className="absolute top-4 right-4">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={toggleCamera}
-              className="bg-black/50 text-white hover:bg-black/70"
-            >
-              <RotateCw className="w-6 h-6" />
-            </Button>
-          </div>
-        )}
-
-        {capturedImage && (
-          <div className="absolute inset-0 flex flex-col items-center justify-between p-6 pointer-events-none">
-            <div className="pointer-events-auto">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setCapturedImage(null)}
-                className="bg-black/50 text-white hover:bg-black/70"
-              >
-                <X className="w-6 h-6" />
-              </Button>
-            </div>
-
-            <div className="flex gap-4 pointer-events-auto">
-              <Button
-                type="button"
-                variant="ghost"
-                className="px-6 py-2 bg-black/60 text-white hover:bg-black/80 text-lg font-semibold"
-                onClick={() => setCapturedImage(null)}
-              >
-                Retomar
-              </Button>
-
-              <Button
-                type="button"
-                disabled={loading}
-                className="px-8 py-2 bg-toro-primary hover:bg-toro-primary/90 text-white disabled:opacity-50 text-lg font-semibold"
-                onClick={handleAccept}
-              >
-                {loading ? (
-                  <>
-                    <span className="animate-spin mr-2">⏳</span>
-                    Procesando...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-6 h-6 mr-2" />
-                    Aceptar
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
+      {capturedImage && (
+        <div className="flex gap-3 p-4 bg-gray-900 z-20">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 text-white border-white hover:bg-white/10"
+            onClick={() => setCapturedImage(null)}
+          >
+            Retomar
+          </Button>
+
+          <Button
+            type="button"
+            disabled={loading}
+            className="flex-1 bg-toro-primary hover:bg-toro-primary/90 text-white disabled:opacity-50"
+            onClick={handleAccept}
+          >
+            <Check className="w-5 h-5 mr-2" />
+            {loading ? "Procesando..." : "Aceptar"}
+          </Button>
+        </div>
+      )}
+
       {!capturedImage && (
-        <div className="flex flex-col gap-4 p-6 bg-gray-900">
-          <>
-            <button
-              type="button"
-              disabled={!cameraReady || loading}
-              onClick={capturePhoto}
-              className="mx-auto w-20 h-20 rounded-full bg-toro-primary hover:bg-toro-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg border-4 border-white transition-transform active:scale-95"
-              aria-label="Capturar foto"
-            />
-            <p className="text-white text-center text-sm">Toca el botón para capturar</p>
-          </>
+        <div className="flex flex-col gap-4 p-6 bg-gray-900 z-20">
+          <button
+            type="button"
+            disabled={!cameraReady || loading}
+            onClick={capturePhoto}
+            className="mx-auto w-20 h-20 rounded-full bg-toro-primary hover:bg-toro-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg border-4 border-white transition-transform active:scale-95"
+            aria-label="Capturar foto"
+          />
+          <p className="text-white text-center text-sm">Toca el botón para capturar</p>
         </div>
       )}
 
       {error && (
-        <div className="px-4 py-3 bg-red-900 text-red-100 text-sm">
+        <div className="px-4 py-3 bg-red-900 text-red-100 text-sm z-20">
+          <p className="font-semibold">Error</p>
           <p>{error}</p>
         </div>
       )}
