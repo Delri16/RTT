@@ -38,7 +38,11 @@ export async function createOrGetProfile(username: string) {
 // this table's actual shape (PK is `username`, not `id`) — those look like leftovers
 // from an earlier, unfinished attempt at wiring Supabase Auth directly to this table.
 // Rather than touch policies we can't fully audit, this write goes through admin.
-export async function linkProfileToAuthUser(username: string, email: string, authUserId: string) {
+export async function linkProfileToAuthUser(
+  username: string,
+  email: string,
+  authUserId: string,
+): Promise<{ success: true; profile: any } | { success: false; error: string }> {
   const normalizedEmail = email.trim().toLowerCase()
   const admin = getSupabaseAdmin()
 
@@ -107,19 +111,47 @@ export async function findProfileByUsername(username: string) {
   return { success: true, profile: data }
 }
 
-export async function loginWithPassword(username: string, password?: string) {
-  const { data: profile, error } = await supabase.from("profiles").select("*").eq("username", username).single()
+/**
+ * Creates an Auth user with email+password already confirmed (admin), so the
+ * client can signInWithPassword immediately without an email confirmation link.
+ * If the email already exists in Auth, returns { exists: true }.
+ */
+export async function ensurePasswordAuthUser(email: string, password: string) {
+  const normalizedEmail = email.trim().toLowerCase()
+  if (password.length < 6) {
+    return { success: false as const, error: "La contraseña debe tener al menos 6 caracteres." }
+  }
+
+  const admin = getSupabaseAdmin()
+  const { data, error } = await admin.auth.admin.createUser({
+    email: normalizedEmail,
+    password,
+    email_confirm: true,
+  })
 
   if (error) {
-    return { success: false, error: "Usuario no encontrado" }
+    const msg = (error.message || "").toLowerCase()
+    if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
+      return { success: false as const, exists: true as const }
+    }
+    return { success: false as const, error: error.message }
   }
 
-  // If user has a password set, verify it
-  if (profile.password && profile.password !== password) {
-    return { success: false, error: "Contraseña incorrecta" }
-  }
+  return { success: true as const, userId: data.user.id }
+}
 
-  return { success: true, profile, hasPassword: !!profile.password }
+/**
+ * Sets / updates the Auth password for an existing user (e.g. OTP-only account).
+ * Only call after the user has a valid Auth session.
+ */
+export async function setAuthPassword(authUserId: string, password: string) {
+  if (password.length < 6) {
+    return { success: false, error: "La contraseña debe tener al menos 6 caracteres." }
+  }
+  const admin = getSupabaseAdmin()
+  const { error } = await admin.auth.admin.updateUserById(authUserId, { password })
+  if (error) return { success: false, error: error.message }
+  return { success: true }
 }
 
 export async function updateProfile(

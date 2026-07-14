@@ -50,10 +50,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Session persistence (never expires until signOut) is handled by supabase-js
-  // itself: it keeps the refresh token in localStorage and auto-refreshes it.
-  // Once verifyOtp succeeds client-side, the session already exists — this just
-  // updates local state so the rest of the app renders immediately.
+  // Session stays alive via persistSession + autoRefreshToken in lib/supabase.ts:
+  // refresh tokens are stored in localStorage and renewed until explicit signOut.
   const login = (user: string) => {
     setUsername(user)
   }

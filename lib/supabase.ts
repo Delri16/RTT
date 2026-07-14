@@ -3,10 +3,22 @@ import { createClient } from "@supabase/supabase-js"
 export const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 
+// Persist session in localStorage and auto-refresh access tokens so the user
+// stays signed in across reloads / days until they explicitly log out.
+const authOptions = {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+  },
+} as const
+
 // Create client only if we have valid credentials
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : createClient("https://placeholder.supabase.co", "placeholder-key")
+export const supabase =
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey, authOptions)
+    : createClient("https://placeholder.supabase.co", "placeholder-key", authOptions)
 
 let _supabaseAdmin: ReturnType<typeof createClient> | null = null
 
