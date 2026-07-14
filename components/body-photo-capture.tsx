@@ -218,16 +218,56 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
             </Button>
           </div>
         )}
+
+        {capturedImage && (
+          <div className="absolute inset-0 flex flex-col items-center justify-between p-6 pointer-events-none">
+            <div className="pointer-events-auto">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setCapturedImage(null)}
+                className="bg-black/50 text-white hover:bg-black/70"
+              >
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+
+            <div className="flex gap-4 pointer-events-auto">
+              <Button
+                type="button"
+                variant="ghost"
+                className="px-6 py-2 bg-black/60 text-white hover:bg-black/80 text-lg font-semibold"
+                onClick={() => setCapturedImage(null)}
+              >
+                Retomar
+              </Button>
+
+              <Button
+                type="button"
+                disabled={loading}
+                className="px-8 py-2 bg-toro-primary hover:bg-toro-primary/90 text-white disabled:opacity-50 text-lg font-semibold"
+                onClick={handleAccept}
+              >
+                {loading ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-6 h-6 mr-2" />
+                    Aceptar
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {error && (
-        <div className="px-4 py-3 bg-red-900 text-red-100 text-sm">
-          <p>{error}</p>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-4 p-6 bg-gray-900">
-        {!capturedImage ? (
+      {!capturedImage && (
+        <div className="flex flex-col gap-4 p-6 bg-gray-900">
           <>
             <button
               type="button"
@@ -238,29 +278,14 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
             />
             <p className="text-white text-center text-sm">Toca el botón para capturar</p>
           </>
-        ) : (
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              className="flex-1 text-white hover:bg-gray-700"
-              onClick={() => setCapturedImage(null)}
-            >
-              Retomar
-            </Button>
+        </div>
+      )}
 
-            <Button
-              type="button"
-              disabled={loading}
-              className="flex-1 bg-toro-primary hover:bg-toro-primary/90 text-white disabled:opacity-50"
-              onClick={handleAccept}
-            >
-              <Check className="w-5 h-5 mr-2" />
-              {loading ? "Procesando..." : "Aceptar"}
-            </Button>
-          </div>
-        )}
-      </div>
+      {error && (
+        <div className="px-4 py-3 bg-red-900 text-red-100 text-sm">
+          <p>{error}</p>
+        </div>
+      )}
     </div>
   )
 }
