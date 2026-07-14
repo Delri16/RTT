@@ -1840,14 +1840,13 @@ export async function initializeRodeo(groupId: string) {
   if (existingStandings && existingStandings.length > 0) {
     console.log("[v0] Standings already exist, checking fixtures")
 
-    // Check if fixtures exist
-    const now = new Date()
-    const weekNumber = getWeekNumber(getMondayOfWeek(new Date(now)))
+    // Check if fixtures exist for the current week (identified by Monday date)
+    const weekStartKey = weekKey(new Date())
     const { data: existingFixtures } = await supabase
       .from("groups_rodeo_fixtures")
       .select("id")
       .eq("group_id", groupId)
-      .eq("week_number", weekNumber)
+      .eq("week_start", weekStartKey)
 
     if (!existingFixtures || existingFixtures.length === 0) {
       // Standings exist but no fixtures, generate them
@@ -1877,17 +1876,16 @@ export async function initializeRodeo(groupId: string) {
     return { success: false, error: "Se necesitan al menos 2 miembros para iniciar un rodeo" }
   }
 
-  const now = new Date()
-  const weekNumber = getWeekNumber(getMondayOfWeek(new Date(now)))
+  const initWeekStartKey = weekKey(new Date())
   const { data: orphanedFixtures } = await supabase
     .from("groups_rodeo_fixtures")
     .select("id")
     .eq("group_id", groupId)
-    .eq("week_number", weekNumber)
+    .eq("week_start", initWeekStartKey)
 
   if (orphanedFixtures && orphanedFixtures.length > 0) {
     console.log("[v0] Cleaning up orphaned fixtures:", orphanedFixtures.length)
-    await supabase.from("groups_rodeo_fixtures").delete().eq("group_id", groupId).eq("week_number", weekNumber)
+    await supabase.from("groups_rodeo_fixtures").delete().eq("group_id", groupId).eq("week_start", initWeekStartKey)
   }
 
   // Initialize standings for all members
@@ -1950,415 +1948,299 @@ export async function initializeRodeo(groupId: string) {
   return { success: true, message: "Rodeo inicializado exitosamente" }
 }
 
-export async function generateWeeklyFixtures(groupId: string) {
-  console.log("[v0] Generating weekly fixtures for group:", groupId)
+// ── Rodeo core (rewritten) ────────────────────────────────────────────────
+// Everything now derives from the groups_rodeo_fixtures table (the source of
+// truth) instead of fragile side tables. Weeks are identified by their Monday
+// date (week_start), never by an ISO week number, which used to collide across
+// years. Standings are recomputed from closed fixtures so they can never drift
+// into impossible values (e.g. the negative losses the old code produced).
 
+function weekKey(date: Date): string {
+  return getMondayOfWeek(new Date(date)).toISOString().split("T")[0]
+}
+
+// Points each member earned in a group within an inclusive date range.
+async function getGroupRankingBetween(groupId: string, startISO: string, endISO: string) {
+  const { data } = await supabase
+    .from("user_activities")
+    .select("username, points_earned")
+    .eq("group_id", groupId)
+    .gte("completed_at", startISO)
+    .lte("completed_at", endISO)
+  const map = new Map<string, number>()
+  ;(data ?? []).forEach((a) => map.set(a.username, (map.get(a.username) ?? 0) + a.points_earned))
+  return map
+}
+
+// Minimum-repeat perfect matching over an even-sized player list: returns the
+// pairing that minimizes how many times those pairs have already met, so nobody
+// rematches until every possible pair has played once. Exact DP over a bitmask
+// of used players — fine for realistic group sizes (≤ ~16 → ≤ 65k states).
+function minRepeatMatching(players: string[], timesPlayed: (a: string, b: string) => number): [string, string][] {
+  const n = players.length
+  const full = (1 << n) - 1
+  const memo = new Map<number, { cost: number; pairs: [number, number][] }>()
+
+  function solve(mask: number): { cost: number; pairs: [number, number][] } {
+    if (mask === full) return { cost: 0, pairs: [] }
+    const cached = memo.get(mask)
+    if (cached) return cached
+    let i = 0
+    while (mask & (1 << i)) i++
+    let best: { cost: number; pairs: [number, number][] } = { cost: Number.POSITIVE_INFINITY, pairs: [] }
+    for (let j = i + 1; j < n; j++) {
+      if (mask & (1 << j)) continue
+      const sub = solve(mask | (1 << i) | (1 << j))
+      const total = timesPlayed(players[i], players[j]) + sub.cost
+      if (total < best.cost) best = { cost: total, pairs: [[i, j], ...sub.pairs] }
+    }
+    memo.set(mask, best)
+    return best
+  }
+
+  return solve(0).pairs.map(([a, b]) => [players[a], players[b]])
+}
+
+// Rebuilds every standings row for a group purely from its fixtures, so the
+// table can never drift. Rules (unchanged from before):
+//  • duel winner: +1 win, +1 protein, streak extends (+1 creatine per 5 proteins)
+//  • duel loser: +1 loss, streak goes negative
+//  • draw: +1 draw each, streak resets to 0
+//  • bye: only counts toward bye_count (no win/protein), streak untouched
+export async function recomputeStandings(groupId: string) {
+  const { data: members } = await supabase.from("group_members").select("username").eq("group_id", groupId)
+  const { data: fixtures } = await supabase
+    .from("groups_rodeo_fixtures")
+    .select("*")
+    .eq("group_id", groupId)
+    .order("week_start", { ascending: true })
+    .order("created_at", { ascending: true })
+
+  type S = {
+    wins: number
+    losses: number
+    draws: number
+    proteins: number
+    creatines: number
+    bye_count: number
+    current_streak: number
+    best_streak: number
+    total_score: number
+  }
+  const blank = (): S => ({
+    wins: 0,
+    losses: 0,
+    draws: 0,
+    proteins: 0,
+    creatines: 0,
+    bye_count: 0,
+    current_streak: 0,
+    best_streak: 0,
+    total_score: 0,
+  })
+  const table = new Map<string, S>()
+  const ensure = (u: string) => {
+    if (!table.has(u)) table.set(u, blank())
+    return table.get(u)!
+  }
+  ;(members ?? []).forEach((m) => ensure(m.username))
+
+  for (const f of fixtures ?? []) {
+    if (f.is_bye) {
+      ensure(f.player_a_username).bye_count += 1
+      continue
+    }
+    if (f.status !== "closed" || !f.player_b_username) continue // pending duels don't score yet
+    const a = ensure(f.player_a_username)
+    const b = ensure(f.player_b_username)
+    a.total_score += f.score_a || 0
+    b.total_score += f.score_b || 0
+    if (f.winner_username === f.player_a_username) {
+      a.wins += 1
+      a.proteins += 1
+      a.current_streak = a.current_streak >= 0 ? a.current_streak + 1 : 1
+      b.losses += 1
+      b.current_streak = b.current_streak <= 0 ? b.current_streak - 1 : -1
+    } else if (f.winner_username === f.player_b_username) {
+      b.wins += 1
+      b.proteins += 1
+      b.current_streak = b.current_streak >= 0 ? b.current_streak + 1 : 1
+      a.losses += 1
+      a.current_streak = a.current_streak <= 0 ? a.current_streak - 1 : -1
+    } else {
+      a.draws += 1
+      b.draws += 1
+      a.current_streak = 0
+      b.current_streak = 0
+    }
+    a.best_streak = Math.max(a.best_streak, a.current_streak)
+    b.best_streak = Math.max(b.best_streak, b.current_streak)
+  }
+
+  for (const s of table.values()) s.creatines = Math.floor(s.proteins / 5)
+
+  const rows = [...table.entries()].map(([player_username, s]) => ({ group_id: groupId, player_username, ...s }))
+  if (rows.length > 0) {
+    await supabase.from("groups_rodeo_standings").upsert(rows, { onConflict: "group_id,player_username" })
+  }
+}
+
+export async function generateWeeklyFixtures(groupId: string) {
   const now = new Date()
   const weekStart = getMondayOfWeek(new Date(now))
   const weekEnd = getSundayOfWeek(new Date(now))
+  const weekStartKey = weekStart.toISOString().split("T")[0]
+  const weekEndKey = weekEnd.toISOString().split("T")[0]
   const weekNumber = getWeekNumber(weekStart)
 
-  console.log("[v0] Week info:", { weekNumber, weekStart, weekEnd })
-
-  // Check if fixtures already exist for this week
-  const { data: existingFixtures } = await supabase
+  // Identify the week by its Monday date, not the ISO week number.
+  const { data: existing } = await supabase
     .from("groups_rodeo_fixtures")
     .select("id")
     .eq("group_id", groupId)
-    .eq("week_number", weekNumber)
-
-  if (existingFixtures && existingFixtures.length > 0) {
-    console.log("[v0] Fixtures already exist for this week")
+    .eq("week_start", weekStartKey)
+  if (existing && existing.length > 0) {
     return { success: true, message: "Los fixtures de esta semana ya existen" }
   }
 
-  // Get all active members
   const { data: members, error: membersError } = await supabase
     .from("group_members")
     .select("username")
     .eq("group_id", groupId)
-
-  console.log("[v0] Members for fixtures:", members?.length, "Error:", membersError)
-
   if (membersError || !members || members.length < 2) {
     return { success: false, error: "Se necesitan al menos 2 miembros" }
   }
 
-  // Get standings to check bye counts
-  const { data: standings } = await supabase.from("groups_rodeo_standings").select("*").eq("group_id", groupId)
-
-  console.log("[v0] Standings:", standings)
-
-  const { data: matchupHistory } = await supabase
-    .from("groups_rodeo_matchup_history")
-    .select("player_a_username, player_b_username")
+  // Derive matchup + bye counts straight from the fixtures table.
+  const { data: allFixtures } = await supabase
+    .from("groups_rodeo_fixtures")
+    .select("player_a_username, player_b_username, is_bye")
     .eq("group_id", groupId)
 
-  console.log("[v0] Matchup history from groups_rodeo_matchup_history:", matchupHistory?.length || 0, "records")
-
-  const normalizeUsername = (username: string) => username.trim()
-
-  const matchupMap = new Map<string, number>()
-  matchupHistory?.forEach((match) => {
-    const playerA = normalizeUsername(match.player_a_username)
-    const playerB = match.player_b_username ? normalizeUsername(match.player_b_username) : null
-
-    // Skip BYE matches (where player_b is null)
-    if (!playerB) {
-      console.log(`[v0] Skipping BYE match for "${playerA}"`)
-      return
+  const matchupCount = new Map<string, number>()
+  const byeCount = new Map<string, number>()
+  ;(allFixtures ?? []).forEach((f) => {
+    if (f.is_bye) {
+      byeCount.set(f.player_a_username, (byeCount.get(f.player_a_username) ?? 0) + 1)
+    } else if (f.player_b_username) {
+      const key = [f.player_a_username, f.player_b_username].sort().join("|")
+      matchupCount.set(key, (matchupCount.get(key) ?? 0) + 1)
     }
-
-    const key = [playerA, playerB].sort().join("-")
-    const currentCount = matchupMap.get(key) || 0
-    matchupMap.set(key, currentCount + 1)
-    console.log(`[v0] Loaded matchup: "${playerA}" vs "${playerB}" = ${currentCount + 1} times (key: "${key}")`)
   })
+  const timesPlayed = (a: string, b: string) => matchupCount.get([a, b].sort().join("|")) ?? 0
+  const gamesOf = (p: string) => {
+    let total = 0
+    matchupCount.forEach((c, key) => {
+      const [x, y] = key.split("|")
+      if (x === p || y === p) total += c
+    })
+    return total
+  }
 
-  const availablePlayers = [...members.map((m) => normalizeUsername(m.username))]
-  console.log("[v0] Available players for matchups:", availablePlayers)
+  let players = members.map((m) => m.username.trim())
+  // Rotate the order by week so that, when several pairings tie at zero repeats,
+  // different weeks explore different (still optimal) matchings — variety without
+  // breaking determinism.
+  const rot = players.length ? weekNumber % players.length : 0
+  players = [...players.slice(rot), ...players.slice(0, rot)]
 
-  // Create standings map for bye counts
-  const standingsMap = new Map(standings?.map((s) => [normalizeUsername(s.player_username), s.bye_count]) || [])
-
-  const fixtures = []
-
-  // Determine if someone needs a bye (odd number of players)
-  let byePlayer: string | null = null
-  if (availablePlayers.length % 2 !== 0) {
-    // Find minimum bye count
-    const minByeCount = Math.min(...availablePlayers.map((p) => standingsMap.get(p) || 0))
-
-    // Get all players with minimum bye count
-    const candidatesForBye = availablePlayers.filter((p) => (standingsMap.get(p) || 0) === minByeCount)
-
-    console.log("[v0] Candidates for bye (min count:", minByeCount, "):", candidatesForBye)
-
-    // Pick the first candidate (could be randomized)
-    byePlayer = candidatesForBye[0]
-
-    console.log("[v0] Bye player:", byePlayer)
-
-    // Create bye fixture
+  const fixtures: any[] = []
+  if (players.length % 2 !== 0) {
+    // Bye goes to whoever has had the fewest byes (tie → fewest games played).
+    const byePlayer = [...players].sort((a, b) => {
+      const byeDiff = (byeCount.get(a) ?? 0) - (byeCount.get(b) ?? 0)
+      return byeDiff !== 0 ? byeDiff : gamesOf(a) - gamesOf(b)
+    })[0]
     fixtures.push({
       group_id: groupId,
-      week_start: weekStart.toISOString().split("T")[0],
-      week_end: weekEnd.toISOString().split("T")[0],
+      week_start: weekStartKey,
+      week_end: weekEndKey,
       week_number: weekNumber,
       player_a_username: byePlayer,
       player_b_username: null,
       is_bye: true,
-      status: "closed", // Bye is automatically closed
+      status: "closed",
       score_a: 0,
       score_b: 0,
     })
-
-    // Remove bye player from matchup pool
-    availablePlayers.splice(availablePlayers.indexOf(byePlayer), 1)
+    players = players.filter((p) => p !== byePlayer)
   }
 
-  console.log("[v0] Available players for matchups after bye consideration:", availablePlayers)
-
-  // Strategy: Always pick the matchup with lowest play count that doesn't isolate players
-  while (availablePlayers.length >= 2) {
-    let bestPair: { playerA: string; playerB: string; timesPlayed: number } | null = null
-    let bestScore = Number.POSITIVE_INFINITY
-
-    // Try all possible pairings and score them
-    for (let i = 0; i < availablePlayers.length - 1; i++) {
-      for (let j = i + 1; j < availablePlayers.length; j++) {
-        const playerA = availablePlayers[i]
-        const playerB = availablePlayers[j]
-        const matchupKey = [playerA, playerB].sort().join("-")
-        const timesPlayed = matchupMap.get(matchupKey) || 0
-
-        console.log(
-          `[v0] Evaluating pair: "${playerA}" vs "${playerB}" -> key: "${matchupKey}" -> ${timesPlayed} times`,
-        )
-
-        // Calculate a score for this pairing
-        // Lower is better: prioritize fewer times played
-        // But also consider what happens to remaining players
-        let score = timesPlayed * 1000
-
-        // If this is the last pair, just use it
-        if (availablePlayers.length === 2) {
-          score = timesPlayed
-        } else {
-          // Check if this pairing would leave problematic remaining players
-          const remainingPlayers = availablePlayers.filter((p) => p !== playerA && p !== playerB)
-
-          // Calculate average times played for remaining possible matchups
-          let remainingTotal = 0
-          let remainingCount = 0
-          for (let k = 0; k < remainingPlayers.length - 1; k++) {
-            for (let l = k + 1; l < remainingPlayers.length; l++) {
-              const key = [remainingPlayers[k], remainingPlayers[l]].sort().join("-")
-              remainingTotal += matchupMap.get(key) || 0
-              remainingCount++
-            }
-          }
-
-          const remainingAvg = remainingCount > 0 ? remainingTotal / remainingCount : 0
-          // Add penalty if remaining matchups have higher average play count
-          score += remainingAvg * 10
-        }
-
-        if (score < bestScore) {
-          bestScore = score
-          bestPair = { playerA, playerB, timesPlayed }
-        }
-      }
-    }
-
-    if (!bestPair) {
-      console.error("[v0] Could not find any valid pairing")
-      break
-    }
-
-    console.log(
-      "[v0] Pairing:",
-      bestPair.playerA,
-      "vs",
-      bestPair.playerB,
-      "(played together:",
-      bestPair.timesPlayed,
-      "times, score:",
-      bestScore.toFixed(2),
-      ")",
-    )
-
+  for (const [a, b] of minRepeatMatching(players, timesPlayed)) {
     fixtures.push({
       group_id: groupId,
-      week_start: weekStart.toISOString().split("T")[0],
-      week_end: weekEnd.toISOString().split("T")[0],
+      week_start: weekStartKey,
+      week_end: weekEndKey,
       week_number: weekNumber,
-      player_a_username: bestPair.playerA,
-      player_b_username: bestPair.playerB,
+      player_a_username: a,
+      player_b_username: b,
       is_bye: false,
       status: "pending",
       score_a: 0,
       score_b: 0,
     })
-
-    // Remove used players
-    availablePlayers.splice(availablePlayers.indexOf(bestPair.playerA), 1)
-    availablePlayers.splice(availablePlayers.indexOf(bestPair.playerB), 1)
   }
 
-  console.log("[v0] Generated fixtures:", fixtures.length)
+  const { error: insertError } = await supabase.from("groups_rodeo_fixtures").insert(fixtures)
+  if (insertError) return { success: false, error: insertError.message }
 
-  // Insert fixtures
-  const { error: fixturesError } = await supabase.from("groups_rodeo_fixtures").insert(fixtures)
-
-  console.log("[v0] Fixtures insert error:", fixturesError)
-
-  if (fixturesError) {
-    return { success: false, error: fixturesError.message }
-  }
-
-  // Update bye count if someone got a bye
-  if (byePlayer) {
-    const currentByeCount = standingsMap.get(byePlayer) || 0
-    await supabase
-      .from("groups_rodeo_standings")
-      .update({ bye_count: currentByeCount + 1 })
-      .eq("group_id", groupId)
-      .eq("player_username", byePlayer)
-
-    console.log("[v0] Updated bye count for", byePlayer, "to", currentByeCount + 1)
-  }
-
-  // Update matchup history for all non-bye fixtures
-  for (const fixture of fixtures) {
-    if (!fixture.is_bye && fixture.player_b_username) {
-      const matchupKey = [fixture.player_a_username, fixture.player_b_username].sort()
-      const existingCount = matchupMap.get(matchupKey.join("-")) || 0
-
-      // Upsert matchup history
-      await supabase.from("groups_rodeo_matchup_history").upsert(
-        {
-          group_id: groupId,
-          player_a_username: matchupKey[0],
-          player_b_username: matchupKey[1],
-          times_played: existingCount + 1,
-        },
-        {
-          onConflict: "group_id,player_a_username,player_b_username",
-        },
-      )
-    }
-  }
-
-  console.log("[v0] Updated matchup history")
+  // Keep derived standings (incl. bye_count) in sync with the new fixtures.
+  await recomputeStandings(groupId)
 
   return { success: true, data: fixtures }
 }
 
 export async function regenerateWeeklyFixtures(groupId: string) {
-  console.log("[v0] Regenerating weekly fixtures for group:", groupId)
-
-  const now = new Date()
-  const weekStart = getMondayOfWeek(new Date(now))
-  const weekNumber = getWeekNumber(weekStart)
-
-  // Get existing fixtures before deleting to rollback history
-  const { data: existingFixtures, error: fetchError } = await supabase
-    .from("groups_rodeo_fixtures")
-    .select("*")
-    .eq("group_id", groupId)
-    .eq("week_number", weekNumber)
-
-  if (fetchError) {
-    console.error("[v0] Error fetching fixtures:", fetchError)
-    return { success: false, error: fetchError.message }
-  }
-
-  console.log("[v0] Found", existingFixtures?.length || 0, "fixtures to rollback")
-
-  // Rollback matchup history and bye counts
-  if (existingFixtures && existingFixtures.length > 0) {
-    for (const fixture of existingFixtures) {
-      // Rollback matchup history for non-bye fixtures
-      if (!fixture.is_bye && fixture.player_b_username) {
-        const matchupKey = [fixture.player_a_username, fixture.player_b_username].sort()
-
-        // Get current times played
-        const { data: existingMatchup } = await supabase
-          .from("groups_rodeo_matchup_history")
-          .select("times_played")
-          .eq("group_id", groupId)
-          .eq("player_a_username", matchupKey[0])
-          .eq("player_b_username", matchupKey[1])
-          .maybeSingle()
-
-        if (existingMatchup && existingMatchup.times_played > 0) {
-          const newCount = existingMatchup.times_played - 1
-
-          if (newCount === 0) {
-            // Delete the record if it goes to 0
-            await supabase
-              .from("groups_rodeo_matchup_history")
-              .delete()
-              .eq("group_id", groupId)
-              .eq("player_a_username", matchupKey[0])
-              .eq("player_b_username", matchupKey[1])
-
-            console.log("[v0] Deleted matchup history for", matchupKey[0], "vs", matchupKey[1])
-          } else {
-            // Decrement the counter
-            await supabase
-              .from("groups_rodeo_matchup_history")
-              .update({ times_played: newCount })
-              .eq("group_id", groupId)
-              .eq("player_a_username", matchupKey[0])
-              .eq("player_b_username", matchupKey[1])
-
-            console.log("[v0] Decremented matchup history for", matchupKey[0], "vs", matchupKey[1], "to", newCount)
-          }
-        } else {
-          console.log("[v0] No matchup history found for", matchupKey[0], "vs", matchupKey[1], "- skipping rollback")
-        }
-      }
-
-      // Rollback bye count
-      if (fixture.is_bye && fixture.player_a_username) {
-        const { data: standing } = await supabase
-          .from("groups_rodeo_standings")
-          .select("bye_count")
-          .eq("group_id", groupId)
-          .eq("player_username", fixture.player_a_username)
-          .single()
-
-        if (standing && standing.bye_count > 0) {
-          await supabase
-            .from("groups_rodeo_standings")
-            .update({ bye_count: standing.bye_count - 1 })
-            .eq("group_id", groupId)
-            .eq("player_username", fixture.player_a_username)
-
-          console.log("[v0] Decremented bye count for", fixture.player_a_username, "to", standing.bye_count - 1)
-        }
-      }
-    }
-  }
-
-  // Delete existing fixtures for current week
+  // Delete this week's fixtures and rebuild. Nothing to "roll back" anymore:
+  // matchup and bye counts are derived from whatever fixtures remain.
+  const weekStartKey = weekKey(new Date())
   const { error: deleteError } = await supabase
     .from("groups_rodeo_fixtures")
     .delete()
     .eq("group_id", groupId)
-    .eq("week_number", weekNumber)
+    .eq("week_start", weekStartKey)
 
   if (deleteError) {
-    console.error("[v0] Error deleting fixtures:", deleteError)
     return { success: false, error: deleteError.message }
   }
 
-  console.log("[v0] Deleted existing fixtures, generating new ones")
-
-  // Generate new fixtures (this will update history and bye counts again)
   return await generateWeeklyFixtures(groupId)
 }
 
 export async function closeWeeklyFixtures(groupId: string) {
-  console.log("[v0] closeWeeklyFixtures called for group:", groupId)
+  // Close pending duels from weeks that have already ended (identified by the
+  // Monday date, so it's correct across year boundaries). Each duel is scored
+  // from the points its two players earned during that fixture's own week.
+  const currentWeekStartKey = weekKey(new Date())
 
-  // Get all pending fixtures for this group, ordered by week number descending
-  const { data: fixtures, error: fixturesError } = await supabase
+  const { data: pending, error: pendingError } = await supabase
     .from("groups_rodeo_fixtures")
     .select("*")
     .eq("group_id", groupId)
     .eq("status", "pending")
-    .order("week_number", { ascending: false })
+    .lt("week_start", currentWeekStartKey)
 
-  if (fixturesError || !fixtures || fixtures.length === 0) {
-    console.log("[v0] No pending fixtures found to close")
+  if (pendingError || !pending || pending.length === 0) {
     return { success: false, error: "No hay fixtures pendientes para cerrar" }
   }
 
-  // Get the most recent week number with pending fixtures
-  const weekNumber = fixtures[0].week_number
-  console.log("[v0] Closing fixtures for week:", weekNumber)
-
-  // Filter fixtures for that specific week
-  const weekFixtures = fixtures.filter((f) => f.week_number === weekNumber)
-
-  // Get weekly ranking to determine scores
-  const weekStart = getMondayOfWeek(new Date())
-  const weeksAgo = getWeekNumber(weekStart) - weekNumber
-  console.log("[v0] Getting ranking for week", weekNumber, "which is", weeksAgo, "weeks ago")
-
-  const ranking = await getGroupRankingByWeek(groupId, weeksAgo)
-  const scoresMap = new Map(ranking.map((r: any) => [r.username, r.points]))
-  console.log("[v0] Scores for week:", Object.fromEntries(scoresMap))
-
-  // Process each fixture
-  for (const fixture of weekFixtures) {
-    const scoreA = scoresMap.get(fixture.player_a_username) || 0
-    const scoreB = fixture.player_b_username ? scoresMap.get(fixture.player_b_username) || 0 : 0
-
-    console.log(
-      `[v0] Processing fixture: ${fixture.player_a_username} (${scoreA}) vs ${fixture.player_b_username} (${scoreB})`,
-    )
-
-    let winnerUsername: string | null = null
-    let isDraw = false
-
-    if (!fixture.is_bye) {
-      if (scoreA > scoreB) {
-        winnerUsername = fixture.player_a_username
-      } else if (scoreB > scoreA) {
-        winnerUsername = fixture.player_b_username
-      } else {
-        isDraw = true
-      }
-    } else {
-      // BYE week - player_a automatically wins
-      winnerUsername = fixture.player_a_username
+  for (const fixture of pending) {
+    if (fixture.is_bye || !fixture.player_b_username) {
+      await supabase
+        .from("groups_rodeo_fixtures")
+        .update({ status: "closed", closed_at: new Date().toISOString() })
+        .eq("id", fixture.id)
+      continue
     }
 
-    // Update fixture
+    const startISO = new Date(`${fixture.week_start}T00:00:00.000Z`).toISOString()
+    const endISO = new Date(`${fixture.week_end}T23:59:59.999Z`).toISOString()
+    const scores = await getGroupRankingBetween(groupId, startISO, endISO)
+    const scoreA = scores.get(fixture.player_a_username) || 0
+    const scoreB = scores.get(fixture.player_b_username) || 0
+    const winnerUsername =
+      scoreA > scoreB ? fixture.player_a_username : scoreB > scoreA ? fixture.player_b_username : null
+
     await supabase
       .from("groups_rodeo_fixtures")
       .update({
@@ -2370,96 +2252,12 @@ export async function closeWeeklyFixtures(groupId: string) {
       })
       .eq("id", fixture.id)
 
-    const { error: historyError } = await supabase.rpc("save_fixture_to_history", {
-      p_fixture_id: fixture.id,
-    })
-
-    if (historyError) {
-      console.error("[v0] Error saving fixture to history:", historyError)
-    }
-
-    // Update standings
-    if (winnerUsername) {
-      // Winner gets 1 protein
-      const { data: standing } = await supabase
-        .from("groups_rodeo_standings")
-        .select("*")
-        .eq("group_id", groupId)
-        .eq("player_username", winnerUsername)
-        .single()
-
-      if (standing) {
-        const newProteins = standing.proteins + 1
-        const newCreatines = standing.creatines + Math.floor(newProteins / 5) - Math.floor(standing.proteins / 5)
-        const newWins = standing.wins + 1
-        const newStreak = standing.current_streak >= 0 ? standing.current_streak + 1 : 1
-        const newBestStreak = Math.max(standing.best_streak, newStreak)
-
-        await supabase
-          .from("groups_rodeo_standings")
-          .update({
-            wins: newWins,
-            proteins: newProteins,
-            creatines: standing.creatines + newCreatines,
-            current_streak: newStreak,
-            best_streak: newBestStreak,
-            total_score: standing.total_score + scoreA,
-          })
-          .eq("id", standing.id)
-      }
-
-      // Update loser
-      const loserUsername =
-        winnerUsername === fixture.player_a_username ? fixture.player_b_username : fixture.player_a_username
-      if (loserUsername) {
-        const { data: loserStanding } = await supabase
-          .from("groups_rodeo_standings")
-          .select("*")
-          .eq("group_id", groupId)
-          .eq("player_username", loserUsername)
-          .single()
-
-        if (loserStanding) {
-          const newLosses = loserStanding.losses + 1
-          const newStreak = loserStanding.current_streak <= 0 ? loserStanding.current_streak - 1 : -1
-          const loserScore = loserUsername === fixture.player_a_username ? scoreA : scoreB
-
-          await supabase
-            .from("groups_rodeo_standings")
-            .update({
-              losses: newLosses,
-              current_streak: newStreak,
-              total_score: loserStanding.total_score + loserScore,
-            })
-            .eq("id", loserStanding.id)
-        }
-      }
-    } else if (isDraw) {
-      // Both players get a draw
-      for (const playerUsername of [fixture.player_a_username, fixture.player_b_username]) {
-        if (!playerUsername) continue
-
-        const { data: standing } = await supabase
-          .from("groups_rodeo_standings")
-          .select("*")
-          .eq("group_id", groupId)
-          .eq("player_username", playerUsername)
-          .single()
-
-        if (standing) {
-          const playerScore = playerUsername === fixture.player_a_username ? scoreA : scoreB
-          await supabase
-            .from("groups_rodeo_standings")
-            .update({
-              draws: standing.draws + 1,
-              current_streak: 0,
-              total_score: standing.total_score + playerScore,
-            })
-            .eq("id", standing.id)
-        }
-      }
-    }
+    const { error: historyError } = await supabase.rpc("save_fixture_to_history", { p_fixture_id: fixture.id })
+    if (historyError) console.error("[v0] Error saving fixture to history:", historyError)
   }
+
+  // Standings are a pure function of the closed fixtures — rebuild them.
+  await recomputeStandings(groupId)
 
   revalidatePath(`/groups/${groupId}/rodeos`)
   revalidatePath(`/groups/${groupId}`)
@@ -2598,14 +2396,13 @@ export async function getRodeoStandings(groupId: string) {
 }
 
 export async function getCurrentWeekFixtures(groupId: string) {
-  const now = new Date()
-  const weekNumber = getWeekNumber(getMondayOfWeek(new Date(now)))
+  const weekStartKey = weekKey(new Date())
 
   const { data: fixtures, error } = await supabase
     .from("groups_rodeo_fixtures")
     .select("*")
     .eq("group_id", groupId)
-    .eq("week_number", weekNumber)
+    .eq("week_start", weekStartKey)
     .order("created_at", { ascending: true })
 
   if (error) {
