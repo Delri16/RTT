@@ -11,12 +11,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Camera, Scale, Upload } from "lucide-react"
 import { useApp } from "@/app/app-provider"
-import { createBiWeeklyReport, getUserGroups } from "@/lib/actions"
+import { createReport, getUserGroups } from "@/lib/actions"
 import Link from "next/link"
 import AchievementToast from "@/components/achievement-toast"
 import { checkAndAwardAchievements } from "@/lib/achievements"
 import type { Achievement } from "@/lib/achievements"
 import { compressImage } from "@/lib/image-compression"
+import { uploadToStorage, makePhotoPath } from "@/lib/upload"
 
 export default function CreateReportPage() {
   const { username } = useApp()
@@ -33,6 +34,7 @@ export default function CreateReportPage() {
   const [error, setError] = useState("")
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null)
   const [compressing, setCompressing] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState("")
 
   useEffect(() => {
     if (username) {
@@ -61,7 +63,7 @@ export default function CreateReportPage() {
       }
 
       try {
-        const compressed = await compressImage(file, 480, 0.4)
+        const compressed = await compressImage(file)
         setScalePhoto(compressed)
       } catch (error) {
         console.error("[v0] Error compressing scale image:", error)
@@ -85,7 +87,7 @@ export default function CreateReportPage() {
       }
 
       try {
-        const compressed = await compressImage(file, 480, 0.4)
+        const compressed = await compressImage(file)
         setBodyPhoto(compressed)
       } catch (error) {
         console.error("[v0] Error compressing body image:", error)
@@ -107,83 +109,56 @@ export default function CreateReportPage() {
     setLoading(true)
     setError("")
 
-    const uploadId = `upload-${Date.now()}`
-
-    // Emit upload start event
-    window.dispatchEvent(
-      new CustomEvent("upload:start", {
-        detail: { id: uploadId, message: "Subiendo reporte..." },
-      }),
-    )
-
-    const formData = new FormData()
-    formData.append("username", username!)
-    formData.append("group_id", selectedGroup)
-    formData.append("reported_weight", weight)
-
-    if (scalePhoto) {
-      formData.append("scale_photo", scalePhoto)
-    }
-    if (bodyPhoto) {
-      formData.append("body_photo", bodyPhoto)
-    }
-
-    // Simulate progress (since we can't track actual upload progress easily)
-    const progressInterval = setInterval(() => {
-      window.dispatchEvent(
-        new CustomEvent("upload:progress", {
-          detail: { id: uploadId, progress: Math.min(90, Math.random() * 100) },
-        }),
-      )
-    }, 500)
-
     try {
-      const result = await createBiWeeklyReport(formData)
+      // Photos upload straight from the browser to storage (fast, no server round-trip).
+      let scaleUrl = ""
+      let bodyUrl = ""
 
-      clearInterval(progressInterval)
-
-      if (result.success) {
-        // Emit upload complete event
-        window.dispatchEvent(
-          new CustomEvent("upload:complete", {
-            detail: { id: uploadId },
-          }),
-        )
-
-        // Check for new achievements
-        try {
-          const newAchievements = await checkAndAwardAchievements(username!, selectedGroup)
-          if (newAchievements.length > 0) {
-            setNewAchievement(newAchievements[0])
-          }
-        } catch (error) {
-          console.error("Error checking achievements:", error)
-        }
-
-        // Navigate after a short delay to show success
-        setTimeout(() => {
-          router.push("/reports")
-        }, 1000)
-      } else {
-        // Emit upload error event
-        window.dispatchEvent(
-          new CustomEvent("upload:error", {
-            detail: { id: uploadId, error: result.error || "Error al crear el reporte" },
-          }),
-        )
-        setError(result.error || "Error al crear el reporte")
+      if (scalePhoto) {
+        setUploadStatus("Subiendo foto de balanza...")
+        const res = await uploadToStorage(scalePhoto, "report_photos", makePhotoPath(selectedGroup, username!, "scale"))
+        if (!res.success) throw new Error(res.error)
+        scaleUrl = res.url
       }
-    } catch (error) {
-      clearInterval(progressInterval)
-      window.dispatchEvent(
-        new CustomEvent("upload:error", {
-          detail: { id: uploadId, error: "Error inesperado al subir" },
-        }),
-      )
-      setError("Error inesperado al subir")
-    }
 
-    setLoading(false)
+      if (bodyPhoto) {
+        setUploadStatus("Subiendo foto de progreso...")
+        const res = await uploadToStorage(bodyPhoto, "report_photos", makePhotoPath(selectedGroup, username!, "body"))
+        if (!res.success) throw new Error(res.error)
+        bodyUrl = res.url
+      }
+
+      setUploadStatus("Guardando reporte...")
+      const result = await createReport({
+        username: username!,
+        group_id: selectedGroup,
+        reported_weight: Number.parseFloat(weight),
+        scale_photo_url: scaleUrl,
+        body_photo_url: bodyUrl,
+      })
+
+      if (!result.success) {
+        setError(result.error || "Error al crear el reporte")
+        setUploadStatus("")
+        setLoading(false)
+        return
+      }
+
+      try {
+        const newAchievements = await checkAndAwardAchievements(username!, selectedGroup)
+        if (newAchievements.length > 0) setNewAchievement(newAchievements[0])
+      } catch (err) {
+        console.error("Error checking achievements:", err)
+      }
+
+      setUploadStatus("¡Listo!")
+      setTimeout(() => router.push("/reports"), 700)
+    } catch (err) {
+      console.error("[report] upload error:", err)
+      setError(err instanceof Error ? err.message : "Error inesperado al subir")
+      setUploadStatus("")
+      setLoading(false)
+    }
   }
 
   return (
@@ -323,7 +298,7 @@ export default function CreateReportPage() {
               className="w-full bg-toro-primary hover:bg-toro-primary/90 text-white"
               disabled={loading || compressing}
             >
-              {loading ? "Subiendo..." : compressing ? "Optimizando..." : "Crear Reporte"}
+              {loading ? uploadStatus || "Subiendo..." : compressing ? "Optimizando..." : "Crear Reporte"}
             </Button>
           </form>
         </CardContent>

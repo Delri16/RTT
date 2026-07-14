@@ -60,6 +60,22 @@ export function isYesterday(dateString: string): boolean {
   return date.toDateString() === yesterday.toDateString()
 }
 
+// Compact "time ago" for the social feed: "ahora", "hace 5 min", "hace 3 h",
+// "ayer", "hace 4 d", then falls back to a short date.
+export function timeAgo(dateString: string): string {
+  const then = new Date(dateString).getTime()
+  const diffMs = Date.now() - then
+  const min = Math.floor(diffMs / 60000)
+  if (min < 1) return "ahora"
+  if (min < 60) return `hace ${min} min`
+  const hours = Math.floor(min / 60)
+  if (hours < 24) return `hace ${hours} h`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return "ayer"
+  if (days < 7) return `hace ${days} d`
+  return formatActivityDate(dateString)
+}
+
 export function getRelativeDate(dateString: string): string {
   if (isToday(dateString)) {
     return "Hoy"

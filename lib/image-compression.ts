@@ -1,177 +1,93 @@
-export async function compressImage(file: File, maxWidth = 480, quality = 0.4): Promise<File> {
-  return new Promise((resolve, reject) => {
-    if (file.size < 50000) {
-      resolve(file)
-      return
+// Fast, mobile-safe image compression.
+//
+// The previous version used FileReader.readAsDataURL + new Image(), which builds
+// a multi-MB base64 string in memory and decodes on the main thread — that's what
+// froze iOS Safari on big camera photos. This version uses createImageBitmap(),
+// which decodes off the main thread directly from the File blob (no base64), and
+// downscales through a canvas. Falls back to the old path only if createImageBitmap
+// is unavailable.
+
+const MAX_DIMENSION = 1080 // longest side after downscale (good enough for phone photos)
+const TARGET_MAX_BYTES = 500_000 // ~0.5MB target; step quality down until we hit it
+
+async function canvasToBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", quality))
+}
+
+function computeSize(w: number, h: number, max: number) {
+  if (w <= max && h <= max) return { width: w, height: h }
+  if (w >= h) return { width: max, height: Math.round((h / w) * max) }
+  return { width: Math.round((w / h) * max), height: max }
+}
+
+async function decodeBitmap(file: File): Promise<{ width: number; height: number; draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void; close: () => void }> {
+  if (typeof createImageBitmap === "function") {
+    // orientation handling: browsers that support imageOrientation will auto-rotate
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" } as ImageBitmapOptions).catch(
+      () => createImageBitmap(file),
+    )
+    return {
+      width: bitmap.width,
+      height: bitmap.height,
+      draw: (ctx, w, h) => ctx.drawImage(bitmap, 0, 0, w, h),
+      close: () => bitmap.close(),
+    }
+  }
+
+  // Fallback: object URL + <img> (still avoids the giant base64 data URL)
+  const url = URL.createObjectURL(file)
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image()
+      el.onload = () => resolve(el)
+      el.onerror = () => reject(new Error("No se pudo cargar la imagen"))
+      el.src = url
+    })
+    return {
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      draw: (ctx, w, h) => ctx.drawImage(img, 0, 0, w, h),
+      close: () => URL.revokeObjectURL(url),
+    }
+  } catch (e) {
+    URL.revokeObjectURL(url)
+    throw e
+  }
+}
+
+export async function compressImage(file: File): Promise<File> {
+  // Small files: skip work entirely.
+  if (file.size < 200_000 || !file.type.startsWith("image/")) return file
+
+  const source = await decodeBitmap(file)
+
+  try {
+    const { width, height } = computeSize(source.width, source.height, MAX_DIMENSION)
+
+    const canvas = document.createElement("canvas")
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext("2d", { alpha: false })
+    if (!ctx) throw new Error("No se pudo procesar la imagen")
+    ctx.imageSmoothingQuality = "medium"
+    source.draw(ctx, width, height)
+
+    // Step quality down until under target (or floor at 0.4).
+    let quality = 0.8
+    let blob = await canvasToBlob(canvas, quality)
+    while (blob && blob.size > TARGET_MAX_BYTES && quality > 0.4) {
+      quality -= 0.15
+      blob = await canvasToBlob(canvas, quality)
     }
 
-    console.log(`[v0] Starting compression for ${file.name}: ${(file.size / 1024).toFixed(0)}KB`)
+    if (!blob) throw new Error("No se pudo comprimir la imagen")
 
-    const reader = new FileReader()
+    // If compression somehow produced a bigger file than the original, keep original.
+    if (blob.size >= file.size) return file
 
-    const timeout = setTimeout(() => {
-      reader.abort()
-      reject(new Error("Image compression timeout"))
-    }, 20000) // 20 second timeout
-
-    reader.onload = (e) => {
-      clearTimeout(timeout)
-      const img = new Image()
-
-      img.onload = () => {
-        try {
-          // Calculate new dimensions
-          let width = img.width
-          let height = img.height
-
-          console.log(`[v0] Original dimensions: ${width}x${height}`)
-
-          const maxPixels = 480 * 480
-          const currentPixels = width * height
-
-          if (currentPixels > maxPixels) {
-            const scale = Math.sqrt(maxPixels / currentPixels)
-            width = Math.floor(width * scale)
-            height = Math.floor(height * scale)
-          } else if (width > maxWidth || height > maxWidth) {
-            const aspectRatio = width / height
-            if (width > height) {
-              width = maxWidth
-              height = Math.floor(maxWidth / aspectRatio)
-            } else {
-              height = maxWidth
-              width = Math.floor(maxWidth * aspectRatio)
-            }
-          }
-
-          console.log(`[v0] Compressed dimensions: ${width}x${height}`)
-
-          // Create canvas
-          const canvas = document.createElement("canvas")
-          canvas.width = width
-          canvas.height = height
-
-          // Draw and compress
-          const ctx = canvas.getContext("2d", { alpha: false, willReadFrequently: false })
-          if (!ctx) {
-            reject(new Error("Could not get canvas context"))
-            return
-          }
-
-          ctx.imageSmoothingEnabled = true
-          ctx.imageSmoothingQuality = "medium" // Changed from "high" to "medium" for speed
-          ctx.drawImage(img, 0, 0, width, height)
-
-          const maxSize = 800000
-
-          const cleanup = () => {
-            try {
-              ctx.clearRect(0, 0, canvas.width, canvas.height)
-              canvas.width = 0
-              canvas.height = 0
-              img.src = ""
-            } catch (e) {
-              console.error("[v0] Cleanup error:", e)
-            }
-          }
-
-          // Convert to blob with appropriate quality
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                cleanup()
-                reject(new Error("Could not compress image"))
-                return
-              }
-
-              if (blob.size > maxSize) {
-                console.log(`[v0] First pass: ${(blob.size / 1024).toFixed(0)}KB, applying second pass`)
-                canvas.toBlob(
-                  (secondBlob) => {
-                    if (!secondBlob) {
-                      cleanup()
-                      reject(new Error("Could not compress image"))
-                      return
-                    }
-
-                    if (secondBlob.size > maxSize) {
-                      console.log(`[v0] Second pass: ${(secondBlob.size / 1024).toFixed(0)}KB, applying third pass`)
-                      canvas.toBlob(
-                        (thirdBlob) => {
-                          if (!thirdBlob) {
-                            cleanup()
-                            reject(new Error("Could not compress image"))
-                            return
-                          }
-
-                          const compressedFile = new File([thirdBlob], file.name, {
-                            type: "image/jpeg",
-                            lastModified: Date.now(),
-                          })
-
-                          console.log(
-                            `[v0] Image compressed (3rd pass): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`,
-                          )
-
-                          cleanup()
-                          resolve(compressedFile)
-                        },
-                        "image/jpeg",
-                        0.15,
-                      )
-                    } else {
-                      const compressedFile = new File([secondBlob], file.name, {
-                        type: "image/jpeg",
-                        lastModified: Date.now(),
-                      })
-
-                      console.log(
-                        `[v0] Image compressed (2nd pass): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`,
-                      )
-
-                      cleanup()
-                      resolve(compressedFile)
-                    }
-                  },
-                  "image/jpeg",
-                  0.25,
-                )
-              } else {
-                const compressedFile = new File([blob], file.name, {
-                  type: "image/jpeg",
-                  lastModified: Date.now(),
-                })
-
-                console.log(
-                  `[v0] Image compressed (1st pass): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`,
-                )
-
-                cleanup()
-                resolve(compressedFile)
-              }
-            },
-            "image/jpeg",
-            quality,
-          )
-        } catch (error) {
-          console.error("[v0] Compression error:", error)
-          reject(error)
-        }
-      }
-
-      img.onerror = () => {
-        clearTimeout(timeout)
-        reject(new Error("Could not load image"))
-      }
-
-      img.src = e.target?.result as string
-    }
-
-    reader.onerror = () => {
-      clearTimeout(timeout)
-      reject(new Error("Could not read file"))
-    }
-
-    reader.readAsDataURL(file)
-  })
+    const name = file.name.replace(/\.[^.]+$/, "") + ".jpg"
+    return new File([blob], name, { type: "image/jpeg", lastModified: Date.now() })
+  } finally {
+    source.close()
+  }
 }

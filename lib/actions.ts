@@ -813,6 +813,51 @@ export async function uploadPhoto(file: File, bucket: string, path: string) {
   return { success: true, url: publicUrl }
 }
 
+// Lighter report creation: photos are already uploaded to storage client-side
+// (see lib/upload.ts), so this only inserts the row + side effects. Avoids
+// streaming the photo bytes through the server action.
+export async function createReport(input: {
+  username: string
+  group_id: string
+  reported_weight: number
+  scale_photo_url?: string
+  body_photo_url?: string
+}) {
+  const { data, error } = await supabase
+    .from("bi_weekly_reports")
+    .insert([
+      {
+        username: input.username,
+        group_id: input.group_id,
+        reported_weight: input.reported_weight,
+        scale_photo_url: input.scale_photo_url || "",
+        body_photo_url: input.body_photo_url || "",
+        report_date: new Date().toISOString().split("T")[0],
+      },
+    ])
+    .select()
+    .single()
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  if (data) {
+    try {
+      const { checkAndAwardAchievements } = await import("./achievements")
+      await checkAndAwardAchievements(input.username, input.group_id)
+    } catch (err) {
+      console.error("Error checking achievements:", err)
+    }
+  }
+
+  await supabase.from("profiles").update({ current_weight: input.reported_weight }).eq("username", input.username)
+
+  revalidatePath("/reports")
+  revalidatePath("/")
+  return { success: true, report: data }
+}
+
 export async function createBiWeeklyReport(formData: FormData) {
   const username = formData.get("username") as string
   const group_id = formData.get("group_id") as string
@@ -1055,6 +1100,107 @@ export async function getRecentActivities(username: string) {
   }
 
   return data
+}
+
+// Unified social feed: activities + reports from every group the user belongs to,
+// newest first, keyset-paginated by timestamp. This powers the Instagram-style home.
+export type FeedItem =
+  | {
+      type: "activity"
+      id: string
+      username: string
+      ts: string
+      groupName: string | null
+      avatar: string | null
+      activityName: string | null
+      points: number
+      minutes: number | null
+    }
+  | {
+      type: "report"
+      id: string
+      username: string
+      ts: string
+      groupName: string | null
+      avatar: string | null
+      weight: number
+      scalePhotoUrl: string | null
+      bodyPhotoUrl: string | null
+    }
+
+export async function getGroupFeed(
+  username: string,
+  opts?: { limit?: number; before?: string },
+): Promise<{ success: boolean; items: FeedItem[]; nextCursor: string | null; error?: string }> {
+  const limit = opts?.limit ?? 20
+  const before = opts?.before
+
+  const { data: memberships, error: mErr } = await supabase
+    .from("group_members")
+    .select("group_id")
+    .eq("username", username)
+
+  if (mErr) return { success: false, items: [], nextCursor: null, error: mErr.message }
+
+  const groupIds = (memberships ?? []).map((m) => m.group_id)
+  if (groupIds.length === 0) return { success: true, items: [], nextCursor: null }
+
+  // Over-fetch by one from each source so we can tell if there's a next page.
+  let actQ = supabase
+    .from("user_activities")
+    .select("id, username, group_id, points_earned, minutes_performed, completed_at, group_activities (name), groups (name)")
+    .in("group_id", groupIds)
+    .order("completed_at", { ascending: false })
+    .limit(limit + 1)
+  if (before) actQ = actQ.lt("completed_at", before)
+
+  let repQ = supabase
+    .from("bi_weekly_reports")
+    .select("id, username, group_id, reported_weight, scale_photo_url, body_photo_url, created_at, groups (name)")
+    .in("group_id", groupIds)
+    .order("created_at", { ascending: false })
+    .limit(limit + 1)
+  if (before) repQ = repQ.lt("created_at", before)
+
+  const [{ data: acts }, { data: reps }] = await Promise.all([actQ, repQ])
+
+  const merged: FeedItem[] = [
+    ...((acts ?? []).map((a: any) => ({
+      type: "activity" as const,
+      id: a.id,
+      username: a.username,
+      ts: a.completed_at,
+      groupName: a.groups?.name ?? null,
+      avatar: null,
+      activityName: a.group_activities?.name ?? null,
+      points: a.points_earned,
+      minutes: a.minutes_performed ?? null,
+    }))),
+    ...((reps ?? []).map((r: any) => ({
+      type: "report" as const,
+      id: r.id,
+      username: r.username,
+      ts: r.created_at,
+      groupName: r.groups?.name ?? null,
+      avatar: null,
+      weight: r.reported_weight,
+      scalePhotoUrl: r.scale_photo_url || null,
+      bodyPhotoUrl: r.body_photo_url || null,
+    }))),
+  ].sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0))
+
+  const page = merged.slice(0, limit)
+  const nextCursor = merged.length > limit ? page[page.length - 1]?.ts ?? null : null
+
+  // Attach author avatars in one query.
+  const usernames = [...new Set(page.map((i) => i.username))]
+  if (usernames.length > 0) {
+    const { data: profiles } = await supabase.from("profiles").select("username, avatar, avatar_url").in("username", usernames)
+    const avatarMap = new Map((profiles ?? []).map((p: any) => [p.username, p.avatar || p.avatar_url || null]))
+    for (const item of page) item.avatar = avatarMap.get(item.username) ?? null
+  }
+
+  return { success: true, items: page, nextCursor }
 }
 
 export async function getAllUserActivities(username: string) {
