@@ -128,15 +128,38 @@ export function exerciseThumb(ex: Pick<Exercise, "images">): string {
 let cache: Exercise[] | null = null
 let inflight: Promise<Exercise[]> | null = null
 
+// ~560 ejercicios no tienen traducción ES (nombre/instrucciones vienen sin definir)
+// y otros campos podrían faltar. Normalizamos una sola vez al cargar para que el
+// resto de la app nunca reciba undefined: caemos al inglés y garantizamos arrays.
+// (Sin esto, un `nombre` undefined dejaba tarjetas sin título y rompía la búsqueda
+//  al hacer `undefined.toLowerCase()`.)
+function normalizeExercise(e: any): Exercise {
+  return {
+    ...e,
+    name: typeof e.name === "string" ? e.name : "",
+    nombre: typeof e.nombre === "string" && e.nombre ? e.nombre : e.name || "Ejercicio",
+    instructions: Array.isArray(e.instructions) ? e.instructions : [],
+    instrucciones:
+      Array.isArray(e.instrucciones) && e.instrucciones.length
+        ? e.instrucciones
+        : Array.isArray(e.instructions)
+          ? e.instructions
+          : [],
+    primaryMuscles: Array.isArray(e.primaryMuscles) ? e.primaryMuscles : [],
+    secondaryMuscles: Array.isArray(e.secondaryMuscles) ? e.secondaryMuscles : [],
+    images: Array.isArray(e.images) ? e.images : [],
+  }
+}
+
 export async function loadExercises(): Promise<Exercise[]> {
   if (cache) return cache
   if (inflight) return inflight
   inflight = fetch("/ejercicios.json", { cache: "force-cache" })
     .then((r) => r.json())
     .then((data: Exercise[]) => {
-      cache = data
+      cache = data.map(normalizeExercise)
       inflight = null
-      return data
+      return cache
     })
     .catch((err) => {
       inflight = null
@@ -167,7 +190,8 @@ export type ExerciseFilters = {
 }
 
 // Normaliza para búsqueda: sin acentos, minúsculas.
-function norm(s: string): string {
+function norm(s: string | null | undefined): string {
+  if (!s) return ""
   return s
     .toLowerCase()
     .normalize("NFD")
