@@ -9,15 +9,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Camera, Scale, Upload } from "lucide-react"
+import { ArrowLeft, Upload } from "lucide-react"
 import { useApp } from "@/app/app-provider"
 import { createReport, getUserGroups } from "@/lib/actions"
 import Link from "next/link"
 import AchievementToast from "@/components/achievement-toast"
 import { checkAndAwardAchievements } from "@/lib/achievements"
 import type { Achievement } from "@/lib/achievements"
-import { compressImage } from "@/lib/image-compression"
 import { uploadToStorage, makePhotoPath } from "@/lib/upload"
+import { BodyPhotoCapture } from "@/components/body-photo-capture"
 
 export default function CreateReportPage() {
   const { username } = useApp()
@@ -32,8 +32,8 @@ export default function CreateReportPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null)
-  const [compressing, setCompressing] = useState(false)
   const [uploadStatus, setUploadStatus] = useState("")
+  const [cameraOpen, setCameraOpen] = useState(false)
 
   useEffect(() => {
     if (username) {
@@ -50,28 +50,8 @@ export default function CreateReportPage() {
     }
   }
 
-  const handleBodyPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setBodyPhoto(null) // Clear immediately
-      setCompressing(true)
-      setError("")
-
-      if (e.target) {
-        e.target.value = ""
-      }
-
-      try {
-        const compressed = await compressImage(file)
-        setBodyPhoto(compressed)
-      } catch (error) {
-        console.error("[v0] Error compressing body image:", error)
-        setError("Error al procesar la imagen. Intenta con una foto más pequeña.")
-        setBodyPhoto(null)
-      } finally {
-        setCompressing(false)
-      }
-    }
+  const handleBodyPhotoCapture = (file: File) => {
+    setBodyPhoto(file)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,16 +159,15 @@ export default function CreateReportPage() {
             <div>
               <Label htmlFor="body_photo">Foto de Progreso (Opcional)</Label>
               <div className="mt-1">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setCameraOpen(true)}
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+                >
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {compressing ? (
+                    {bodyPhoto ? (
                       <div className="text-center">
-                        <Upload className="w-8 h-8 text-toro-accent mx-auto mb-2 animate-pulse" />
-                        <p className="text-sm text-toro-accent font-medium">Optimizando imagen...</p>
-                      </div>
-                    ) : bodyPhoto ? (
-                      <div className="text-center">
-                        <Camera className="w-8 h-8 text-toro-accent mx-auto mb-2" />
+                        <Upload className="w-8 h-8 text-toro-accent mx-auto mb-2" />
                         <p className="text-sm text-toro-accent font-medium">{bodyPhoto.name}</p>
                         <p className="text-xs text-gray-500 mt-1">{(bodyPhoto.size / 1024).toFixed(0)} KB</p>
                       </div>
@@ -196,23 +175,16 @@ export default function CreateReportPage() {
                       <div className="text-center">
                         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                         <p className="text-sm text-gray-500">
-                          <span className="font-semibold">Toca para subir</span> tu foto de progreso
+                          <span className="font-semibold">Toca para capturar</span> tu foto de progreso
                         </p>
                       </div>
                     )}
                   </div>
-                  <input
-                    id="body_photo"
-                    type="file"
-                    accept="image/*"
-                    capture="user"
-                    className="hidden"
-                    onChange={handleBodyPhotoChange}
-                    disabled={compressing}
-                  />
-                </label>
+                </button>
               </div>
             </div>
+
+            <BodyPhotoCapture isOpen={cameraOpen} onClose={() => setCameraOpen(false)} onPhotoCapture={handleBodyPhotoCapture} />
 
             {error && (
               <div className="p-3 bg-red-100 border border-red-300 rounded-md">
@@ -223,9 +195,9 @@ export default function CreateReportPage() {
             <Button
               type="submit"
               className="w-full bg-toro-primary hover:bg-toro-primary/90 text-white"
-              disabled={loading || compressing}
+              disabled={loading}
             >
-              {loading ? uploadStatus || "Subiendo..." : compressing ? "Optimizando..." : "Crear Reporte"}
+              {loading ? uploadStatus || "Subiendo..." : "Crear Reporte"}
             </Button>
           </form>
         </CardContent>
