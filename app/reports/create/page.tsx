@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,8 @@ export default function CreateReportPage() {
   const [selectedGroup, setSelectedGroup] = useState(preselectedGroup || "")
   const [weight, setWeight] = useState("")
   const [bodyPhoto, setBodyPhoto] = useState<File | null>(null)
+  const [bodyPreviewUrl, setBodyPreviewUrl] = useState<string | null>(null)
+  const bodyPreviewUrlRef = useRef<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null)
@@ -41,17 +43,27 @@ export default function CreateReportPage() {
     }
   }, [username])
 
+  useEffect(() => {
+    return () => {
+      if (bodyPreviewUrlRef.current) URL.revokeObjectURL(bodyPreviewUrlRef.current)
+    }
+  }, [])
+
   const loadGroups = async () => {
     if (!username) return
 
     const result = await getUserGroups(username)
     if (result.success) {
-      setGroups(result.groups)
+      setGroups(result.groups ?? [])
     }
   }
 
   const handleBodyPhotoCapture = (file: File) => {
     setBodyPhoto(file)
+    if (bodyPreviewUrlRef.current) URL.revokeObjectURL(bodyPreviewUrlRef.current)
+    const url = URL.createObjectURL(file)
+    bodyPreviewUrlRef.current = url
+    setBodyPreviewUrl(url)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -162,24 +174,29 @@ export default function CreateReportPage() {
                 <button
                   type="button"
                   onClick={() => setCameraOpen(true)}
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition"
+                  className="relative flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition overflow-hidden"
                 >
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {bodyPhoto ? (
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 text-toro-accent mx-auto mb-2" />
-                        <p className="text-sm text-toro-accent font-medium">{bodyPhoto.name}</p>
-                        <p className="text-xs text-gray-500 mt-1">{(bodyPhoto.size / 1024).toFixed(0)} KB</p>
+                  {bodyPreviewUrl && bodyPhoto ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={bodyPreviewUrl}
+                        alt="Vista previa"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <div className="relative z-10 mt-auto w-full bg-black/50 py-2 text-center">
+                        <p className="text-sm text-white font-medium">Toca para cambiar</p>
+                        <p className="text-xs text-white/80">{(bodyPhoto.size / 1024).toFixed(0)} KB</p>
                       </div>
-                    ) : (
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500">
-                          <span className="font-semibold">Toca para capturar</span> tu foto de progreso
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">
+                        <span className="font-semibold">Toca para capturar</span> tu foto de progreso
+                      </p>
+                    </div>
+                  )}
                 </button>
               </div>
             </div>
