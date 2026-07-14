@@ -63,10 +63,10 @@ export default function HomeFeed() {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-toro-background/90 backdrop-blur-sm border-b border-black/5">
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 active:scale-95 transition" aria-label="Inicio">
             <Image src="/logo-header.png" alt="Road to Toro" width={36} height={36} className="rounded-lg" />
             <h1 className="text-xl font-display text-toro-foreground">Inicio</h1>
-          </div>
+          </Link>
           <Link href="/profile">
             <Button variant="ghost" size="icon" aria-label="Perfil">
               <User className="w-5 h-5" />

@@ -1190,6 +1190,32 @@ export type FeedItem =
       bodyPhotoUrl: string | null
       points: number
     }
+  | {
+      type: "pr"
+      id: string
+      username: string
+      ts: string
+      groupName: string | null
+      avatar: string | null
+      exerciseId: string
+      exerciseName: string
+      weight: number
+      reps: number
+      prevWeight: number | null
+    }
+
+// Deja una sola fila por key (mantiene la primera, ya vienen ordenadas por fecha desc).
+function dedupeBy<T>(rows: T[], key: (r: T) => string): T[] {
+  const seen = new Set<string>()
+  const out: T[] = []
+  for (const r of rows) {
+    const k = key(r)
+    if (seen.has(k)) continue
+    seen.add(k)
+    out.push(r)
+  }
+  return out
+}
 
 export async function getGroupFeed(
   username: string,
@@ -1225,7 +1251,15 @@ export async function getGroupFeed(
     .limit(limit + 1)
   if (before) repQ = repQ.lt("created_at", before)
 
-  const [{ data: acts }, { data: reps }] = await Promise.all([actQ, repQ])
+  let prQ = supabase
+    .from("shared_prs")
+    .select("id, share_id, username, group_id, exercise_id, exercise_name, weight, reps, prev_weight, created_at, groups (name)")
+    .in("group_id", groupIds)
+    .order("created_at", { ascending: false })
+    .limit(limit + 1)
+  if (before) prQ = prQ.lt("created_at", before)
+
+  const [{ data: acts }, { data: reps }, { data: prs }] = await Promise.all([actQ, repQ, prQ])
 
   const merged: FeedItem[] = [
     ...((acts ?? [])
@@ -1254,6 +1288,20 @@ export async function getGroupFeed(
       bodyPhotoUrl: r.body_photo_url || null,
       points: REPORT_POINTS,
     }))),
+    // Deduplica PRs por share_id (se insertan una fila por grupo).
+    ...dedupeBy(prs ?? [], (p: any) => p.share_id ?? p.id).map((p: any) => ({
+      type: "pr" as const,
+      id: p.share_id ?? p.id,
+      username: p.username,
+      ts: p.created_at,
+      groupName: p.groups?.name ?? null,
+      avatar: null,
+      exerciseId: p.exercise_id,
+      exerciseName: p.exercise_name,
+      weight: Number(p.weight),
+      reps: p.reps,
+      prevWeight: p.prev_weight != null ? Number(p.prev_weight) : null,
+    })),
   ].sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0))
 
   const page = merged.slice(0, limit)
@@ -3368,4 +3416,253 @@ export async function syncRodeoHistory(groupId: string) {
     message: `Se sincronizaron ${result.synced_count} partidos al historial`,
     synced: result.synced_count,
   }
+}
+
+// ===========================================================================
+// MI RUTINA: rutinas personales, registro de series y récords personales (PR).
+//
+// Tablas (ver scripts/37-add-routines.sql):
+//   routines      -> rutinas armadas por el usuario (ejercicios en jsonb)
+//   workout_sets  -> cada serie registrada (peso + reps por ejercicio)
+//   shared_prs    -> PRs compartidos al feed (uno por grupo del usuario)
+//
+// Los ejercicios vienen del catálogo estático (public/ejercicios.json); acá
+// solo guardamos su id + nombre, nunca el catálogo entero.
+// ===========================================================================
+
+export type RoutineExercise = {
+  exercise_id: string
+  name: string
+  target_sets: number | null
+  target_reps: number | null
+  notes: string | null
+}
+
+export type Routine = {
+  id: string
+  username: string
+  name: string
+  emoji: string
+  description: string | null
+  exercises: RoutineExercise[]
+  created_at: string
+  updated_at: string
+}
+
+export async function getRoutines(username: string) {
+  const { data, error } = await supabase
+    .from("routines")
+    .select("*")
+    .eq("username", username)
+    .order("updated_at", { ascending: false })
+
+  if (error) return { success: false, error: error.message, routines: [] as Routine[] }
+  return { success: true, routines: (data ?? []) as Routine[] }
+}
+
+export async function getRoutine(id: string) {
+  const { data, error } = await supabase.from("routines").select("*").eq("id", id).single()
+  if (error) return { success: false, error: error.message }
+  return { success: true, routine: data as Routine }
+}
+
+export async function createRoutine(input: {
+  username: string
+  name: string
+  emoji?: string
+  description?: string
+  exercises?: RoutineExercise[]
+}) {
+  const { data, error } = await supabase
+    .from("routines")
+    .insert([
+      {
+        username: input.username,
+        name: input.name,
+        emoji: input.emoji || "💪",
+        description: input.description || null,
+        exercises: input.exercises ?? [],
+      },
+    ])
+    .select()
+    .single()
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/mi-rutina")
+  return { success: true, routine: data as Routine }
+}
+
+export async function updateRoutine(
+  id: string,
+  updates: { name?: string; emoji?: string; description?: string | null; exercises?: RoutineExercise[] },
+) {
+  const { data, error } = await supabase
+    .from("routines")
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/mi-rutina")
+  revalidatePath(`/mi-rutina/${id}`)
+  return { success: true, routine: data as Routine }
+}
+
+export async function deleteRoutine(id: string) {
+  const { error } = await supabase.from("routines").delete().eq("id", id)
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/mi-rutina")
+  return { success: true }
+}
+
+/** Registra una serie. Detecta PR: peso estrictamente mayor al máximo previo
+ *  para ese ejercicio y usuario. Devuelve isPR + el peso anterior para el cartel. */
+export async function logWorkoutSet(input: {
+  username: string
+  exercise_id: string
+  exercise_name: string
+  weight: number
+  reps: number
+  routine_id?: string | null
+}) {
+  // Máximo previo para ese ejercicio (antes de insertar la serie nueva).
+  const { data: prev } = await supabase
+    .from("workout_sets")
+    .select("weight, reps")
+    .eq("username", input.username)
+    .eq("exercise_id", input.exercise_id)
+    .order("weight", { ascending: false })
+    .limit(1)
+
+  const prevBest = prev && prev.length > 0 ? Number(prev[0].weight) : null
+  const isPR = input.weight > 0 && prevBest !== null && input.weight > prevBest
+
+  const { data, error } = await supabase
+    .from("workout_sets")
+    .insert([
+      {
+        username: input.username,
+        routine_id: input.routine_id || null,
+        exercise_id: input.exercise_id,
+        exercise_name: input.exercise_name,
+        weight: input.weight,
+        reps: input.reps,
+        is_pr: isPR,
+      },
+    ])
+    .select()
+    .single()
+
+  if (error) return { success: false, error: error.message, isPR: false }
+  return { success: true, set: data, isPR, prevWeight: prevBest }
+}
+
+export async function deleteWorkoutSet(id: string) {
+  const { error } = await supabase.from("workout_sets").delete().eq("id", id)
+  if (error) return { success: false, error: error.message }
+  return { success: true }
+}
+
+/** Series recientes de un ejercicio para ese usuario (historial + para saber el récord). */
+export async function getExerciseHistory(username: string, exerciseId: string, limit = 50) {
+  const { data, error } = await supabase
+    .from("workout_sets")
+    .select("*")
+    .eq("username", username)
+    .eq("exercise_id", exerciseId)
+    .order("created_at", { ascending: false })
+    .limit(limit)
+
+  if (error) return { success: false, error: error.message, sets: [] as any[] }
+  return { success: true, sets: data ?? [] }
+}
+
+/** Récord (peso máximo) por ejercicio para el usuario. Se calcula en JS. */
+export async function getPersonalRecords(username: string) {
+  const { data, error } = await supabase
+    .from("workout_sets")
+    .select("exercise_id, exercise_name, weight, reps, created_at")
+    .eq("username", username)
+    .order("created_at", { ascending: false })
+
+  if (error) return { success: false, error: error.message, records: [] as any[] }
+
+  const byExercise = new Map<string, { exercise_id: string; exercise_name: string; weight: number; reps: number; created_at: string }>()
+  for (const s of data ?? []) {
+    const w = Number(s.weight)
+    const cur = byExercise.get(s.exercise_id)
+    if (!cur || w > cur.weight) {
+      byExercise.set(s.exercise_id, {
+        exercise_id: s.exercise_id,
+        exercise_name: s.exercise_name,
+        weight: w,
+        reps: s.reps,
+        created_at: s.created_at,
+      })
+    }
+  }
+  const records = [...byExercise.values()].sort((a, b) => b.weight - a.weight)
+  return { success: true, records }
+}
+
+/** Resumen para el hub de Mi Rutina. */
+export async function getWorkoutStats(username: string) {
+  const { data, error } = await supabase
+    .from("workout_sets")
+    .select("weight, reps, is_pr, created_at")
+    .eq("username", username)
+
+  if (error) return { success: false, totalSets: 0, totalVolume: 0, prCount: 0, lastAt: null as string | null }
+
+  let totalVolume = 0
+  let prCount = 0
+  let lastAt: string | null = null
+  for (const s of data ?? []) {
+    totalVolume += Number(s.weight) * Number(s.reps)
+    if (s.is_pr) prCount++
+    if (!lastAt || s.created_at > lastAt) lastAt = s.created_at
+  }
+  return { success: true, totalSets: (data ?? []).length, totalVolume, prCount, lastAt }
+}
+
+/** Comparte un PR al feed de todos los grupos del usuario (como un reporte). */
+export async function sharePR(input: {
+  username: string
+  exercise_id: string
+  exercise_name: string
+  weight: number
+  reps: number
+  prev_weight?: number | null
+}) {
+  const { data: memberships, error: mErr } = await supabase
+    .from("group_members")
+    .select("group_id")
+    .eq("username", input.username)
+
+  if (mErr) return { success: false, error: mErr.message }
+  const groupIds = (memberships ?? []).map((m) => m.group_id)
+  if (groupIds.length === 0) {
+    return { success: false, error: "No estás en ningún grupo para compartir." }
+  }
+
+  // Un share_id común a todas las filas (una por grupo) para deduplicar en el feed:
+  // el autor está en varios grupos y si no, vería el mismo PR repetido.
+  const shareId = crypto.randomUUID()
+  const rows = groupIds.map((group_id) => ({
+    share_id: shareId,
+    username: input.username,
+    group_id,
+    exercise_id: input.exercise_id,
+    exercise_name: input.exercise_name,
+    weight: input.weight,
+    reps: input.reps,
+    prev_weight: input.prev_weight ?? null,
+  }))
+
+  const { error } = await supabase.from("shared_prs").insert(rows)
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath("/")
+  return { success: true, sharedTo: groupIds.length }
 }

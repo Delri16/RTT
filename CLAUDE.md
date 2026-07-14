@@ -71,6 +71,17 @@ UI: selector de objetivo en el perfil ([app/profile/page.tsx](app/profile/page.t
 
 **Falta correr en Supabase:** [scripts/36-add-goal-and-aerobic.sql](scripts/36-add-goal-and-aerobic.sql) (agrega `profiles.goal` y `group_activities.aerobic_pct`). Sin esto, crear/editar actividades falla al insertar `aerobic_pct`. Las ~1091 actividades existentes quedan en `aerobic_pct = 50` (neutro), así que no cambian de puntaje hasta configurarlas.
 
+## Mi Rutina (rutinas de gimnasio + PRs)
+
+Sección personal para armar rutinas de gym, entrenar registrando series (peso/reps) y compartir récords (PR) al feed. Se accede desde el botón **Rutina** del footer (reemplaza al viejo botón Inicio: a Inicio ahora se llega tocando el logo de arriba, ver [components/bottom-nav.tsx](components/bottom-nav.tsx) y [components/routine/routine-header.tsx](components/routine/routine-header.tsx)).
+
+- **Catálogo de ejercicios:** estático en `public/ejercicios.json` (870 ejercicios con traducción ES, nivel de `fame` 1/2/3 e imágenes en `public/exercises/<id>/<n>.jpg`). Nunca se importa en el bundle: se baja con `fetch` y se cachea en memoria. Toda la lógica de filtros/búsqueda/traducción vive en [lib/exercise-catalog.ts](lib/exercise-catalog.ts) (módulo puro, client-side). Por defecto se listan solo los `fame 1` (94, "Populares"); el segmentado suma `fame 2` ("Comunes") y `fame 3` ("Todos"). Búsqueda por nombre ES/EN, filtros por músculo/equipo/categoría/nivel/tipo/fuerza.
+- **Rutinas:** tabla `routines` con los ejercicios en una columna `jsonb` (no tabla aparte) para reordenar fácil. UI en [components/routine/](components/routine/): `routine-hub`, `routine-builder`, `routine-detail`, `workout-session`, `exercise-catalog`, `exercise-detail-drawer`, `pr-celebration`. Rutas en `app/mi-rutina/`.
+- **Registro de series:** cada serie completada va a `workout_sets` vía `logWorkoutSet` (en [lib/actions.ts](lib/actions.ts)), que detecta PR (peso > máximo previo de ese ejercicio) y devuelve `isPR` + peso anterior.
+- **PRs compartibles:** al superar tu récord aparece un cartel (`pr-celebration.tsx`) que permite compartirlo al feed con `sharePR` → inserta una fila en `shared_prs` por cada grupo del usuario (agrupadas por `share_id` para no duplicar en el feed del autor). El feed (`getGroupFeed` + [components/feed/feed-post.tsx](components/feed/feed-post.tsx)) tiene un nuevo tipo `pr`.
+
+**Falta correr en Supabase:** [scripts/37-add-routines.sql](scripts/37-add-routines.sql) (crea `routines`, `workout_sets`, `shared_prs`). Sin esto, el hub de Mi Rutina carga vacío (las lecturas fallan silenciosamente y muestran estado vacío, no rompen), pero crear rutinas / registrar series / compartir PRs falla hasta correrlo. El feed sigue andando aunque falte la tabla `shared_prs` (la query devuelve vacío).
+
 ## Convenciones existentes (no introducidas por este cambio)
 
 - Colores de marca: `toro-background #FDF7E4`, `toro-foreground #3A3A3A`, `toro-primary #FF6B6B`, `toro-secondary #FFD166`, `toro-accent #06D6A0` (ver `tailwind.config.ts`).
