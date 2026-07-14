@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { Camera, X, Check } from "lucide-react"
+import { Camera, X, Check, RotateCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { compressImage } from "@/lib/image-compression"
 
@@ -19,6 +19,8 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [cameraReady, setCameraReady] = useState(false)
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user")
+  const [isMirror, setIsMirror] = useState(true)
 
   useEffect(() => {
     if (isOpen) {
@@ -28,14 +30,14 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
     }
   }, [isOpen])
 
-  const startCamera = async () => {
+  const startCamera = async (mode: "user" | "environment" = "user") => {
     try {
       setError("")
       setCameraReady(false)
 
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: "user",
+          facingMode: mode,
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -51,6 +53,8 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
       }
 
       setStream(mediaStream)
+      setFacingMode(mode)
+      setIsMirror(mode === "user")
     } catch (err) {
       const message =
         err instanceof Error && err.name === "NotAllowedError"
@@ -78,6 +82,12 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
     setCapturedImage(null)
   }
 
+  const toggleCamera = async () => {
+    stopCamera()
+    const newMode = facingMode === "user" ? "environment" : "user"
+    await startCamera(newMode)
+  }
+
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) {
       setError("Cámara no lista")
@@ -94,14 +104,17 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
         return
       }
 
-      // Usar las dimensiones reales del video
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
 
-      // Dibujar el video en el canvas
+      // Si es espejo (frontal), voltear horizontalmente
+      if (isMirror) {
+        ctx.translate(canvas.width, 0)
+        ctx.scale(-1, 1)
+      }
+
       ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
 
-      // Convertir a data URL
       const imageData = canvas.toDataURL("image/jpeg", 0.95)
       setCapturedImage(imageData)
     } catch (err) {
@@ -117,18 +130,13 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
     setError("")
 
     try {
-      // Convertir data URL a blob
       const response = await fetch(capturedImage)
       const blob = await response.blob()
       const file = new File([blob], "body-photo.jpg", { type: "image/jpeg", lastModified: Date.now() })
 
-      // Comprimir
       const compressed = await compressImage(file)
-
-      // Entregar al padre
       onPhotoCapture(compressed)
 
-      // Limpiar y cerrar
       stopCamera()
       onClose()
     } catch (err) {
@@ -147,7 +155,7 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
         {!capturedImage ? (
           <>
             {!cameraReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black">
+              <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
                 <div className="text-white text-center">
                   <div className="animate-spin mb-4">
                     <Camera className="w-8 h-8 mx-auto" />
@@ -162,7 +170,10 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
               playsInline
               muted
               className="w-full h-full object-cover"
-              style={{ display: cameraReady ? "block" : "none" }}
+              style={{
+                display: cameraReady ? "block" : "none",
+                transform: isMirror ? "scaleX(-1)" : "scaleX(1)",
+              }}
             />
 
             <canvas ref={canvasRef} className="hidden" />
@@ -176,17 +187,9 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
         ) : (
           <img src={capturedImage} alt="preview" className="w-full h-full object-cover" />
         )}
-      </div>
 
-      {error && (
-        <div className="px-4 py-3 bg-red-900 text-red-100 text-sm">
-          <p>{error}</p>
-        </div>
-      )}
-
-      <div className="flex gap-2 p-4 bg-gray-900">
-        {!capturedImage ? (
-          <>
+        {cameraReady && !capturedImage && (
+          <div className="absolute top-4 left-4">
             <Button
               type="button"
               variant="ghost"
@@ -195,23 +198,48 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
                 stopCamera()
                 onClose()
               }}
-              className="text-white hover:bg-gray-700"
+              className="bg-black/50 text-white hover:bg-black/70"
             >
               <X className="w-6 h-6" />
             </Button>
+          </div>
+        )}
 
+        {cameraReady && !capturedImage && (
+          <div className="absolute top-4 right-4">
             <Button
               type="button"
-              disabled={!cameraReady}
-              className="flex-1 bg-toro-primary hover:bg-toro-primary/90 text-white disabled:opacity-50"
-              onClick={capturePhoto}
+              variant="ghost"
+              size="icon"
+              onClick={toggleCamera}
+              className="bg-black/50 text-white hover:bg-black/70"
             >
-              <Camera className="w-5 h-5 mr-2" />
-              Capturar
+              <RotateCw className="w-6 h-6" />
             </Button>
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <div className="px-4 py-3 bg-red-900 text-red-100 text-sm">
+          <p>{error}</p>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-4 p-6 bg-gray-900">
+        {!capturedImage ? (
+          <>
+            <button
+              type="button"
+              disabled={!cameraReady || loading}
+              onClick={capturePhoto}
+              className="mx-auto w-20 h-20 rounded-full bg-toro-primary hover:bg-toro-primary/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg border-4 border-white transition-transform active:scale-95"
+              aria-label="Capturar foto"
+            />
+            <p className="text-white text-center text-sm">Toca el botón para capturar</p>
           </>
         ) : (
-          <>
+          <div className="flex gap-3">
             <Button
               type="button"
               variant="ghost"
@@ -230,7 +258,7 @@ export function BodyPhotoCapture({ onPhotoCapture, isOpen, onClose }: BodyPhotoC
               <Check className="w-5 h-5 mr-2" />
               {loading ? "Procesando..." : "Aceptar"}
             </Button>
-          </>
+          </div>
         )}
       </div>
     </div>
