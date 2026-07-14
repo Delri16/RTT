@@ -10,6 +10,7 @@ import { PlusCircle, Dumbbell, Link2, ChevronDown, ChevronUp } from "lucide-reac
 import { useApp } from "@/app/app-provider"
 import { getUserGroups, logActivity } from "@/lib/actions"
 import { supabase } from "@/lib/supabase"
+import { applyGoalMultiplier } from "@/lib/points"
 import ActivitySelector from "@/components/activity-selector"
 import AchievementToast from "@/components/achievement-toast"
 import { checkAndAwardAchievements } from "@/lib/achievements"
@@ -37,6 +38,7 @@ export default function LogActivityPage() {
   const [error, setError] = useState("")
   const [newAchievement, setNewAchievement] = useState<Achievement | null>(null)
   const [groupRanking, setGroupRanking] = useState<GroupRankingUser[]>([])
+  const [goal, setGoal] = useState("maintain")
 
   const loadGroupRanking = useCallback(async () => {
     if (!selectedGroup) return
@@ -86,8 +88,15 @@ export default function LogActivityPage() {
   useEffect(() => {
     if (username) {
       loadGroups()
+      loadGoal()
     }
   }, [username])
+
+  const loadGoal = async () => {
+    if (!username) return
+    const { data } = await supabase.from("profiles").select("goal").eq("username", username).single()
+    setGoal(data?.goal || "maintain")
+  }
 
   useEffect(() => {
     if (selectedGroup) {
@@ -214,12 +223,15 @@ export default function LogActivityPage() {
       }
     }
 
-    let pointsEarned = 0
+    let basePoints = 0
     if (selectedActivityData?.activity_type === "per_minute") {
-      pointsEarned = selectedMinutes * (selectedActivityData.points_per_minute || 0)
+      basePoints = Math.floor(selectedMinutes * (selectedActivityData.points_per_minute || 0))
     } else {
-      pointsEarned = selectedActivityData?.points || 0
+      basePoints = selectedActivityData?.points || 0
     }
+
+    // Ajustar por objetivo para que el ranking optimista coincida con lo que guarda logActivity.
+    const pointsEarned = applyGoalMultiplier(basePoints, selectedActivityData?.aerobic_pct, goal)
 
     console.log("[v0] Submitting activity with points:", pointsEarned)
 
@@ -352,6 +364,7 @@ export default function LogActivityPage() {
                       onActivitySelect={handleActivitySelect}
                       selectedMinutes={selectedMinutes}
                       onMinutesChange={setSelectedMinutes}
+                      goal={goal}
                     />
                   ) : (
                     <div className="text-center py-8">

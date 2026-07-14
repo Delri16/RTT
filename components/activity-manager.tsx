@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Edit, Trash2, Save, X, Dumbbell, Clock } from "lucide-react"
+import { Edit, Trash2, Save, X, Dumbbell, Clock, Heart, Zap } from "lucide-react"
 import { updateGroupActivity, deleteGroupActivity } from "@/lib/actions"
 
 interface Activity {
@@ -17,6 +18,7 @@ interface Activity {
   points_per_minute?: number
   min_minutes?: number
   max_minutes?: number
+  aerobic_pct?: number
 }
 
 interface ActivityManagerProps {
@@ -41,6 +43,7 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
       points_per_minute: activity.points_per_minute?.toString() || "",
       min_minutes: activity.min_minutes?.toString() || "",
       max_minutes: activity.max_minutes?.toString() || "",
+      aerobic_pct: typeof activity.aerobic_pct === "number" ? activity.aerobic_pct : 50,
     })
   }
 
@@ -56,6 +59,7 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
     const formData = new FormData()
     formData.append("name", editData.name.trim())
     formData.append("activity_type", editData.activity_type)
+    formData.append("aerobic_pct", (editData.aerobic_pct ?? 50).toString())
 
     if (editData.activity_type === "fixed") {
       formData.append("points", editData.points)
@@ -98,10 +102,21 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
     setDeleteDialogOpen(true)
   }
 
+  const aerobicBadge = (activity: Activity) => {
+    const pct = activity.aerobic_pct
+    if (typeof pct !== "number" || pct === 50) return null
+    return (
+      <Badge variant="outline" className="text-xs flex items-center gap-1">
+        {pct > 50 ? <Heart className="w-3 h-3 text-rose-500" /> : <Zap className="w-3 h-3 text-indigo-500" />}
+        {pct}% aeró
+      </Badge>
+    )
+  }
+
   const getActivityDisplay = (activity: Activity) => {
     if (activity.activity_type === "per_minute") {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Clock className="w-4 h-4 text-blue-600" />
           <span className="font-medium">{activity.name}</span>
           <Badge variant="outline" className="text-xs">
@@ -110,15 +125,17 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
           <Badge variant="outline" className="text-xs">
             {activity.min_minutes}-{activity.max_minutes} min
           </Badge>
+          {aerobicBadge(activity)}
         </div>
       )
     }
 
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Dumbbell className="w-4 h-4 text-toro-primary" />
         <span className="font-medium">{activity.name}</span>
         <Badge className="bg-toro-accent text-white">+{activity.points} pts</Badge>
+        {aerobicBadge(activity)}
       </div>
     )
   }
@@ -188,6 +205,24 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
                       />
                     </div>
                   )}
+
+                  <div className="pt-1">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="flex items-center gap-1 text-rose-500 font-medium">
+                        <Heart className="w-3 h-3" /> Aeróbico {editData.aerobic_pct ?? 50}%
+                      </span>
+                      <span className="flex items-center gap-1 text-indigo-500 font-medium">
+                        Fuerza {100 - (editData.aerobic_pct ?? 50)}% <Zap className="w-3 h-3" />
+                      </span>
+                    </div>
+                    <Slider
+                      value={[editData.aerobic_pct ?? 50]}
+                      onValueChange={(v) => setEditData({ ...editData, aerobic_pct: v[0] })}
+                      min={0}
+                      max={100}
+                      step={5}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-1">

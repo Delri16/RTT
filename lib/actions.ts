@@ -4,6 +4,7 @@ import { supabase, getSupabaseAdmin } from "./supabase"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@supabase/supabase-js"
 import { supabaseAnonKey, supabaseUrl } from "./supabase"
+import { applyGoalMultiplier } from "./points"
 
 export async function createOrGetProfile(username: string) {
   // Check if profile exists
@@ -129,6 +130,7 @@ export async function updateProfile(
     current_weight?: number
     target_weight?: number
     password?: string
+    goal?: string
   },
 ) {
   // Ensure both avatar columns are updated for compatibility
@@ -385,17 +387,27 @@ export async function getPublicGroups(username?: string) {
   return { success: true, groups: groupsWithStats }
 }
 
+// Puntos dinámicos según objetivo de peso: la fórmula vive en lib/points.ts
+// (módulo puro, importable desde cliente y server). Acá solo se aplica.
+async function getUserGoal(username: string): Promise<string> {
+  const { data } = await supabase.from("profiles").select("goal").eq("username", username).single()
+  return data?.goal ?? "maintain"
+}
+
 export async function createGroupActivity(formData: FormData) {
   const group_id = formData.get("group_id") as string
   const name = formData.get("name") as string
   const activity_type = formData.get("activity_type") as string
   const relation_id = formData.get("relation_id") as string
+  const aerobicRaw = formData.get("aerobic_pct")
+  const aerobic_pct = aerobicRaw != null && aerobicRaw !== "" ? Number.parseInt(aerobicRaw as string) : 50
 
   let activityData: any = {
     group_id,
     name,
     activity_type: activity_type || "fixed",
     relation_id: relation_id ? Number.parseInt(relation_id) : null,
+    aerobic_pct: Math.min(100, Math.max(0, aerobic_pct)),
   }
 
   if (activity_type === "per_minute") {
@@ -443,11 +455,14 @@ export async function updateGroupActivity(activityId: string, formData: FormData
   const name = formData.get("name") as string
   const activity_type = formData.get("activity_type") as string
   const relation_id = formData.get("relation_id") as string
+  const aerobicRaw = formData.get("aerobic_pct")
+  const aerobic_pct = aerobicRaw != null && aerobicRaw !== "" ? Number.parseInt(aerobicRaw as string) : 50
 
   let updateData: any = {
     name,
     activity_type: activity_type || "fixed",
     relation_id: relation_id ? Number.parseInt(relation_id) : null,
+    aerobic_pct: Math.min(100, Math.max(0, aerobic_pct)),
   }
 
   if (activity_type === "per_minute") {
@@ -579,12 +594,16 @@ export async function logActivity(formData: FormData) {
     points_earned = Math.floor(minutes_performed * activity.points_per_minute)
   }
 
+  // Ajuste dinámico según el objetivo de peso del usuario y el % aeróbico de la actividad.
+  const goal = await getUserGoal(username)
+  points_earned = applyGoalMultiplier(points_earned, activity.aerobic_pct, goal)
+
   const rankingData = await getOptimisticRankingPosition(username, group_id, points_earned)
   console.log("[v0] Optimistic ranking calculated:", rankingData)
 
   // If activity has a relation, log it in all user's groups with the same relation
   if (activity.relation_id) {
-    const result = await logRelatedActivity(username, activity, points_earned, minutes_performed, taggedMembers)
+    const result = await logRelatedActivity(username, activity, points_earned, minutes_performed, taggedMembers, goal)
 
     revalidatePath("/")
     revalidatePath("/log")
@@ -670,6 +689,7 @@ async function logRelatedActivity(
   points_earned: number,
   minutes_performed: number | null,
   taggedMembers: string[], // Added taggedMembers parameter
+  goal: string = "maintain",
 ) {
   // Get all user's groups that have activities with the same relation
   const { data: userGroups, error: userGroupsError } = await supabase
@@ -707,6 +727,9 @@ async function logRelatedActivity(
       }
       activityPoints = Math.floor(minutes_performed * relatedActivity.points_per_minute)
     }
+
+    // Cada actividad relacionada puede tener distinto % aeróbico -> ajustar acá, no reusar el del origen.
+    activityPoints = applyGoalMultiplier(activityPoints, relatedActivity.aerobic_pct, goal)
 
     // Insert user activity
     const { data: userActivityData, error: userActivityError } = await supabase

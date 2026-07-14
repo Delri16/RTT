@@ -13,8 +13,8 @@
 //    se materializa, así que el pico de memoria es una fracción. Además hay un timeout
 //    para que un decode trabado nunca deje la UI colgada.
 
-const MAX_DIMENSION = 1080 // longest side after downscale (good enough for phone photos)
-const TARGET_MAX_BYTES = 500_000 // ~0.5MB target; step quality down until we hit it
+const MAX_DIMENSION = 720 // longest side after downscale (plenty for mobile screen + upload speed)
+const TARGET_MAX_BYTES = 300_000 // ~0.3MB target (lighter for slow mobile connections)
 const DECODE_TIMEOUT_MS = 20_000
 
 async function canvasToBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {

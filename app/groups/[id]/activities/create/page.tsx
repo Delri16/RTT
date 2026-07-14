@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Dumbbell, Clock, Link2 } from "lucide-react"
+import { Slider } from "@/components/ui/slider"
+import { ArrowLeft, Dumbbell, Clock, Link2, Heart, Zap } from "lucide-react"
 import { createGroupActivity } from "@/lib/actions"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
@@ -22,6 +23,7 @@ export default function CreateActivityPage() {
   const [activityType, setActivityType] = useState("fixed")
   const [relations, setRelations] = useState<any[]>([])
   const [selectedRelation, setSelectedRelation] = useState("none")
+  const [aerobicPct, setAerobicPct] = useState(50)
 
   useEffect(() => {
     loadActivityRelations()
@@ -41,6 +43,7 @@ export default function CreateActivityPage() {
 
     formData.append("group_id", groupId)
     formData.append("activity_type", activityType)
+    formData.append("aerobic_pct", aerobicPct.toString())
 
     if (selectedRelation !== "none") {
       formData.append("relation_id", selectedRelation)
@@ -193,6 +196,29 @@ export default function CreateActivityPage() {
                 <p className="text-sm text-gray-600">Define el rango de minutos permitidos para esta actividad</p>
               </div>
             )}
+
+            <div className="pt-2">
+              <Label>Composición de la Actividad</Label>
+              <div className="flex items-center justify-between text-sm mt-2 mb-2">
+                <span className="flex items-center gap-1 text-rose-500 font-medium">
+                  <Heart className="w-4 h-4" /> Aeróbico {aerobicPct}%
+                </span>
+                <span className="flex items-center gap-1 text-indigo-500 font-medium">
+                  Fuerza {100 - aerobicPct}% <Zap className="w-4 h-4" />
+                </span>
+              </div>
+              <Slider
+                value={[aerobicPct]}
+                onValueChange={(v) => setAerobicPct(v[0])}
+                min={0}
+                max={100}
+                step={5}
+              />
+              <p className="text-sm text-gray-600 mt-2">
+                Cuánto de la actividad es cardio vs fuerza. Ej: correr ≈ 90% aeróbico, gym ≈ 10%. Ajusta los puntos
+                según el objetivo de cada usuario (bajar/subir/mantener). 50/50 = neutro para todos.
+              </p>
+            </div>
 
             {selectedRelation !== "none" && (
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">

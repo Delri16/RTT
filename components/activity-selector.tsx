@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Dumbbell, Clock, Zap, Link2 } from "lucide-react"
+import { Dumbbell, Clock, Zap, Link2, Heart } from "lucide-react"
+import { applyGoalMultiplier } from "@/lib/points"
 
 interface Activity {
   id: string
@@ -16,6 +17,7 @@ interface Activity {
   points_per_minute?: number
   min_minutes?: number
   max_minutes?: number
+  aerobic_pct?: number
   relation_id?: number
   activity_relations?: {
     name: string
@@ -29,6 +31,13 @@ interface ActivitySelectorProps {
   onActivitySelect: (activityId: string, minutes?: number) => void
   selectedMinutes?: number
   onMinutesChange?: (minutes: number) => void
+  goal?: string
+}
+
+const GOAL_LABEL: Record<string, string> = {
+  lose: "bajar de peso",
+  gain: "subir de peso",
+  maintain: "mantener",
 }
 
 export default function ActivitySelector({
@@ -37,6 +46,7 @@ export default function ActivitySelector({
   onActivitySelect,
   selectedMinutes,
   onMinutesChange,
+  goal = "maintain",
 }: ActivitySelectorProps) {
   const [minutesInput, setMinutesInput] = useState<{ [key: string]: number }>({})
 
@@ -64,13 +74,22 @@ export default function ActivitySelector({
     return activity.points
   }
 
+  // Puntos ya ajustados por el objetivo del usuario (lo que realmente se guarda).
+  const finalPoints = (activity: Activity, minutes: number) =>
+    applyGoalMultiplier(calculatePoints(activity, minutes), activity.aerobic_pct, goal)
+
+  const aerobic = (activity: Activity) => (typeof activity.aerobic_pct === "number" ? activity.aerobic_pct : 50)
+
+  // Diferencia en puntos que aporta el objetivo (0 si es neutro).
+  const goalDelta = (activity: Activity, minutes: number) => finalPoints(activity, minutes) - calculatePoints(activity, minutes)
+
   const getActivityIcon = (activity: Activity) => {
     return activity.activity_type === "per_minute" ? <Clock className="w-5 h-5" /> : <Dumbbell className="w-5 h-5" />
   }
 
   const getActivityBadge = (activity: Activity, minutes?: number) => {
     if (activity.activity_type === "per_minute" && minutes) {
-      const points = calculatePoints(activity, minutes)
+      const points = finalPoints(activity, minutes)
       return (
         <Badge className="bg-toro-accent text-white flex items-center gap-1">
           <Zap className="w-3 h-3" />
@@ -78,7 +97,32 @@ export default function ActivitySelector({
         </Badge>
       )
     }
-    return <Badge className="bg-toro-accent text-white">+{activity.points} pts</Badge>
+    return <Badge className="bg-toro-accent text-white">+{finalPoints(activity, 0)} pts</Badge>
+  }
+
+  // Línea con la composición (aeróbico/fuerza) y el efecto del objetivo.
+  const compositionInfo = (activity: Activity, minutes: number) => {
+    const aero = aerobic(activity)
+    const delta = goalDelta(activity, minutes)
+    const base = calculatePoints(activity, minutes)
+    return (
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        <span className="flex items-center gap-1 text-rose-500">
+          <Heart className="w-3 h-3" /> {aero}% aeróbico
+        </span>
+        <span className="flex items-center gap-1 text-indigo-500">
+          <Zap className="w-3 h-3" /> {100 - aero}% fuerza
+        </span>
+        {goal !== "maintain" && delta !== 0 && (
+          <span className={`font-medium ${delta > 0 ? "text-toro-accent" : "text-toro-foreground/50"}`}>
+            {delta > 0 ? `+${delta}` : delta} pts por tu objetivo ({GOAL_LABEL[goal]}) · base {base}
+          </span>
+        )}
+        {goal !== "maintain" && delta === 0 && aero === 50 && (
+          <span className="text-toro-foreground/50">neutro para tu objetivo</span>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -134,6 +178,8 @@ export default function ActivitySelector({
                 {getActivityBadge(activity, isSelected ? currentMinutes : undefined)}
               </div>
 
+              {compositionInfo(activity, activity.activity_type === "per_minute" ? currentMinutes : 0)}
+
               {hasRelation && (
                 <div className="mt-2 p-2 bg-blue-50 rounded-lg">
                   <div className="flex items-center gap-2 text-xs text-blue-700">
@@ -186,13 +232,20 @@ export default function ActivitySelector({
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">Puntos a obtener:</span>
                       <span className="font-bold text-toro-primary text-lg">
-                        {calculatePoints(activity, currentMinutes)} pts
+                        {finalPoints(activity, currentMinutes)} pts
                       </span>
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {currentMinutes} min × {activity.points_per_minute} pts/min ={" "}
                       {(currentMinutes * (activity.points_per_minute || 0)).toFixed(1)} →{" "}
-                      {calculatePoints(activity, currentMinutes)} pts
+                      {calculatePoints(activity, currentMinutes)} pts base
+                      {goal !== "maintain" && goalDelta(activity, currentMinutes) !== 0 && (
+                        <>
+                          {" "}
+                          {goalDelta(activity, currentMinutes) > 0 ? "+" : ""}
+                          {goalDelta(activity, currentMinutes)} objetivo → {finalPoints(activity, currentMinutes)} pts
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

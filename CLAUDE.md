@@ -59,6 +59,18 @@ Sesión persistente ("nunca más se desloguea salvo manual"): es el comportamien
 
 **Falta correr en Supabase:** [scripts/33-add-email-auth.sql](scripts/33-add-email-auth.sql) (agrega `profiles.email` y `profiles.auth_user_id`). No se aplicó automáticamente — correrlo a mano contra el proyecto real antes de probar el login nuevo.
 
+## Puntos dinámicos según objetivo de peso
+
+Cada usuario tiene un objetivo (`profiles.goal`: `lose`/`gain`/`maintain`, default `maintain`) y cada actividad una composición (`group_activities.aerobic_pct`: 0-100, default 50 = neutro). Al registrar, `logActivity` ajusta los puntos con `applyGoalMultiplier` (fórmula en [lib/points.ts](lib/points.ts) — módulo puro, `GOAL_K = 0.15`, importable desde cliente y server porque `actions.ts` es `"use server"` y no puede exportar helpers sync):
+
+- Aeróbico premia a quien busca bajar; fuerza premia a quien busca subir; `maintain` no ajusta.
+- `multiplicador = 1 + 0.15 * dirección * (aerobic_pct/100*2 - 1)`, con dirección `lose:+1 / gain:-1 / maintain:0`. Techo ±15%; una actividad 50/50 nunca se mueve.
+- Se aplica también por cada actividad relacionada en `logRelatedActivity` (cada una con su propio `aerobic_pct`).
+
+UI: selector de objetivo en el perfil ([app/profile/page.tsx](app/profile/page.tsx)); slider aeróbico/fuerza al crear ([app/groups/[id]/activities/create/page.tsx](app/groups/[id]/activities/create/page.tsx)) y editar ([components/activity-manager.tsx](components/activity-manager.tsx)) actividades.
+
+**Falta correr en Supabase:** [scripts/36-add-goal-and-aerobic.sql](scripts/36-add-goal-and-aerobic.sql) (agrega `profiles.goal` y `group_activities.aerobic_pct`). Sin esto, crear/editar actividades falla al insertar `aerobic_pct`. Las ~1091 actividades existentes quedan en `aerobic_pct = 50` (neutro), así que no cambian de puntaje hasta configurarlas.
+
 ## Convenciones existentes (no introducidas por este cambio)
 
 - Colores de marca: `toro-background #FDF7E4`, `toro-foreground #3A3A3A`, `toro-primary #FF6B6B`, `toro-secondary #FFD166`, `toro-accent #06D6A0` (ver `tailwind.config.ts`).

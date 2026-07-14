@@ -13,7 +13,13 @@ import { getUserProfile, updateProfile, getWeeklyPoints } from "@/lib/actions"
 import AvatarSelector from "@/components/avatar-selector"
 import UserAvatar from "@/components/user-avatar"
 import MotivationalQuote from "@/components/motivational-quote"
-import { User, Weight, Target, Save, CheckCircle, Trophy, LogOut, Mail } from "lucide-react"
+import { User, Weight, Target, Save, CheckCircle, Trophy, LogOut, Mail, TrendingDown, TrendingUp, Minus } from "lucide-react"
+
+const GOALS = [
+  { value: "lose", label: "Bajar de peso", desc: "Suman más las actividades aeróbicas (cardio)", icon: TrendingDown },
+  { value: "maintain", label: "Mantener", desc: "Puntos normales, sin ajuste", icon: Minus },
+  { value: "gain", label: "Subir de peso", desc: "Suman más las actividades de fuerza (gym)", icon: TrendingUp },
+] as const
 
 export default function ProfilePage() {
   const { username, logout } = useApp()
@@ -26,6 +32,7 @@ export default function ProfilePage() {
 
   const [currentWeight, setCurrentWeight] = useState("")
   const [targetWeight, setTargetWeight] = useState("")
+  const [goal, setGoal] = useState("maintain")
 
   useEffect(() => {
     if (username) loadProfile()
@@ -39,6 +46,7 @@ export default function ProfilePage() {
         setProfile(result.profile)
         setCurrentWeight(result.profile.current_weight?.toString() || "")
         setTargetWeight(result.profile.target_weight?.toString() || "")
+        setGoal(result.profile.goal || "maintain")
       } else {
         setError(result.error || "Error al cargar perfil")
       }
@@ -68,6 +76,28 @@ export default function ProfilePage() {
       setError("Error de conexión")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleGoalChange = async (newGoal: string) => {
+    if (!username || newGoal === goal) return
+    const prevGoal = goal
+    setGoal(newGoal) // optimista
+    setError("")
+    setSuccess("")
+    try {
+      const result = await updateProfile(username, { goal: newGoal })
+      if (result.success) {
+        setProfile(result.profile)
+        setSuccess("Objetivo actualizado")
+        setTimeout(() => setSuccess(""), 3000)
+      } else {
+        setGoal(prevGoal)
+        setError(result.error || "Error al actualizar objetivo")
+      }
+    } catch (err) {
+      setGoal(prevGoal)
+      setError("Error de conexión")
     }
   }
 
@@ -209,6 +239,45 @@ export default function ProfilePage() {
           <AlertDescription className="text-green-800">{success}</AlertDescription>
         </Alert>
       )}
+
+      {/* Goal */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            Objetivo
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-toro-foreground/70 -mt-1 mb-2">
+            Según tu objetivo, algunas actividades te suman más o menos puntos. El ajuste es leve (máx. ±15%) para que
+            siga siendo parejo.
+          </p>
+          {GOALS.map((g) => {
+            const Icon = g.icon
+            const active = goal === g.value
+            return (
+              <button
+                key={g.value}
+                type="button"
+                onClick={() => handleGoalChange(g.value)}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
+                  active
+                    ? "border-toro-primary bg-toro-primary/10"
+                    : "border-gray-200 bg-white hover:bg-gray-50"
+                }`}
+              >
+                <Icon className={`w-5 h-5 shrink-0 ${active ? "text-toro-primary" : "text-toro-foreground/50"}`} />
+                <div className="flex-1">
+                  <p className={`font-medium ${active ? "text-toro-primary" : "text-toro-foreground"}`}>{g.label}</p>
+                  <p className="text-xs text-toro-foreground/60">{g.desc}</p>
+                </div>
+                {active && <CheckCircle className="w-5 h-5 text-toro-primary shrink-0" />}
+              </button>
+            )
+          })}
+        </CardContent>
+      </Card>
 
       {/* Weight Management */}
       <Card>

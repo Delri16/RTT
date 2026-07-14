@@ -28,7 +28,6 @@ export default function CreateReportPage() {
   const [groups, setGroups] = useState<any[]>([])
   const [selectedGroup, setSelectedGroup] = useState(preselectedGroup || "")
   const [weight, setWeight] = useState("")
-  const [scalePhoto, setScalePhoto] = useState<File | null>(null)
   const [bodyPhoto, setBodyPhoto] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -48,30 +47,6 @@ export default function CreateReportPage() {
     const result = await getUserGroups(username)
     if (result.success) {
       setGroups(result.groups)
-    }
-  }
-
-  const handleScalePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setScalePhoto(null) // Clear immediately
-      setCompressing(true)
-      setError("")
-
-      if (e.target) {
-        e.target.value = ""
-      }
-
-      try {
-        const compressed = await compressImage(file)
-        setScalePhoto(compressed)
-      } catch (error) {
-        console.error("[v0] Error compressing scale image:", error)
-        setError("Error al procesar la imagen. Intenta con una foto más pequeña.")
-        setScalePhoto(null)
-      } finally {
-        setCompressing(false)
-      }
     }
   }
 
@@ -110,16 +85,7 @@ export default function CreateReportPage() {
     setError("")
 
     try {
-      // Photos upload straight from the browser to storage (fast, no server round-trip).
-      let scaleUrl = ""
       let bodyUrl = ""
-
-      if (scalePhoto) {
-        setUploadStatus("Subiendo foto de balanza...")
-        const res = await uploadToStorage(scalePhoto, "report_photos", makePhotoPath(selectedGroup, username!, "scale"))
-        if (!res.success) throw new Error(res.error)
-        scaleUrl = res.url
-      }
 
       if (bodyPhoto) {
         setUploadStatus("Subiendo foto de progreso...")
@@ -133,7 +99,6 @@ export default function CreateReportPage() {
         username: username!,
         group_id: selectedGroup,
         reported_weight: Number.parseFloat(weight),
-        scale_photo_url: scaleUrl,
         body_photo_url: bodyUrl,
       })
 
@@ -209,44 +174,6 @@ export default function CreateReportPage() {
                 className="mt-1"
                 required
               />
-            </div>
-
-            <div>
-              <Label htmlFor="scale_photo">Foto de la Balanza (Opcional)</Label>
-              <div className="mt-1">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {compressing ? (
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 text-toro-primary mx-auto mb-2 animate-pulse" />
-                        <p className="text-sm text-toro-primary font-medium">Optimizando imagen...</p>
-                      </div>
-                    ) : scalePhoto ? (
-                      <div className="text-center">
-                        <Camera className="w-8 h-8 text-toro-primary mx-auto mb-2" />
-                        <p className="text-sm text-toro-primary font-medium">{scalePhoto.name}</p>
-                        <p className="text-xs text-gray-500 mt-1">{(scalePhoto.size / 1024).toFixed(0)} KB</p>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500">
-                          <span className="font-semibold">Toca para subir</span> foto de la balanza
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    id="scale_photo"
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={handleScalePhotoChange}
-                    disabled={compressing}
-                  />
-                </label>
-              </div>
             </div>
 
             <div>
