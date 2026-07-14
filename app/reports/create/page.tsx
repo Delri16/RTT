@@ -13,9 +13,7 @@ import { ArrowLeft, Upload, Scale } from "lucide-react"
 import { useApp } from "@/app/app-provider"
 import { createReport, getUserGroups } from "@/lib/actions"
 import Link from "next/link"
-import AchievementToast from "@/components/achievement-toast"
-import { checkAndAwardAchievements } from "@/lib/achievements"
-import type { Achievement } from "@/lib/achievements"
+import { checkAndAwardReportAchievements } from "@/lib/achievements"
 import { uploadToStorage, makePhotoPath } from "@/lib/upload"
 import { BodyPhotoCapture } from "@/components/body-photo-capture"
 
@@ -31,9 +29,10 @@ export default function CreateReportPage() {
   const [bodyPhoto, setBodyPhoto] = useState<File | null>(null)
   const [bodyPreviewUrl, setBodyPreviewUrl] = useState<string | null>(null)
   const bodyPreviewUrlRef = useRef<string | null>(null)
+  const photoUploadRef = useRef<Promise<string> | null>(null)
+  const photoUrlRef = useRef<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [newAchievement, setNewAchievement] = useState<Achievement | null>(null)
   const [uploadStatus, setUploadStatus] = useState("")
   const [cameraOpen, setCameraOpen] = useState(false)
 
@@ -48,6 +47,24 @@ export default function CreateReportPage() {
       if (bodyPreviewUrlRef.current) URL.revokeObjectURL(bodyPreviewUrlRef.current)
     }
   }, [])
+
+  // Upload as soon as we have photo + group so "Crear" mostly just inserts the row
+  useEffect(() => {
+    if (!bodyPhoto || !selectedGroup || !username) {
+      photoUploadRef.current = null
+      photoUrlRef.current = null
+      return
+    }
+
+    photoUrlRef.current = null
+    const path = makePhotoPath(selectedGroup, username, "body")
+    const upload = uploadToStorage(bodyPhoto, "report_photos", path).then((res) => {
+      if (!res.success) throw new Error(res.error)
+      photoUrlRef.current = res.url
+      return res.url
+    })
+    photoUploadRef.current = upload
+  }, [bodyPhoto, selectedGroup, username])
 
   const loadGroups = async () => {
     if (!username) return
@@ -75,18 +92,28 @@ export default function CreateReportPage() {
 
     setLoading(true)
     setError("")
+    setUploadStatus("Guardando reporte...")
 
     try {
       let bodyUrl = ""
 
       if (bodyPhoto) {
-        setUploadStatus("Subiendo foto de progreso...")
-        const res = await uploadToStorage(bodyPhoto, "report_photos", makePhotoPath(selectedGroup, username!, "body"))
-        if (!res.success) throw new Error(res.error)
-        bodyUrl = res.url
+        if (photoUrlRef.current) {
+          bodyUrl = photoUrlRef.current
+        } else {
+          setUploadStatus("Subiendo foto...")
+          const upload =
+            photoUploadRef.current ??
+            uploadToStorage(bodyPhoto, "report_photos", makePhotoPath(selectedGroup, username!, "body")).then((res) => {
+              if (!res.success) throw new Error(res.error)
+              return res.url
+            })
+          bodyUrl = await upload
+          photoUrlRef.current = bodyUrl
+          setUploadStatus("Guardando reporte...")
+        }
       }
 
-      setUploadStatus("Guardando reporte...")
       const result = await createReport({
         username: username!,
         group_id: selectedGroup,
@@ -101,17 +128,16 @@ export default function CreateReportPage() {
         return
       }
 
-      try {
-        const newAchievements = await checkAndAwardAchievements(username!, selectedGroup)
-        if (newAchievements.length > 0) setNewAchievement(newAchievements[0])
-      } catch (err) {
-        console.error("Error checking achievements:", err)
-      }
-
       setUploadStatus("¡Listo!")
-      setTimeout(() => router.push("/reports"), 700)
+      // Fire-and-forget: report-only achievement check (not the full activity scan)
+      void checkAndAwardReportAchievements(username!, selectedGroup).catch((err) =>
+        console.error("Error checking achievements:", err),
+      )
+      router.push("/reports")
     } catch (err) {
       console.error("[report] upload error:", err)
+      photoUploadRef.current = null
+      photoUrlRef.current = null
       setError(err instanceof Error ? err.message : "Error inesperado al subir")
       setUploadStatus("")
       setLoading(false)
@@ -219,8 +245,6 @@ export default function CreateReportPage() {
           </form>
         </CardContent>
       </Card>
-      {/* Achievement Toast */}
-      <AchievementToast achievement={newAchievement} onClose={() => setNewAchievement(null)} />
     </div>
   )
 }

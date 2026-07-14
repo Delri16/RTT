@@ -470,3 +470,128 @@ export async function checkAndAwardAchievements(username: string, groupId: strin
     return []
   }
 }
+
+const REPORT_ACHIEVEMENTS: Achievement[] = [
+  {
+    key: "first_weight",
+    name: "En la Balanza",
+    description: "Completa tu primer registro de peso",
+    type: "basic",
+    icon: "⚖️",
+  },
+  {
+    key: "first_photo",
+    name: "Sonríe",
+    description: "Sube tu primera foto",
+    type: "basic",
+    icon: "📸",
+  },
+  {
+    key: "5_weight_reports",
+    name: "Constante",
+    description: "Sube 5 reportes de peso",
+    type: "intermediate",
+    icon: "📊",
+  },
+  {
+    key: "20_weight_reports",
+    name: "Disciplinado",
+    description: "Sube 20 reportes de peso",
+    type: "hard",
+    icon: "📈",
+  },
+  {
+    key: "100_weight_reports",
+    name: "Científico",
+    description: "Sube 100 reportes de peso",
+    type: "impossible",
+    icon: "🔬",
+  },
+  {
+    key: "5_photos",
+    name: "Fotógrafo",
+    description: "Sube 5 fotos",
+    type: "intermediate",
+    icon: "📷",
+  },
+  {
+    key: "20_photos",
+    name: "Modelo",
+    description: "Sube 20 fotos",
+    type: "hard",
+    icon: "🌟",
+  },
+  {
+    key: "100_photos",
+    name: "Influencer",
+    description: "Sube 100 fotos",
+    type: "impossible",
+    icon: "💎",
+  },
+]
+
+/**
+ * Fast path after creating a weight report: a few parallel count queries instead of
+ * scanning every activity achievement one RPC at a time.
+ */
+export async function checkAndAwardReportAchievements(
+  username: string,
+  groupId: string,
+): Promise<Achievement[]> {
+  try {
+    const [userAchievements, reportsCountRes, photosCountRes] = await Promise.all([
+      getUserAchievements(username, groupId),
+      supabase
+        .from("bi_weekly_reports")
+        .select("id", { count: "exact", head: true })
+        .eq("username", username)
+        .eq("group_id", groupId),
+      supabase
+        .from("bi_weekly_reports")
+        .select("id", { count: "exact", head: true })
+        .eq("username", username)
+        .eq("group_id", groupId)
+        .neq("body_photo_url", ""),
+    ])
+
+    const completedKeys = new Set(userAchievements.map((ua) => ua.achievement_key))
+    const reportCount = reportsCountRes.count ?? 0
+    const photoCount = photosCountRes.count ?? 0
+
+    const pending = REPORT_ACHIEVEMENTS.filter((achievement) => {
+      if (completedKeys.has(achievement.key)) return false
+      switch (achievement.key) {
+        case "first_weight":
+          return reportCount >= 1
+        case "first_photo":
+          return photoCount >= 1
+        case "5_weight_reports":
+          return reportCount >= 5
+        case "20_weight_reports":
+          return reportCount >= 20
+        case "100_weight_reports":
+          return reportCount >= 100
+        case "5_photos":
+          return photoCount >= 5
+        case "20_photos":
+          return photoCount >= 20
+        case "100_photos":
+          return photoCount >= 100
+        default:
+          return false
+      }
+    })
+
+    const results = await Promise.all(
+      pending.map(async (achievement) => {
+        const awarded = await awardAchievement(username, groupId, achievement)
+        return awarded ? achievement : null
+      }),
+    )
+
+    return results.filter((a): a is Achievement => a !== null)
+  } catch (error) {
+    console.error("Error checking report achievements:", error)
+    return []
+  }
+}

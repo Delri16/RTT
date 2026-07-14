@@ -846,39 +846,26 @@ export async function createReport(input: {
   scale_photo_url?: string
   body_photo_url?: string
 }) {
-  const { data, error } = await supabase
-    .from("bi_weekly_reports")
-    .insert([
-      {
-        username: input.username,
-        group_id: input.group_id,
-        reported_weight: input.reported_weight,
-        scale_photo_url: input.scale_photo_url || "",
-        body_photo_url: input.body_photo_url || "",
-        report_date: new Date().toISOString().split("T")[0],
-      },
-    ])
-    .select()
-    .single()
+  const { error } = await supabase.from("bi_weekly_reports").insert([
+    {
+      username: input.username,
+      group_id: input.group_id,
+      reported_weight: input.reported_weight,
+      scale_photo_url: input.scale_photo_url || "",
+      body_photo_url: input.body_photo_url || "",
+      report_date: new Date().toISOString().split("T")[0],
+    },
+  ])
 
   if (error) {
     return { success: false, error: error.message }
   }
 
-  if (data) {
-    try {
-      const { checkAndAwardAchievements } = await import("./achievements")
-      await checkAndAwardAchievements(input.username, input.group_id)
-    } catch (err) {
-      console.error("Error checking achievements:", err)
-    }
-  }
-
+  // Keep the action short: no full achievement scan here (that was dozens of RPCs).
   await supabase.from("profiles").update({ current_weight: input.reported_weight }).eq("username", input.username)
 
   revalidatePath("/reports")
-  revalidatePath("/")
-  return { success: true, report: data }
+  return { success: true }
 }
 
 export async function createBiWeeklyReport(formData: FormData) {
