@@ -597,7 +597,8 @@
       "Alternating_Kettlebell_Press/1.jpg"
     ],
     "id": "Alternating_Kettlebell_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press alternado con kettlebell"
   },
   {
     "name": "Alternating Kettlebell Row",
@@ -8627,7 +8628,8 @@
       "Dynamic_Chest_Stretch/1.jpg"
     ],
     "id": "Dynamic_Chest_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento dinámico de pecho"
   },
   {
     "name": "EZ-Bar Curl",
@@ -8705,7 +8707,8 @@
       "Elbow_Circles/1.jpg"
     ],
     "id": "Elbow_Circles",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Círculos de codos"
   },
   {
     "name": "Elbow to Knee",
@@ -8728,7 +8731,8 @@
       "Elbow_to_Knee/1.jpg"
     ],
     "id": "Elbow_to_Knee",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Codo a rodilla"
   },
   {
     "name": "Elbows Back",
@@ -8753,7 +8757,8 @@
       "Elbows_Back/1.jpg"
     ],
     "id": "Elbows_Back",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Codos hacia atrás"
   },
   {
     "name": "Elevated Back Lunge",
@@ -8780,7 +8785,8 @@
       "Elevated_Back_Lunge/1.jpg"
     ],
     "id": "Elevated_Back_Lunge",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Estocada hacia atrás elevada"
   },
   {
     "name": "Elevated Cable Rows",
@@ -8810,7 +8816,8 @@
       "Elevated_Cable_Rows/1.jpg"
     ],
     "id": "Elevated_Cable_Rows",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo en polea elevado"
   },
   {
     "name": "Elliptical Trainer",
@@ -8862,7 +8869,8 @@
       "Exercise_Ball_Crunch/1.jpg"
     ],
     "id": "Exercise_Ball_Crunch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominal en pelota de ejercicio"
   },
   {
     "name": "Exercise Ball Pull-In",
@@ -8887,7 +8895,8 @@
       "Exercise_Ball_Pull-In/1.jpg"
     ],
     "id": "Exercise_Ball_Pull-In",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Encogimiento con pelota de ejercicio"
   },
   {
     "name": "Extended Range One-Arm Kettlebell Floor Press",
@@ -8912,7 +8921,8 @@
       "Extended_Range_One-Arm_Kettlebell_Floor_Press/1.jpg"
     ],
     "id": "Extended_Range_One-Arm_Kettlebell_Floor_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press de piso con kettlebell a un brazo con rango extendido"
   },
   {
     "name": "External Rotation",
@@ -8938,7 +8948,8 @@
       "External_Rotation/1.jpg"
     ],
     "id": "External_Rotation",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Rotación externa"
   },
   {
     "name": "External Rotation with Band",
@@ -8963,7 +8974,8 @@
       "External_Rotation_with_Band/1.jpg"
     ],
     "id": "External_Rotation_with_Band",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Rotación externa con banda"
   },
   {
     "name": "External Rotation with Cable",
@@ -8987,7 +8999,8 @@
       "External_Rotation_with_Cable/1.jpg"
     ],
     "id": "External_Rotation_with_Cable",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Rotación externa con cable"
   },
   {
     "name": "Face Pull",
@@ -9071,7 +9084,8 @@
       "Fast_Skipping/1.jpg"
     ],
     "id": "Fast_Skipping",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Skipping rápido"
   },
   {
     "name": "Finger Curls",
@@ -9095,7 +9109,8 @@
       "Finger_Curls/1.jpg"
     ],
     "id": "Finger_Curls",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de dedos"
   },
   {
     "name": "Flat Bench Cable Flyes",
@@ -9122,7 +9137,8 @@
       "Flat_Bench_Cable_Flyes/1.jpg"
     ],
     "id": "Flat_Bench_Cable_Flyes",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Aperturas en polea en banco plano"
   },
   {
     "name": "Flat Bench Leg Pull-In",
@@ -9147,7 +9163,8 @@
       "Flat_Bench_Leg_Pull-In/1.jpg"
     ],
     "id": "Flat_Bench_Leg_Pull-In",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Encogimiento de piernas en banco plano"
   },
   {
     "name": "Flat Bench Lying Leg Raise",
@@ -9171,7 +9188,8 @@
       "Flat_Bench_Lying_Leg_Raise/1.jpg"
     ],
     "id": "Flat_Bench_Lying_Leg_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de piernas acostado en banco plano"
   },
   {
     "name": "Flexor Incline Dumbbell Curls",
@@ -9197,7 +9215,8 @@
       "Flexor_Incline_Dumbbell_Curls/1.jpg"
     ],
     "id": "Flexor_Incline_Dumbbell_Curls",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de flexores con mancuernas en banco inclinado"
   },
   {
     "name": "Floor Glute-Ham Raise",
@@ -9224,7 +9243,8 @@
       "Floor_Glute-Ham_Raise/1.jpg"
     ],
     "id": "Floor_Glute-Ham_Raise",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación glúteo-femoral en el piso"
   },
   {
     "name": "Floor Press",
@@ -9250,7 +9270,8 @@
       "Floor_Press/1.jpg"
     ],
     "id": "Floor_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de piso"
   },
   {
     "name": "Floor Press with Chains",
@@ -9277,7 +9298,8 @@
       "Floor_Press_with_Chains/1.jpg"
     ],
     "id": "Floor_Press_with_Chains",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press de piso con cadenas"
   },
   {
     "name": "Flutter Kicks",
@@ -9304,7 +9326,8 @@
       "Flutter_Kicks/1.jpg"
     ],
     "id": "Flutter_Kicks",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Patadas de tijera (flutter kicks)"
   },
   {
     "name": "Foot-SMR",
@@ -9326,7 +9349,8 @@
       "Foot-SMR/1.jpg"
     ],
     "id": "Foot-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de pie (SMR)"
   },
   {
     "name": "Forward Drag with Press",
@@ -9355,7 +9379,8 @@
       "Forward_Drag_with_Press/1.jpg"
     ],
     "id": "Forward_Drag_with_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrastre hacia adelante con press"
   },
   {
     "name": "Frankenstein Squat",
@@ -9384,7 +9409,8 @@
       "Frankenstein_Squat/1.jpg"
     ],
     "id": "Frankenstein_Squat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla Frankenstein"
   },
   {
     "name": "Freehand Jump Squat",
@@ -9414,7 +9440,8 @@
       "Freehand_Jump_Squat/1.jpg"
     ],
     "id": "Freehand_Jump_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla con salto sin peso"
   },
   {
     "name": "Frog Hops",
@@ -9440,7 +9467,8 @@
       "Frog_Hops/1.jpg"
     ],
     "id": "Frog_Hops",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Saltos de rana"
   },
   {
     "name": "Frog Sit-Ups",
@@ -9467,7 +9495,8 @@
       "Frog_Sit-Ups/1.jpg"
     ],
     "id": "Frog_Sit-Ups",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Abdominales de rana"
   },
   {
     "name": "Front Barbell Squat",
@@ -9528,7 +9557,8 @@
       "Front_Barbell_Squat_To_A_Bench/1.jpg"
     ],
     "id": "Front_Barbell_Squat_To_A_Bench",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla frontal con barra hasta un banco"
   },
   {
     "name": "Front Box Jump",
@@ -9558,7 +9588,8 @@
       "Front_Box_Jump/1.jpg"
     ],
     "id": "Front_Box_Jump",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Salto al cajón de frente"
   },
   {
     "name": "Front Cable Raise",
@@ -9583,7 +9614,8 @@
       "Front_Cable_Raise/1.jpg"
     ],
     "id": "Front_Cable_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación frontal en polea"
   },
   {
     "name": "Front Cone Hops (or hurdle hops)",
@@ -9614,7 +9646,8 @@
       "Front_Cone_Hops_or_hurdle_hops/1.jpg"
     ],
     "id": "Front_Cone_Hops_or_hurdle_hops",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Saltos frontales sobre conos (o vallas)"
   },
   {
     "name": "Front Dumbbell Raise",
@@ -9664,7 +9697,8 @@
       "Front_Incline_Dumbbell_Raise/1.jpg"
     ],
     "id": "Front_Incline_Dumbbell_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación frontal con mancuernas en banco inclinado"
   },
   {
     "name": "Front Leg Raises",
@@ -9686,7 +9720,8 @@
       "Front_Leg_Raises/1.jpg"
     ],
     "id": "Front_Leg_Raises",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevaciones de pierna al frente"
   },
   {
     "name": "Front Plate Raise",
@@ -9710,7 +9745,8 @@
       "Front_Plate_Raise/1.jpg"
     ],
     "id": "Front_Plate_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación frontal con disco"
   },
   {
     "name": "Front Raise And Pullover",
@@ -9739,7 +9775,8 @@
       "Front_Raise_And_Pullover/1.jpg"
     ],
     "id": "Front_Raise_And_Pullover",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación frontal y pullover"
   },
   {
     "name": "Front Squat (Clean Grip)",
@@ -9767,7 +9804,8 @@
       "Front_Squat_Clean_Grip/1.jpg"
     ],
     "id": "Front_Squat_Clean_Grip",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla frontal (agarre de cargada)"
   },
   {
     "name": "Front Squats With Two Kettlebells",
@@ -9793,7 +9831,8 @@
       "Front_Squats_With_Two_Kettlebells/1.jpg"
     ],
     "id": "Front_Squats_With_Two_Kettlebells",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla frontal con dos kettlebells"
   },
   {
     "name": "Front Two-Dumbbell Raise",
@@ -9817,7 +9856,8 @@
       "Front_Two-Dumbbell_Raise/1.jpg"
     ],
     "id": "Front_Two-Dumbbell_Raise",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación frontal con dos mancuernas"
   },
   {
     "name": "Full Range-Of-Motion Lat Pulldown",
@@ -9843,7 +9883,8 @@
       "Full_Range-Of-Motion_Lat_Pulldown/1.jpg"
     ],
     "id": "Full_Range-Of-Motion_Lat_Pulldown",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Jalón al pecho con rango completo"
   },
   {
     "name": "Gironda Sternum Chins",
@@ -9872,7 +9913,8 @@
       "Gironda_Sternum_Chins/1.jpg"
     ],
     "id": "Gironda_Sternum_Chins",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Dominadas al esternón (Gironda)"
   },
   {
     "name": "Glute Ham Raise",
@@ -9898,7 +9940,8 @@
       "Glute_Ham_Raise/1.jpg"
     ],
     "id": "Glute_Ham_Raise",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación glúteo-femoral"
   },
   {
     "name": "Glute Kickback",
@@ -10008,7 +10051,8 @@
       "Good_Morning_off_Pins/1.jpg"
     ],
     "id": "Good_Morning_off_Pins",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Buenos días desde los pines"
   },
   {
     "name": "Gorilla Chin/Crunch",
@@ -10036,7 +10080,8 @@
       "Gorilla_Chin_Crunch/1.jpg"
     ],
     "id": "Gorilla_Chin_Crunch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Dominada/abdominal gorila"
   },
   {
     "name": "Groin and Back Stretch",
@@ -10059,7 +10104,8 @@
       "Groin_and_Back_Stretch/1.jpg"
     ],
     "id": "Groin_and_Back_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de ingle y espalda"
   },
   {
     "name": "Groiners",
@@ -10082,7 +10128,8 @@
       "Groiners/1.jpg"
     ],
     "id": "Groiners",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Groiners (estiramiento dinámico de ingle)"
   },
   {
     "name": "Hack Squat",
@@ -10170,7 +10217,8 @@
       "Hammer_Grip_Incline_DB_Bench_Press/1.jpg"
     ],
     "id": "Hammer_Grip_Incline_DB_Bench_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press inclinado con mancuernas agarre martillo"
   },
   {
     "name": "Hamstring-SMR",
@@ -10193,7 +10241,8 @@
       "Hamstring-SMR/1.jpg"
     ],
     "id": "Hamstring-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de isquiotibiales (SMR)"
   },
   {
     "name": "Hamstring Stretch",
@@ -10216,7 +10265,8 @@
       "Hamstring_Stretch/1.jpg"
     ],
     "id": "Hamstring_Stretch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Estiramiento de isquiotibiales"
   },
   {
     "name": "Handstand Push-Ups",
@@ -10243,7 +10293,8 @@
       "Handstand_Push-Ups/1.jpg"
     ],
     "id": "Handstand_Push-Ups",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexiones en parada de manos"
   },
   {
     "name": "Hang Clean",
@@ -10274,7 +10325,8 @@
       "Hang_Clean/1.jpg"
     ],
     "id": "Hang_Clean",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Cargada colgante"
   },
   {
     "name": "Hang Clean - Below the Knees",
@@ -10306,7 +10358,8 @@
       "Hang_Clean_-_Below_the_Knees/1.jpg"
     ],
     "id": "Hang_Clean_-_Below_the_Knees",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cargada colgante (por debajo de las rodillas)"
   },
   {
     "name": "Hang Snatch",
@@ -10339,7 +10392,8 @@
       "Hang_Snatch/1.jpg"
     ],
     "id": "Hang_Snatch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrancada colgante"
   },
   {
     "name": "Hang Snatch - Below Knees",
@@ -10372,7 +10426,8 @@
       "Hang_Snatch_-_Below_Knees/1.jpg"
     ],
     "id": "Hang_Snatch_-_Below_Knees",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrancada colgante (por debajo de las rodillas)"
   },
   {
     "name": "Hanging Bar Good Morning",
@@ -10400,7 +10455,8 @@
       "Hanging_Bar_Good_Morning/1.jpg"
     ],
     "id": "Hanging_Bar_Good_Morning",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Buenos días colgado de la barra"
   },
   {
     "name": "Hanging Leg Raise",
@@ -10450,7 +10506,8 @@
       "Hanging_Pike/1.jpg"
     ],
     "id": "Hanging_Pike",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de piernas colgado (pike)"
   },
   {
     "name": "Heaving Snatch Balance",
@@ -10480,7 +10537,8 @@
       "Heaving_Snatch_Balance/1.jpg"
     ],
     "id": "Heaving_Snatch_Balance",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Snatch balance con impulso"
   },
   {
     "name": "Heavy Bag Thrust",
@@ -10507,7 +10565,8 @@
       "Heavy_Bag_Thrust/1.jpg"
     ],
     "id": "Heavy_Bag_Thrust",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Empuje de bolsa pesada"
   },
   {
     "name": "High Cable Curls",
@@ -10531,7 +10590,8 @@
       "High_Cable_Curls/1.jpg"
     ],
     "id": "High_Cable_Curls",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl en polea alta"
   },
   {
     "name": "Hip Circles (prone)",
@@ -10556,7 +10616,8 @@
       "Hip_Circles_prone/1.jpg"
     ],
     "id": "Hip_Circles_prone",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Círculos de cadera (boca abajo)"
   },
   {
     "name": "Hip Extension with Bands",
@@ -10582,7 +10643,8 @@
       "Hip_Extension_with_Bands/1.jpg"
     ],
     "id": "Hip_Extension_with_Bands",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de cadera con bandas"
   },
   {
     "name": "Hip Flexion with Band",
@@ -10606,7 +10668,8 @@
       "Hip_Flexion_with_Band/1.jpg"
     ],
     "id": "Hip_Flexion_with_Band",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Flexión de cadera con banda"
   },
   {
     "name": "Hip Lift with Band",
@@ -10633,7 +10696,8 @@
       "Hip_Lift_with_Band/1.jpg"
     ],
     "id": "Hip_Lift_with_Band",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación de cadera con banda"
   },
   {
     "name": "Hug A Ball",
@@ -10659,7 +10723,8 @@
       "Hug_A_Ball/1.jpg"
     ],
     "id": "Hug_A_Ball",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Abrazar una pelota"
   },
   {
     "name": "Hug Knees To Chest",
@@ -10684,7 +10749,8 @@
       "Hug_Knees_To_Chest/1.jpg"
     ],
     "id": "Hug_Knees_To_Chest",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Abrazar las rodillas al pecho"
   },
   {
     "name": "Hurdle Hops",
@@ -10714,7 +10780,8 @@
       "Hurdle_Hops/1.jpg"
     ],
     "id": "Hurdle_Hops",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Saltos de valla"
   },
   {
     "name": "Hyperextensions (Back Extensions)",
@@ -10772,7 +10839,8 @@
       "Hyperextensions_With_No_Hyperextension_Bench/1.jpg"
     ],
     "id": "Hyperextensions_With_No_Hyperextension_Bench",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Hiperextensiones sin banco de hiperextensión"
   },
   {
     "name": "IT Band and Glute Stretch",
@@ -10794,7 +10862,8 @@
       "IT_Band_and_Glute_Stretch/1.jpg"
     ],
     "id": "IT_Band_and_Glute_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de banda iliotibial y glúteo"
   },
   {
     "name": "Iliotibial Tract-SMR",
@@ -10817,7 +10886,8 @@
       "Iliotibial_Tract-SMR/1.jpg"
     ],
     "id": "Iliotibial_Tract-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de banda iliotibial (SMR)"
   },
   {
     "name": "Inchworm",
@@ -10842,7 +10912,8 @@
       "Inchworm/1.jpg"
     ],
     "id": "Inchworm",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Gusano (inchworm)"
   },
   {
     "name": "Incline Barbell Triceps Extension",
@@ -10870,7 +10941,8 @@
       "Incline_Barbell_Triceps_Extension/1.jpg"
     ],
     "id": "Incline_Barbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps con barra en banco inclinado"
   },
   {
     "name": "Incline Bench Pull",
@@ -10900,7 +10972,8 @@
       "Incline_Bench_Pull/1.jpg"
     ],
     "id": "Incline_Bench_Pull",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo en banco inclinado"
   },
   {
     "name": "Incline Cable Chest Press",
@@ -10926,7 +10999,8 @@
       "Incline_Cable_Chest_Press/1.jpg"
     ],
     "id": "Incline_Cable_Chest_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de pecho en polea inclinado"
   },
   {
     "name": "Incline Cable Flye",
@@ -10954,7 +11028,8 @@
       "Incline_Cable_Flye/1.jpg"
     ],
     "id": "Incline_Cable_Flye",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Aperturas en polea inclinado"
   },
   {
     "name": "Incline Dumbbell Bench With Palms Facing In",
@@ -10984,7 +11059,8 @@
       "Incline_Dumbbell_Bench_With_Palms_Facing_In/1.jpg"
     ],
     "id": "Incline_Dumbbell_Bench_With_Palms_Facing_In",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press inclinado con mancuernas palmas hacia adentro"
   },
   {
     "name": "Incline Dumbbell Curl",
@@ -11037,7 +11113,8 @@
       "Incline_Dumbbell_Flyes/1.jpg"
     ],
     "id": "Incline_Dumbbell_Flyes",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Aperturas con mancuernas en banco inclinado"
   },
   {
     "name": "Incline Dumbbell Flyes - With A Twist",
@@ -11065,7 +11142,8 @@
       "Incline_Dumbbell_Flyes_-_With_A_Twist/1.jpg"
     ],
     "id": "Incline_Dumbbell_Flyes_-_With_A_Twist",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Aperturas con mancuernas en banco inclinado con giro"
   },
   {
     "name": "Incline Dumbbell Press",
@@ -11119,7 +11197,8 @@
       "Incline_Hammer_Curls/1.jpg"
     ],
     "id": "Incline_Hammer_Curls",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl martillo en banco inclinado"
   },
   {
     "name": "Incline Inner Biceps Curl",
@@ -11144,7 +11223,8 @@
       "Incline_Inner_Biceps_Curl/1.jpg"
     ],
     "id": "Incline_Inner_Biceps_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl de bíceps interno en banco inclinado"
   },
   {
     "name": "Incline Push-Up",
@@ -11170,7 +11250,8 @@
       "Incline_Push-Up/1.jpg"
     ],
     "id": "Incline_Push-Up",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión inclinada"
   },
   {
     "name": "Incline Push-Up Close-Grip",
@@ -11198,7 +11279,8 @@
       "Incline_Push-Up_Close-Grip/1.jpg"
     ],
     "id": "Incline_Push-Up_Close-Grip",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión inclinada agarre cerrado"
   },
   {
     "name": "Incline Push-Up Depth Jump",
@@ -11225,7 +11307,8 @@
       "Incline_Push-Up_Depth_Jump/1.jpg"
     ],
     "id": "Incline_Push-Up_Depth_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Flexión inclinada con salto en profundidad"
   },
   {
     "name": "Incline Push-Up Medium",
@@ -11254,7 +11337,8 @@
       "Incline_Push-Up_Medium/1.jpg"
     ],
     "id": "Incline_Push-Up_Medium",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión inclinada agarre medio"
   },
   {
     "name": "Incline Push-Up Reverse Grip",
@@ -11283,7 +11367,8 @@
       "Incline_Push-Up_Reverse_Grip/1.jpg"
     ],
     "id": "Incline_Push-Up_Reverse_Grip",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión inclinada agarre invertido"
   },
   {
     "name": "Incline Push-Up Wide",
@@ -11312,7 +11397,8 @@
       "Incline_Push-Up_Wide/1.jpg"
     ],
     "id": "Incline_Push-Up_Wide",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión inclinada agarre abierto"
   },
   {
     "name": "Intermediate Groin Stretch",
@@ -11334,7 +11420,8 @@
       "Intermediate_Groin_Stretch/1.jpg"
     ],
     "id": "Intermediate_Groin_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de ingle intermedio"
   },
   {
     "name": "Intermediate Hip Flexor and Quad Stretch",
@@ -11356,7 +11443,8 @@
       "Intermediate_Hip_Flexor_and_Quad_Stretch/1.jpg"
     ],
     "id": "Intermediate_Hip_Flexor_and_Quad_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento intermedio de flexor de cadera y cuádriceps"
   },
   {
     "name": "Internal Rotation with Band",
@@ -11381,7 +11469,8 @@
       "Internal_Rotation_with_Band/1.jpg"
     ],
     "id": "Internal_Rotation_with_Band",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Rotación interna con banda"
   },
   {
     "name": "Inverted Row",
@@ -11436,7 +11525,8 @@
       "Inverted_Row_with_Straps/1.jpg"
     ],
     "id": "Inverted_Row_with_Straps",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo invertido con correas"
   },
   {
     "name": "Iron Cross",
@@ -11462,7 +11552,8 @@
       "Iron_Cross/1.jpg"
     ],
     "id": "Iron_Cross",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cruz de hierro"
   },
   {
     "name": "Iron Crosses (stretch)",
@@ -11485,7 +11576,8 @@
       "Iron_Crosses_stretch/1.jpg"
     ],
     "id": "Iron_Crosses_stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cruces de hierro (estiramiento)"
   },
   {
     "name": "Isometric Chest Squeezes",
@@ -11513,7 +11605,8 @@
       "Isometric_Chest_Squeezes/1.jpg"
     ],
     "id": "Isometric_Chest_Squeezes",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Contracciones isométricas de pecho"
   },
   {
     "name": "Isometric Neck Exercise - Front And Back",
@@ -11538,7 +11631,8 @@
       "Isometric_Neck_Exercise_-_Front_And_Back/1.jpg"
     ],
     "id": "Isometric_Neck_Exercise_-_Front_And_Back",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Ejercicio isométrico de cuello - adelante y atrás"
   },
   {
     "name": "Isometric Neck Exercise - Sides",
@@ -11563,7 +11657,8 @@
       "Isometric_Neck_Exercise_-_Sides/1.jpg"
     ],
     "id": "Isometric_Neck_Exercise_-_Sides",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Ejercicio isométrico de cuello - laterales"
   },
   {
     "name": "Isometric Wipers",
@@ -11591,7 +11686,8 @@
       "Isometric_Wipers/1.jpg"
     ],
     "id": "Isometric_Wipers",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Limpiaparabrisas isométrico"
   },
   {
     "name": "JM Press",
@@ -11619,7 +11715,8 @@
       "JM_Press/1.jpg"
     ],
     "id": "JM_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press JM"
   },
   {
     "name": "Jackknife Sit-Up",
@@ -11643,7 +11740,8 @@
       "Jackknife_Sit-Up/1.jpg"
     ],
     "id": "Jackknife_Sit-Up",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominal navaja"
   },
   {
     "name": "Janda Sit-Up",
@@ -11667,7 +11765,8 @@
       "Janda_Sit-Up/1.jpg"
     ],
     "id": "Janda_Sit-Up",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Abdominal Janda"
   },
   {
     "name": "Jefferson Squats",
@@ -11700,7 +11799,8 @@
       "Jefferson_Squats/1.jpg"
     ],
     "id": "Jefferson_Squats",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadillas Jefferson"
   },
   {
     "name": "Jerk Balance",
@@ -11728,7 +11828,8 @@
       "Jerk_Balance/1.jpg"
     ],
     "id": "Jerk_Balance",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Equilibrio de envión (jerk balance)"
   },
   {
     "name": "Jerk Dip Squat",
@@ -11753,7 +11854,8 @@
       "Jerk_Dip_Squat/1.jpg"
     ],
     "id": "Jerk_Dip_Squat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla de impulso para envión"
   },
   {
     "name": "Jogging, Treadmill",
@@ -11778,7 +11880,8 @@
       "Jogging_Treadmill/1.jpg"
     ],
     "id": "Jogging_Treadmill",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Trote en cinta"
   },
   {
     "name": "Keg Load",
@@ -11813,7 +11916,8 @@
       "Keg_Load/1.jpg"
     ],
     "id": "Keg_Load",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Carga de barril"
   },
   {
     "name": "Kettlebell Arnold Press",
@@ -11838,7 +11942,8 @@
       "Kettlebell_Arnold_Press/1.jpg"
     ],
     "id": "Kettlebell_Arnold_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press Arnold con kettlebell"
   },
   {
     "name": "Kettlebell Dead Clean",
@@ -11867,7 +11972,8 @@
       "Kettlebell_Dead_Clean/1.jpg"
     ],
     "id": "Kettlebell_Dead_Clean",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Cargada desde el piso con kettlebell"
   },
   {
     "name": "Kettlebell Figure 8",
@@ -11892,7 +11998,8 @@
       "Kettlebell_Figure_8/1.jpg"
     ],
     "id": "Kettlebell_Figure_8",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Kettlebell en ocho"
   },
   {
     "name": "Kettlebell Hang Clean",
@@ -11921,7 +12028,8 @@
       "Kettlebell_Hang_Clean/1.jpg"
     ],
     "id": "Kettlebell_Hang_Clean",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Cargada colgante con kettlebell"
   },
   {
     "name": "Kettlebell One-Legged Deadlift",
@@ -11947,7 +12055,8 @@
       "Kettlebell_One-Legged_Deadlift/1.jpg"
     ],
     "id": "Kettlebell_One-Legged_Deadlift",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Peso muerto a una pierna con kettlebell"
   },
   {
     "name": "Kettlebell Pass Between The Legs",
@@ -11973,7 +12082,8 @@
       "Kettlebell_Pass_Between_The_Legs/1.jpg"
     ],
     "id": "Kettlebell_Pass_Between_The_Legs",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Pase de kettlebell entre las piernas"
   },
   {
     "name": "Kettlebell Pirate Ships",
@@ -11999,7 +12109,8 @@
       "Kettlebell_Pirate_Ships/1.jpg"
     ],
     "id": "Kettlebell_Pirate_Ships",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Kettlebell \"barcos piratas\""
   },
   {
     "name": "Kettlebell Pistol Squat",
@@ -12028,7 +12139,8 @@
       "Kettlebell_Pistol_Squat/1.jpg"
     ],
     "id": "Kettlebell_Pistol_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla pistol con kettlebell"
   },
   {
     "name": "Kettlebell Seated Press",
@@ -12053,7 +12165,8 @@
       "Kettlebell_Seated_Press/1.jpg"
     ],
     "id": "Kettlebell_Seated_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press sentado con kettlebell"
   },
   {
     "name": "Kettlebell Seesaw Press",
@@ -12078,7 +12191,8 @@
       "Kettlebell_Seesaw_Press/1.jpg"
     ],
     "id": "Kettlebell_Seesaw_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press alternado con kettlebells (seesaw)"
   },
   {
     "name": "Kettlebell Sumo High Pull",
@@ -12106,7 +12220,8 @@
       "Kettlebell_Sumo_High_Pull/1.jpg"
     ],
     "id": "Kettlebell_Sumo_High_Pull",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Tirón alto sumo con kettlebell"
   },
   {
     "name": "Kettlebell Thruster",
@@ -12133,7 +12248,8 @@
       "Kettlebell_Thruster/1.jpg"
     ],
     "id": "Kettlebell_Thruster",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Thruster con kettlebell"
   },
   {
     "name": "Kettlebell Turkish Get-Up (Lunge style)",
@@ -12161,7 +12277,8 @@
       "Kettlebell_Turkish_Get-Up_Lunge_style/1.jpg"
     ],
     "id": "Kettlebell_Turkish_Get-Up_Lunge_style",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Turkish get-up con kettlebell (estilo estocada)"
   },
   {
     "name": "Kettlebell Turkish Get-Up (Squat style)",
@@ -12190,7 +12307,8 @@
       "Kettlebell_Turkish_Get-Up_Squat_style/1.jpg"
     ],
     "id": "Kettlebell_Turkish_Get-Up_Squat_style",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Turkish get-up con kettlebell (estilo sentadilla)"
   },
   {
     "name": "Kettlebell Windmill",
@@ -12218,7 +12336,8 @@
       "Kettlebell_Windmill/1.jpg"
     ],
     "id": "Kettlebell_Windmill",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Molino con kettlebell"
   },
   {
     "name": "Kipping Muscle Up",
@@ -12251,7 +12370,8 @@
       "Kipping_Muscle_Up/1.jpg"
     ],
     "id": "Kipping_Muscle_Up",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Muscle up con kipping"
   },
   {
     "name": "Knee Across The Body",
@@ -12276,7 +12396,8 @@
       "Knee_Across_The_Body/1.jpg"
     ],
     "id": "Knee_Across_The_Body",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Rodilla cruzada al cuerpo"
   },
   {
     "name": "Knee Circles",
@@ -12302,7 +12423,8 @@
       "Knee_Circles/1.jpg"
     ],
     "id": "Knee_Circles",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Círculos de rodilla"
   },
   {
     "name": "Knee/Hip Raise On Parallel Bars",
@@ -12327,7 +12449,8 @@
       "Knee_Hip_Raise_On_Parallel_Bars/1.jpg"
     ],
     "id": "Knee_Hip_Raise_On_Parallel_Bars",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de rodillas/cadera en paralelas"
   },
   {
     "name": "Knee Tuck Jump",
@@ -12356,7 +12479,8 @@
       "Knee_Tuck_Jump/1.jpg"
     ],
     "id": "Knee_Tuck_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto con rodillas al pecho"
   },
   {
     "name": "Kneeling Arm Drill",
@@ -12382,7 +12506,8 @@
       "Kneeling_Arm_Drill/1.jpg"
     ],
     "id": "Kneeling_Arm_Drill",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Ejercicio de brazos arrodillado"
   },
   {
     "name": "Kneeling Cable Crunch With Alternating Oblique Twists",
@@ -12411,7 +12536,8 @@
       "Kneeling_Cable_Crunch_With_Alternating_Oblique_Twists/1.jpg"
     ],
     "id": "Kneeling_Cable_Crunch_With_Alternating_Oblique_Twists",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominal en polea arrodillado con giros oblicuos alternados"
   },
   {
     "name": "Kneeling Cable Triceps Extension",
@@ -12438,7 +12564,8 @@
       "Kneeling_Cable_Triceps_Extension/1.jpg"
     ],
     "id": "Kneeling_Cable_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps en polea arrodillado"
   },
   {
     "name": "Kneeling Forearm Stretch",
@@ -12460,7 +12587,8 @@
       "Kneeling_Forearm_Stretch/1.jpg"
     ],
     "id": "Kneeling_Forearm_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de antebrazo arrodillado"
   },
   {
     "name": "Kneeling High Pulley Row",
@@ -12486,7 +12614,8 @@
       "Kneeling_High_Pulley_Row/1.jpg"
     ],
     "id": "Kneeling_High_Pulley_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo en polea alta arrodillado"
   },
   {
     "name": "Kneeling Hip Flexor",
@@ -12510,7 +12639,8 @@
       "Kneeling_Hip_Flexor/1.jpg"
     ],
     "id": "Kneeling_Hip_Flexor",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de flexor de cadera arrodillado"
   },
   {
     "name": "Kneeling Jump Squat",
@@ -12538,7 +12668,8 @@
       "Kneeling_Jump_Squat/1.jpg"
     ],
     "id": "Kneeling_Jump_Squat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla con salto desde arrodillado"
   },
   {
     "name": "Kneeling Single-Arm High Pulley Row",
@@ -12565,7 +12696,8 @@
       "Kneeling_Single-Arm_High_Pulley_Row/1.jpg"
     ],
     "id": "Kneeling_Single-Arm_High_Pulley_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo a un brazo en polea alta arrodillado"
   },
   {
     "name": "Kneeling Squat",
@@ -12592,7 +12724,8 @@
       "Kneeling_Squat/1.jpg"
     ],
     "id": "Kneeling_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla arrodillado"
   },
   {
     "name": "Landmine 180's",
@@ -12621,7 +12754,8 @@
       "Landmine_180s/1.jpg"
     ],
     "id": "Landmine_180s",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Landmine 180°"
   },
   {
     "name": "Landmine Linear Jammer",
@@ -12653,7 +12787,8 @@
       "Landmine_Linear_Jammer/1.jpg"
     ],
     "id": "Landmine_Linear_Jammer",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Jammer lineal con landmine"
   },
   {
     "name": "Lateral Bound",
@@ -12684,7 +12819,8 @@
       "Lateral_Bound/1.jpg"
     ],
     "id": "Lateral_Bound",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto lateral"
   },
   {
     "name": "Lateral Box Jump",
@@ -12715,7 +12851,8 @@
       "Lateral_Box_Jump/1.jpg"
     ],
     "id": "Lateral_Box_Jump",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Salto lateral al cajón"
   },
   {
     "name": "Lateral Cone Hops",
@@ -12745,7 +12882,8 @@
       "Lateral_Cone_Hops/1.jpg"
     ],
     "id": "Lateral_Cone_Hops",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Saltos laterales sobre conos"
   },
   {
     "name": "Lateral Raise - With Bands",
@@ -12769,7 +12907,8 @@
       "Lateral_Raise_-_With_Bands/1.jpg"
     ],
     "id": "Lateral_Raise_-_With_Bands",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación lateral con bandas"
   },
   {
     "name": "Latissimus Dorsi-SMR",
@@ -12791,7 +12930,8 @@
       "Latissimus_Dorsi-SMR/1.jpg"
     ],
     "id": "Latissimus_Dorsi-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de dorsal ancho (SMR)"
   },
   {
     "name": "Leg-Over Floor Press",
@@ -12817,7 +12957,8 @@
       "Leg-Over_Floor_Press/1.jpg"
     ],
     "id": "Leg-Over_Floor_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de piso con pierna cruzada"
   },
   {
     "name": "Leg-Up Hamstring Stretch",
@@ -12840,7 +12981,8 @@
       "Leg-Up_Hamstring_Stretch/1.jpg"
     ],
     "id": "Leg-Up_Hamstring_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de isquiotibiales con pierna elevada"
   },
   {
     "name": "Leg Extensions",
@@ -12892,7 +13034,8 @@
       "Leg_Lift/1.jpg"
     ],
     "id": "Leg_Lift",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de piernas"
   },
   {
     "name": "Leg Press",
@@ -12946,7 +13089,8 @@
       "Leg_Pull-In/1.jpg"
     ],
     "id": "Leg_Pull-In",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Encogimiento de piernas"
   },
   {
     "name": "Leverage Chest Press",
@@ -12973,7 +13117,8 @@
       "Leverage_Chest_Press/1.jpg"
     ],
     "id": "Leverage_Chest_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press de pecho en máquina de palanca"
   },
   {
     "name": "Leverage Deadlift",
@@ -12998,7 +13143,8 @@
       "Leverage_Deadlift/1.jpg"
     ],
     "id": "Leverage_Deadlift",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto en máquina de palanca"
   },
   {
     "name": "Leverage Decline Chest Press",
@@ -13024,7 +13170,8 @@
       "Leverage_Decline_Chest_Press/1.jpg"
     ],
     "id": "Leverage_Decline_Chest_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press de pecho declinado en máquina de palanca"
   },
   {
     "name": "Leverage High Row",
@@ -13050,7 +13197,8 @@
       "Leverage_High_Row/1.jpg"
     ],
     "id": "Leverage_High_Row",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Remo alto en máquina de palanca"
   },
   {
     "name": "Leverage Incline Chest Press",
@@ -13076,7 +13224,8 @@
       "Leverage_Incline_Chest_Press/1.jpg"
     ],
     "id": "Leverage_Incline_Chest_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press de pecho inclinado en máquina de palanca"
   },
   {
     "name": "Leverage Iso Row",
@@ -13102,7 +13251,8 @@
       "Leverage_Iso_Row/1.jpg"
     ],
     "id": "Leverage_Iso_Row",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Remo isolateral en máquina de palanca"
   },
   {
     "name": "Leverage Shoulder Press",
@@ -13127,7 +13277,8 @@
       "Leverage_Shoulder_Press/1.jpg"
     ],
     "id": "Leverage_Shoulder_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press de hombros en máquina de palanca"
   },
   {
     "name": "Leverage Shrug",
@@ -13154,7 +13305,8 @@
       "Leverage_Shrug/1.jpg"
     ],
     "id": "Leverage_Shrug",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Encogimiento en máquina de palanca"
   },
   {
     "name": "Linear 3-Part Start Technique",
@@ -13181,7 +13333,8 @@
       "Linear_3-Part_Start_Technique/1.jpg"
     ],
     "id": "Linear_3-Part_Start_Technique",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Técnica de salida lineal en 3 partes"
   },
   {
     "name": "Linear Acceleration Wall Drill",
@@ -13209,7 +13362,8 @@
       "Linear_Acceleration_Wall_Drill/1.jpg"
     ],
     "id": "Linear_Acceleration_Wall_Drill",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Ejercicio de aceleración lineal contra la pared"
   },
   {
     "name": "Linear Depth Jump",
@@ -13237,7 +13391,8 @@
       "Linear_Depth_Jump/1.jpg"
     ],
     "id": "Linear_Depth_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto en profundidad lineal"
   },
   {
     "name": "Log Lift",
@@ -13270,7 +13425,8 @@
       "Log_Lift/1.jpg"
     ],
     "id": "Log_Lift",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Levantamiento de tronco (log)"
   },
   {
     "name": "London Bridges",
@@ -13298,7 +13454,8 @@
       "London_Bridges/1.jpg"
     ],
     "id": "London_Bridges",
-    "fame": 3
+    "fame": 3,
+    "nombre": "London bridges"
   },
   {
     "name": "Looking At Ceiling",
@@ -13320,7 +13477,8 @@
       "Looking_At_Ceiling/1.jpg"
     ],
     "id": "Looking_At_Ceiling",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Mirar al techo (estiramiento de cuello)"
   },
   {
     "name": "Low Cable Crossover",
@@ -13346,7 +13504,8 @@
       "Low_Cable_Crossover/1.jpg"
     ],
     "id": "Low_Cable_Crossover",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Cruce en polea baja"
   },
   {
     "name": "Low Cable Triceps Extension",
@@ -13372,7 +13531,8 @@
       "Low_Cable_Triceps_Extension/1.jpg"
     ],
     "id": "Low_Cable_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps en polea baja"
   },
   {
     "name": "Low Pulley Row To Neck",
@@ -13401,7 +13561,8 @@
       "Low_Pulley_Row_To_Neck/1.jpg"
     ],
     "id": "Low_Pulley_Row_To_Neck",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Remo en polea baja al cuello"
   },
   {
     "name": "Lower Back-SMR",
@@ -13423,7 +13584,8 @@
       "Lower_Back-SMR/1.jpg"
     ],
     "id": "Lower_Back-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de espalda baja (SMR)"
   },
   {
     "name": "Lower Back Curl",
@@ -13445,7 +13607,8 @@
       "Lower_Back_Curl/1.jpg"
     ],
     "id": "Lower_Back_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Extensión de espalda baja"
   },
   {
     "name": "Lunge Pass Through",
@@ -13474,7 +13637,8 @@
       "Lunge_Pass_Through/1.jpg"
     ],
     "id": "Lunge_Pass_Through",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Estocada con pase por debajo"
   },
   {
     "name": "Lunge Sprint",
@@ -13502,7 +13666,8 @@
       "Lunge_Sprint/1.jpg"
     ],
     "id": "Lunge_Sprint",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Estocada con sprint"
   },
   {
     "name": "Lying Bent Leg Groin",
@@ -13525,7 +13690,8 @@
       "Lying_Bent_Leg_Groin/1.jpg"
     ],
     "id": "Lying_Bent_Leg_Groin",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de ingle acostado con pierna flexionada"
   },
   {
     "name": "Lying Cable Curl",
@@ -13551,7 +13717,8 @@
       "Lying_Cable_Curl/1.jpg"
     ],
     "id": "Lying_Cable_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl en polea acostado"
   },
   {
     "name": "Lying Cambered Barbell Row",
@@ -13579,7 +13746,8 @@
       "Lying_Cambered_Barbell_Row/1.jpg"
     ],
     "id": "Lying_Cambered_Barbell_Row",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Remo acostado con barra cambered"
   },
   {
     "name": "Lying Close-Grip Bar Curl On High Pulley",
@@ -13606,7 +13774,8 @@
       "Lying_Close-Grip_Bar_Curl_On_High_Pulley/1.jpg"
     ],
     "id": "Lying_Close-Grip_Bar_Curl_On_High_Pulley",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl agarre cerrado en polea alta acostado"
   },
   {
     "name": "Lying Close-Grip Barbell Triceps Extension Behind The Head",
@@ -13631,7 +13800,8 @@
       "Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head/1.jpg"
     ],
     "id": "Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps con barra agarre cerrado detrás de la cabeza acostado"
   },
   {
     "name": "Lying Close-Grip Barbell Triceps Press To Chin",
@@ -13656,7 +13826,8 @@
       "Lying_Close-Grip_Barbell_Triceps_Press_To_Chin/1.jpg"
     ],
     "id": "Lying_Close-Grip_Barbell_Triceps_Press_To_Chin",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de tríceps con barra agarre cerrado al mentón acostado"
   },
   {
     "name": "Lying Crossover",
@@ -13680,7 +13851,8 @@
       "Lying_Crossover/1.jpg"
     ],
     "id": "Lying_Crossover",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cruce de piernas acostado (estiramiento)"
   },
   {
     "name": "Lying Dumbbell Tricep Extension",
@@ -13707,7 +13879,8 @@
       "Lying_Dumbbell_Tricep_Extension/1.jpg"
     ],
     "id": "Lying_Dumbbell_Tricep_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps con mancuernas acostado"
   },
   {
     "name": "Lying Face Down Plate Neck Resistance",
@@ -13731,7 +13904,8 @@
       "Lying_Face_Down_Plate_Neck_Resistance/1.jpg"
     ],
     "id": "Lying_Face_Down_Plate_Neck_Resistance",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Resistencia de cuello con disco boca abajo"
   },
   {
     "name": "Lying Face Up Plate Neck Resistance",
@@ -13755,7 +13929,8 @@
       "Lying_Face_Up_Plate_Neck_Resistance/1.jpg"
     ],
     "id": "Lying_Face_Up_Plate_Neck_Resistance",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Resistencia de cuello con disco boca arriba"
   },
   {
     "name": "Lying Glute",
@@ -13781,7 +13956,8 @@
       "Lying_Glute/1.jpg"
     ],
     "id": "Lying_Glute",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de glúteo acostado"
   },
   {
     "name": "Lying Hamstring",
@@ -13806,7 +13982,8 @@
       "Lying_Hamstring/1.jpg"
     ],
     "id": "Lying_Hamstring",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de isquiotibiales acostado"
   },
   {
     "name": "Lying High Bench Barbell Curl",
@@ -13830,7 +14007,8 @@
       "Lying_High_Bench_Barbell_Curl/1.jpg"
     ],
     "id": "Lying_High_Bench_Barbell_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl con barra en banco alto acostado"
   },
   {
     "name": "Lying Machine Squat",
@@ -13860,7 +14038,8 @@
       "Lying_Machine_Squat/1.jpg"
     ],
     "id": "Lying_Machine_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla en máquina acostado"
   },
   {
     "name": "Lying One-Arm Lateral Raise",
@@ -13885,7 +14064,8 @@
       "Lying_One-Arm_Lateral_Raise/1.jpg"
     ],
     "id": "Lying_One-Arm_Lateral_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación lateral a un brazo acostado"
   },
   {
     "name": "Lying Prone Quadriceps",
@@ -13909,7 +14089,8 @@
       "Lying_Prone_Quadriceps/1.jpg"
     ],
     "id": "Lying_Prone_Quadriceps",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de cuádriceps boca abajo"
   },
   {
     "name": "Lying Rear Delt Raise",
@@ -13934,7 +14115,8 @@
       "Lying_Rear_Delt_Raise/1.jpg"
     ],
     "id": "Lying_Rear_Delt_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de deltoides posterior acostado"
   },
   {
     "name": "Lying Supine Dumbbell Curl",
@@ -13959,7 +14141,8 @@
       "Lying_Supine_Dumbbell_Curl/1.jpg"
     ],
     "id": "Lying_Supine_Dumbbell_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl con mancuernas acostado boca arriba"
   },
   {
     "name": "Lying T-Bar Row",
@@ -13988,7 +14171,8 @@
       "Lying_T-Bar_Row/1.jpg"
     ],
     "id": "Lying_T-Bar_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo en T acostado"
   },
   {
     "name": "Lying Triceps Press",
@@ -14069,7 +14253,8 @@
       "Machine_Bicep_Curl/1.jpg"
     ],
     "id": "Machine_Bicep_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl de bíceps en máquina"
   },
   {
     "name": "Machine Preacher Curls",
@@ -14094,7 +14279,8 @@
       "Machine_Preacher_Curls/1.jpg"
     ],
     "id": "Machine_Preacher_Curls",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl predicador en máquina"
   },
   {
     "name": "Machine Shoulder (Military) Press",
@@ -14121,7 +14307,8 @@
       "Machine_Shoulder_Military_Press/1.jpg"
     ],
     "id": "Machine_Shoulder_Military_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press militar de hombros en máquina"
   },
   {
     "name": "Machine Triceps Extension",
@@ -14145,7 +14332,8 @@
       "Machine_Triceps_Extension/1.jpg"
     ],
     "id": "Machine_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps en máquina"
   },
   {
     "name": "Medicine Ball Chest Pass",
@@ -14173,7 +14361,8 @@
       "Medicine_Ball_Chest_Pass/1.jpg"
     ],
     "id": "Medicine_Ball_Chest_Pass",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Pase de pecho con balón medicinal"
   },
   {
     "name": "Medicine Ball Full Twist",
@@ -14199,7 +14388,8 @@
       "Medicine_Ball_Full_Twist/1.jpg"
     ],
     "id": "Medicine_Ball_Full_Twist",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Giro completo con balón medicinal"
   },
   {
     "name": "Medicine Ball Scoop Throw",
@@ -14226,7 +14416,8 @@
       "Medicine_Ball_Scoop_Throw/1.jpg"
     ],
     "id": "Medicine_Ball_Scoop_Throw",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Lanzamiento de balón medicinal desde abajo"
   },
   {
     "name": "Middle Back Shrug",
@@ -14250,7 +14441,8 @@
       "Middle_Back_Shrug/1.jpg"
     ],
     "id": "Middle_Back_Shrug",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Encogimiento de espalda media"
   },
   {
     "name": "Middle Back Stretch",
@@ -14276,7 +14468,8 @@
       "Middle_Back_Stretch/1.jpg"
     ],
     "id": "Middle_Back_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de espalda media"
   },
   {
     "name": "Mixed Grip Chin",
@@ -14304,7 +14497,8 @@
       "Mixed_Grip_Chin/1.jpg"
     ],
     "id": "Mixed_Grip_Chin",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Dominada agarre mixto"
   },
   {
     "name": "Monster Walk",
@@ -14327,7 +14521,8 @@
       "Monster_Walk/1.jpg"
     ],
     "id": "Monster_Walk",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Caminata de monstruo (monster walk)"
   },
   {
     "name": "Mountain Climbers",
@@ -14380,7 +14575,8 @@
       "Moving_Claw_Series/1.jpg"
     ],
     "id": "Moving_Claw_Series",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Serie de garra en movimiento"
   },
   {
     "name": "Muscle Snatch",
@@ -14409,7 +14605,8 @@
       "Muscle_Snatch/1.jpg"
     ],
     "id": "Muscle_Snatch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrancada de fuerza (muscle snatch)"
   },
   {
     "name": "Muscle Up",
@@ -14441,7 +14638,8 @@
       "Muscle_Up/1.jpg"
     ],
     "id": "Muscle_Up",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Muscle up"
   },
   {
     "name": "Narrow Stance Hack Squats",
@@ -14472,7 +14670,8 @@
       "Narrow_Stance_Hack_Squats/1.jpg"
     ],
     "id": "Narrow_Stance_Hack_Squats",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla hack con postura cerrada"
   },
   {
     "name": "Narrow Stance Leg Press",
@@ -14501,7 +14700,8 @@
       "Narrow_Stance_Leg_Press/1.jpg"
     ],
     "id": "Narrow_Stance_Leg_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Prensa de piernas con postura cerrada"
   },
   {
     "name": "Narrow Stance Squats",
@@ -14532,7 +14732,8 @@
       "Narrow_Stance_Squats/1.jpg"
     ],
     "id": "Narrow_Stance_Squats",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadillas con postura cerrada"
   },
   {
     "name": "Natural Glute Ham Raise",
@@ -14560,7 +14761,8 @@
       "Natural_Glute_Ham_Raise/1.jpg"
     ],
     "id": "Natural_Glute_Ham_Raise",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación glúteo-femoral natural"
   },
   {
     "name": "Neck-SMR",
@@ -14582,7 +14784,8 @@
       "Neck-SMR/1.jpg"
     ],
     "id": "Neck-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de cuello (SMR)"
   },
   {
     "name": "Neck Press",
@@ -14610,7 +14813,8 @@
       "Neck_Press/1.jpg"
     ],
     "id": "Neck_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press al cuello"
   },
   {
     "name": "Oblique Crunches",
@@ -14637,7 +14841,8 @@
       "Oblique_Crunches/1.jpg"
     ],
     "id": "Oblique_Crunches",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominales oblicuos"
   },
   {
     "name": "Oblique Crunches - On The Floor",
@@ -14662,7 +14867,8 @@
       "Oblique_Crunches_-_On_The_Floor/1.jpg"
     ],
     "id": "Oblique_Crunches_-_On_The_Floor",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominales oblicuos en el piso"
   },
   {
     "name": "Olympic Squat",
@@ -14689,7 +14895,8 @@
       "Olympic_Squat/1.jpg"
     ],
     "id": "Olympic_Squat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla olímpica"
   },
   {
     "name": "On-Your-Back Quad Stretch",
@@ -14713,7 +14920,8 @@
       "On-Your-Back_Quad_Stretch/1.jpg"
     ],
     "id": "On-Your-Back_Quad_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de cuádriceps boca arriba"
   },
   {
     "name": "On Your Side Quad Stretch",
@@ -14735,7 +14943,8 @@
       "On_Your_Side_Quad_Stretch/1.jpg"
     ],
     "id": "On_Your_Side_Quad_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de cuádriceps de costado"
   },
   {
     "name": "One-Arm Dumbbell Row",
@@ -14793,7 +15002,8 @@
       "One-Arm_Flat_Bench_Dumbbell_Flye/1.jpg"
     ],
     "id": "One-Arm_Flat_Bench_Dumbbell_Flye",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Apertura con mancuerna a un brazo en banco plano"
   },
   {
     "name": "One-Arm High-Pulley Cable Side Bends",
@@ -14821,7 +15031,8 @@
       "One-Arm_High-Pulley_Cable_Side_Bends/1.jpg"
     ],
     "id": "One-Arm_High-Pulley_Cable_Side_Bends",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexiones laterales en polea alta a un brazo"
   },
   {
     "name": "One-Arm Incline Lateral Raise",
@@ -14847,7 +15058,8 @@
       "One-Arm_Incline_Lateral_Raise/1.jpg"
     ],
     "id": "One-Arm_Incline_Lateral_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación lateral a un brazo en banco inclinado"
   },
   {
     "name": "One-Arm Kettlebell Clean",
@@ -14875,7 +15087,8 @@
       "One-Arm_Kettlebell_Clean/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Clean",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Cargada con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Clean and Jerk",
@@ -14901,7 +15114,8 @@
       "One-Arm_Kettlebell_Clean_and_Jerk/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Clean_and_Jerk",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Cargada y envión con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Floor Press",
@@ -14926,7 +15140,8 @@
       "One-Arm_Kettlebell_Floor_Press/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Floor_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press de piso con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Jerk",
@@ -14954,7 +15169,8 @@
       "One-Arm_Kettlebell_Jerk/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Jerk",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Envión con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Military Press To The Side",
@@ -14979,7 +15195,8 @@
       "One-Arm_Kettlebell_Military_Press_To_The_Side/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Military_Press_To_The_Side",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press militar con kettlebell a un brazo al costado"
   },
   {
     "name": "One-Arm Kettlebell Para Press",
@@ -15004,7 +15221,8 @@
       "One-Arm_Kettlebell_Para_Press/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Para_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press \"para\" con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Push Press",
@@ -15031,7 +15249,8 @@
       "One-Arm_Kettlebell_Push_Press/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Push_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Push press con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Row",
@@ -15055,7 +15274,8 @@
       "One-Arm_Kettlebell_Row/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Snatch",
@@ -15085,7 +15305,8 @@
       "One-Arm_Kettlebell_Snatch/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Snatch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Arrancada con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Split Jerk",
@@ -15115,7 +15336,8 @@
       "One-Arm_Kettlebell_Split_Jerk/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Split_Jerk",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Envión en tijera con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Split Snatch",
@@ -15142,7 +15364,8 @@
       "One-Arm_Kettlebell_Split_Snatch/1.jpg"
     ],
     "id": "One-Arm_Kettlebell_Split_Snatch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrancada en tijera con kettlebell a un brazo"
   },
   {
     "name": "One-Arm Kettlebell Swings",
@@ -15195,7 +15418,8 @@
       "One-Arm_Long_Bar_Row/1.jpg"
     ],
     "id": "One-Arm_Long_Bar_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo con barra larga a un brazo"
   },
   {
     "name": "One-Arm Medicine Ball Slam",
@@ -15222,7 +15446,8 @@
       "One-Arm_Medicine_Ball_Slam/1.jpg"
     ],
     "id": "One-Arm_Medicine_Ball_Slam",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Golpe de balón medicinal a un brazo"
   },
   {
     "name": "One-Arm Open Palm Kettlebell Clean",
@@ -15252,7 +15477,8 @@
       "One-Arm_Open_Palm_Kettlebell_Clean/1.jpg"
     ],
     "id": "One-Arm_Open_Palm_Kettlebell_Clean",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cargada con kettlebell a un brazo con palma abierta"
   },
   {
     "name": "One-Arm Overhead Kettlebell Squats",
@@ -15280,7 +15506,8 @@
       "One-Arm_Overhead_Kettlebell_Squats/1.jpg"
     ],
     "id": "One-Arm_Overhead_Kettlebell_Squats",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla con kettlebell sobre la cabeza a un brazo"
   },
   {
     "name": "One-Arm Side Deadlift",
@@ -15313,7 +15540,8 @@
       "One-Arm_Side_Deadlift/1.jpg"
     ],
     "id": "One-Arm_Side_Deadlift",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto lateral a un brazo"
   },
   {
     "name": "One-Arm Side Laterals",
@@ -15339,7 +15567,8 @@
       "One-Arm_Side_Laterals/1.jpg"
     ],
     "id": "One-Arm_Side_Laterals",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevaciones laterales a un brazo"
   },
   {
     "name": "One-Legged Cable Kickback",
@@ -15367,7 +15596,8 @@
       "One-Legged_Cable_Kickback/1.jpg"
     ],
     "id": "One-Legged_Cable_Kickback",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Patada de glúteo en polea a una pierna"
   },
   {
     "name": "One Arm Against Wall",
@@ -15389,7 +15619,8 @@
       "One_Arm_Against_Wall/1.jpg"
     ],
     "id": "One_Arm_Against_Wall",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de un brazo contra la pared"
   },
   {
     "name": "One Arm Chin-Up",
@@ -15420,7 +15651,8 @@
       "One_Arm_Chin-Up/1.jpg"
     ],
     "id": "One_Arm_Chin-Up",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Dominada a un brazo"
   },
   {
     "name": "One Arm Dumbbell Bench Press",
@@ -15450,7 +15682,8 @@
       "One_Arm_Dumbbell_Bench_Press/1.jpg"
     ],
     "id": "One_Arm_Dumbbell_Bench_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de banca con mancuerna a un brazo"
   },
   {
     "name": "One Arm Dumbbell Preacher Curl",
@@ -15475,7 +15708,8 @@
       "One_Arm_Dumbbell_Preacher_Curl/1.jpg"
     ],
     "id": "One_Arm_Dumbbell_Preacher_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl predicador con mancuerna a un brazo"
   },
   {
     "name": "One Arm Floor Press",
@@ -15505,7 +15739,8 @@
       "One_Arm_Floor_Press/1.jpg"
     ],
     "id": "One_Arm_Floor_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de piso a un brazo"
   },
   {
     "name": "One Arm Lat Pulldown",
@@ -15532,7 +15767,8 @@
       "One_Arm_Lat_Pulldown/1.jpg"
     ],
     "id": "One_Arm_Lat_Pulldown",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Jalón al pecho a un brazo"
   },
   {
     "name": "One Arm Pronated Dumbbell Triceps Extension",
@@ -15558,7 +15794,8 @@
       "One_Arm_Pronated_Dumbbell_Triceps_Extension/1.jpg"
     ],
     "id": "One_Arm_Pronated_Dumbbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps con mancuerna pronada a un brazo"
   },
   {
     "name": "One Arm Supinated Dumbbell Triceps Extension",
@@ -15585,7 +15822,8 @@
       "One_Arm_Supinated_Dumbbell_Triceps_Extension/1.jpg"
     ],
     "id": "One_Arm_Supinated_Dumbbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps con mancuerna supinada a un brazo"
   },
   {
     "name": "One Half Locust",
@@ -15613,7 +15851,8 @@
       "One_Half_Locust/1.jpg"
     ],
     "id": "One_Half_Locust",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Media langosta (yoga)"
   },
   {
     "name": "One Handed Hang",
@@ -15636,7 +15875,8 @@
       "One_Handed_Hang/1.jpg"
     ],
     "id": "One_Handed_Hang",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Colgarse con una mano"
   },
   {
     "name": "One Knee To Chest",
@@ -15663,7 +15903,8 @@
       "One_Knee_To_Chest/1.jpg"
     ],
     "id": "One_Knee_To_Chest",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Una rodilla al pecho"
   },
   {
     "name": "One Leg Barbell Squat",
@@ -15694,7 +15935,8 @@
       "One_Leg_Barbell_Squat/1.jpg"
     ],
     "id": "One_Leg_Barbell_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla con barra a una pierna"
   },
   {
     "name": "Open Palm Kettlebell Clean",
@@ -15722,7 +15964,8 @@
       "Open_Palm_Kettlebell_Clean/1.jpg"
     ],
     "id": "Open_Palm_Kettlebell_Clean",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cargada con kettlebell con palma abierta"
   },
   {
     "name": "Otis-Up",
@@ -15750,7 +15993,8 @@
       "Otis-Up/1.jpg"
     ],
     "id": "Otis-Up",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Otis-up (abdominal con peso)"
   },
   {
     "name": "Overhead Cable Curl",
@@ -15776,7 +16020,8 @@
       "Overhead_Cable_Curl/1.jpg"
     ],
     "id": "Overhead_Cable_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl en polea por encima de la cabeza"
   },
   {
     "name": "Overhead Lat",
@@ -15801,7 +16046,8 @@
       "Overhead_Lat/1.jpg"
     ],
     "id": "Overhead_Lat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de dorsales sobre la cabeza"
   },
   {
     "name": "Overhead Slam",
@@ -15825,7 +16071,8 @@
       "Overhead_Slam/1.jpg"
     ],
     "id": "Overhead_Slam",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Golpe de balón sobre la cabeza"
   },
   {
     "name": "Overhead Squat",
@@ -15859,7 +16106,8 @@
       "Overhead_Squat/1.jpg"
     ],
     "id": "Overhead_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla sobre la cabeza (overhead squat)"
   },
   {
     "name": "Overhead Stretch",
@@ -15886,7 +16134,8 @@
       "Overhead_Stretch/1.jpg"
     ],
     "id": "Overhead_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento sobre la cabeza"
   },
   {
     "name": "Overhead Triceps",
@@ -15911,7 +16160,8 @@
       "Overhead_Triceps/1.jpg"
     ],
     "id": "Overhead_Triceps",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de tríceps sobre la cabeza"
   },
   {
     "name": "Pallof Press",
@@ -15941,7 +16191,8 @@
       "Pallof_Press/1.jpg"
     ],
     "id": "Pallof_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press Pallof"
   },
   {
     "name": "Pallof Press With Rotation",
@@ -15974,7 +16225,8 @@
       "Pallof_Press_With_Rotation/1.jpg"
     ],
     "id": "Pallof_Press_With_Rotation",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press Pallof con rotación"
   },
   {
     "name": "Palms-Down Dumbbell Wrist Curl Over A Bench",
@@ -16001,7 +16253,8 @@
       "Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench/1.jpg"
     ],
     "id": "Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca con mancuernas palmas abajo sobre banco"
   },
   {
     "name": "Palms-Down Wrist Curl Over A Bench",
@@ -16028,7 +16281,8 @@
       "Palms-Down_Wrist_Curl_Over_A_Bench/1.jpg"
     ],
     "id": "Palms-Down_Wrist_Curl_Over_A_Bench",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca palmas abajo sobre banco"
   },
   {
     "name": "Palms-Up Barbell Wrist Curl Over A Bench",
@@ -16055,7 +16309,8 @@
       "Palms-Up_Barbell_Wrist_Curl_Over_A_Bench/1.jpg"
     ],
     "id": "Palms-Up_Barbell_Wrist_Curl_Over_A_Bench",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca con barra palmas arriba sobre banco"
   },
   {
     "name": "Palms-Up Dumbbell Wrist Curl Over A Bench",
@@ -16082,7 +16337,8 @@
       "Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench/1.jpg"
     ],
     "id": "Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca con mancuernas palmas arriba sobre banco"
   },
   {
     "name": "Parallel Bar Dip",
@@ -16109,7 +16365,8 @@
       "Parallel_Bar_Dip/1.jpg"
     ],
     "id": "Parallel_Bar_Dip",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Fondos en paralelas"
   },
   {
     "name": "Pelvic Tilt Into Bridge",
@@ -16132,7 +16389,8 @@
       "Pelvic_Tilt_Into_Bridge/1.jpg"
     ],
     "id": "Pelvic_Tilt_Into_Bridge",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Báscula pélvica a puente"
   },
   {
     "name": "Peroneals-SMR",
@@ -16154,7 +16412,8 @@
       "Peroneals-SMR/1.jpg"
     ],
     "id": "Peroneals-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de peroneos (SMR)"
   },
   {
     "name": "Peroneals Stretch",
@@ -16176,7 +16435,8 @@
       "Peroneals_Stretch/1.jpg"
     ],
     "id": "Peroneals_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de peroneos"
   },
   {
     "name": "Physioball Hip Bridge",
@@ -16201,7 +16461,8 @@
       "Physioball_Hip_Bridge/1.jpg"
     ],
     "id": "Physioball_Hip_Bridge",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Puente de cadera con pelota"
   },
   {
     "name": "Pin Presses",
@@ -16233,7 +16494,8 @@
       "Pin_Presses/1.jpg"
     ],
     "id": "Pin_Presses",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press desde pines"
   },
   {
     "name": "Piriformis-SMR",
@@ -16255,7 +16517,8 @@
       "Piriformis-SMR/1.jpg"
     ],
     "id": "Piriformis-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de piriforme (SMR)"
   },
   {
     "name": "Plank",
@@ -16303,7 +16566,8 @@
       "Plate_Pinch/1.jpg"
     ],
     "id": "Plate_Pinch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Pinza con discos"
   },
   {
     "name": "Plate Twist",
@@ -16328,7 +16592,8 @@
       "Plate_Twist/1.jpg"
     ],
     "id": "Plate_Twist",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Giro con disco"
   },
   {
     "name": "Platform Hamstring Slides",
@@ -16354,7 +16619,8 @@
       "Platform_Hamstring_Slides/1.jpg"
     ],
     "id": "Platform_Hamstring_Slides",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Deslizamientos de isquiotibiales en plataforma"
   },
   {
     "name": "Plie Dumbbell Squat",
@@ -16384,7 +16650,8 @@
       "Plie_Dumbbell_Squat/1.jpg"
     ],
     "id": "Plie_Dumbbell_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla plié con mancuerna"
   },
   {
     "name": "Plyo Kettlebell Pushups",
@@ -16410,7 +16677,8 @@
       "Plyo_Kettlebell_Pushups/1.jpg"
     ],
     "id": "Plyo_Kettlebell_Pushups",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Flexiones pliométricas con kettlebells"
   },
   {
     "name": "Plyo Push-up",
@@ -16439,7 +16707,8 @@
       "Plyo_Push-up/1.jpg"
     ],
     "id": "Plyo_Push-up",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión pliométrica"
   },
   {
     "name": "Posterior Tibialis Stretch",
@@ -16461,7 +16730,8 @@
       "Posterior_Tibialis_Stretch/1.jpg"
     ],
     "id": "Posterior_Tibialis_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento del tibial posterior"
   },
   {
     "name": "Power Clean",
@@ -16543,7 +16813,8 @@
       "Power_Clean_from_Blocks/1.jpg"
     ],
     "id": "Power_Clean_from_Blocks",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cargada de potencia desde bloques"
   },
   {
     "name": "Power Jerk",
@@ -16575,7 +16846,8 @@
       "Power_Jerk/1.jpg"
     ],
     "id": "Power_Jerk",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Envión de potencia"
   },
   {
     "name": "Power Partials",
@@ -16600,7 +16872,8 @@
       "Power_Partials/1.jpg"
     ],
     "id": "Power_Partials",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Parciales de potencia"
   },
   {
     "name": "Power Snatch",
@@ -16633,7 +16906,8 @@
       "Power_Snatch/1.jpg"
     ],
     "id": "Power_Snatch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Arrancada de potencia"
   },
   {
     "name": "Power Snatch from Blocks",
@@ -16667,7 +16941,8 @@
       "Power_Snatch_from_Blocks/1.jpg"
     ],
     "id": "Power_Snatch_from_Blocks",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrancada de potencia desde bloques"
   },
   {
     "name": "Power Stairs",
@@ -16699,7 +16974,8 @@
       "Power_Stairs/1.jpg"
     ],
     "id": "Power_Stairs",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Escaleras de potencia"
   },
   {
     "name": "Preacher Curl",
@@ -16751,7 +17027,8 @@
       "Preacher_Hammer_Dumbbell_Curl/1.jpg"
     ],
     "id": "Preacher_Hammer_Dumbbell_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl martillo predicador con mancuerna"
   },
   {
     "name": "Press Sit-Up",
@@ -16779,7 +17056,8 @@
       "Press_Sit-Up/1.jpg"
     ],
     "id": "Press_Sit-Up",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Abdominal con press"
   },
   {
     "name": "Prone Manual Hamstring",
@@ -16802,7 +17080,8 @@
       "Prone_Manual_Hamstring/1.jpg"
     ],
     "id": "Prone_Manual_Hamstring",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Femoral manual boca abajo"
   },
   {
     "name": "Prowler Sprint",
@@ -16831,7 +17110,8 @@
       "Prowler_Sprint/1.jpg"
     ],
     "id": "Prowler_Sprint",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sprint con trineo prowler"
   },
   {
     "name": "Pull Through",
@@ -16856,7 +17136,8 @@
       "Pull_Through/1.jpg"
     ],
     "id": "Pull_Through",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Pull through en polea"
   },
   {
     "name": "Pullups",
@@ -16913,7 +17194,8 @@
       "Push-Up_Wide/1.jpg"
     ],
     "id": "Push-Up_Wide",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión agarre abierto"
   },
   {
     "name": "Push-Ups - Close Triceps Position",
@@ -16940,7 +17222,8 @@
       "Push-Ups_-_Close_Triceps_Position/1.jpg"
     ],
     "id": "Push-Ups_-_Close_Triceps_Position",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexiones agarre cerrado (tríceps)"
   },
   {
     "name": "Push-Ups With Feet Elevated",
@@ -16968,7 +17251,8 @@
       "Push-Ups_With_Feet_Elevated/1.jpg"
     ],
     "id": "Push-Ups_With_Feet_Elevated",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexiones con pies elevados"
   },
   {
     "name": "Push-Ups With Feet On An Exercise Ball",
@@ -16996,7 +17280,8 @@
       "Push-Ups_With_Feet_On_An_Exercise_Ball/1.jpg"
     ],
     "id": "Push-Ups_With_Feet_On_An_Exercise_Ball",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexiones con pies en pelota de ejercicio"
   },
   {
     "name": "Push Press",
@@ -17046,7 +17331,8 @@
       "Push_Press_-_Behind_the_Neck/1.jpg"
     ],
     "id": "Push_Press_-_Behind_the_Neck",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Push press por detrás de la nuca"
   },
   {
     "name": "Push Up to Side Plank",
@@ -17075,7 +17361,8 @@
       "Push_Up_to_Side_Plank/1.jpg"
     ],
     "id": "Push_Up_to_Side_Plank",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión a plancha lateral"
   },
   {
     "name": "Pushups",
@@ -17130,7 +17417,8 @@
       "Pushups_Close_and_Wide_Hand_Positions/1.jpg"
     ],
     "id": "Pushups_Close_and_Wide_Hand_Positions",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexiones (agarre cerrado y abierto)"
   },
   {
     "name": "Pyramid",
@@ -17154,7 +17442,8 @@
       "Pyramid/1.jpg"
     ],
     "id": "Pyramid",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Pirámide"
   },
   {
     "name": "Quad Stretch",
@@ -17176,7 +17465,8 @@
       "Quad_Stretch/1.jpg"
     ],
     "id": "Quad_Stretch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Estiramiento de cuádriceps"
   },
   {
     "name": "Quadriceps-SMR",
@@ -17198,7 +17488,8 @@
       "Quadriceps-SMR/1.jpg"
     ],
     "id": "Quadriceps-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de cuádriceps (SMR)"
   },
   {
     "name": "Quick Leap",
@@ -17225,7 +17516,8 @@
       "Quick_Leap/1.jpg"
     ],
     "id": "Quick_Leap",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto rápido"
   },
   {
     "name": "Rack Delivery",
@@ -17251,7 +17543,8 @@
       "Rack_Delivery/1.jpg"
     ],
     "id": "Rack_Delivery",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Entrega al rack (envión)"
   },
   {
     "name": "Rack Pull with Bands",
@@ -17280,7 +17573,8 @@
       "Rack_Pull_with_Bands/1.jpg"
     ],
     "id": "Rack_Pull_with_Bands",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Rack pull con bandas"
   },
   {
     "name": "Rack Pulls",
@@ -17308,7 +17602,8 @@
       "Rack_Pulls/1.jpg"
     ],
     "id": "Rack_Pulls",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Rack pulls (peso muerto parcial)"
   },
   {
     "name": "Rear Leg Raises",
@@ -17330,7 +17625,8 @@
       "Rear_Leg_Raises/1.jpg"
     ],
     "id": "Rear_Leg_Raises",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevaciones de pierna hacia atrás"
   },
   {
     "name": "Recumbent Bike",
@@ -17357,7 +17653,8 @@
       "Recumbent_Bike/1.jpg"
     ],
     "id": "Recumbent_Bike",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Bicicleta reclinada"
   },
   {
     "name": "Return Push from Stance",
@@ -17385,7 +17682,8 @@
       "Return_Push_from_Stance/1.jpg"
     ],
     "id": "Return_Push_from_Stance",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Empuje de retorno desde postura"
   },
   {
     "name": "Reverse Band Bench Press",
@@ -17415,7 +17713,8 @@
       "Reverse_Band_Bench_Press/1.jpg"
     ],
     "id": "Reverse_Band_Bench_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press de banca con bandas invertidas"
   },
   {
     "name": "Reverse Band Box Squat",
@@ -17447,7 +17746,8 @@
       "Reverse_Band_Box_Squat/1.jpg"
     ],
     "id": "Reverse_Band_Box_Squat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla al cajón con bandas invertidas"
   },
   {
     "name": "Reverse Band Deadlift",
@@ -17479,7 +17779,8 @@
       "Reverse_Band_Deadlift/1.jpg"
     ],
     "id": "Reverse_Band_Deadlift",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto con bandas invertidas"
   },
   {
     "name": "Reverse Band Power Squat",
@@ -17509,7 +17810,8 @@
       "Reverse_Band_Power_Squat/1.jpg"
     ],
     "id": "Reverse_Band_Power_Squat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla de potencia con bandas invertidas"
   },
   {
     "name": "Reverse Band Sumo Deadlift",
@@ -17543,7 +17845,8 @@
       "Reverse_Band_Sumo_Deadlift/1.jpg"
     ],
     "id": "Reverse_Band_Sumo_Deadlift",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto sumo con bandas invertidas"
   },
   {
     "name": "Reverse Barbell Curl",
@@ -17569,7 +17872,8 @@
       "Reverse_Barbell_Curl/1.jpg"
     ],
     "id": "Reverse_Barbell_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl invertido con barra"
   },
   {
     "name": "Reverse Barbell Preacher Curls",
@@ -17596,7 +17900,8 @@
       "Reverse_Barbell_Preacher_Curls/1.jpg"
     ],
     "id": "Reverse_Barbell_Preacher_Curls",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl predicador invertido con barra"
   },
   {
     "name": "Reverse Cable Curl",
@@ -17622,7 +17927,8 @@
       "Reverse_Cable_Curl/1.jpg"
     ],
     "id": "Reverse_Cable_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl invertido en polea"
   },
   {
     "name": "Reverse Crunch",
@@ -17674,7 +17980,8 @@
       "Reverse_Flyes/1.jpg"
     ],
     "id": "Reverse_Flyes",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Aperturas invertidas (posteriores)"
   },
   {
     "name": "Reverse Flyes With External Rotation",
@@ -17701,7 +18008,8 @@
       "Reverse_Flyes_With_External_Rotation/1.jpg"
     ],
     "id": "Reverse_Flyes_With_External_Rotation",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Aperturas invertidas con rotación externa"
   },
   {
     "name": "Reverse Grip Bent-Over Rows",
@@ -17730,7 +18038,8 @@
       "Reverse_Grip_Bent-Over_Rows/1.jpg"
     ],
     "id": "Reverse_Grip_Bent-Over_Rows",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo inclinado agarre supino"
   },
   {
     "name": "Reverse Grip Triceps Pushdown",
@@ -17755,7 +18064,8 @@
       "Reverse_Grip_Triceps_Pushdown/1.jpg"
     ],
     "id": "Reverse_Grip_Triceps_Pushdown",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps en polea agarre supino"
   },
   {
     "name": "Reverse Hyperextension",
@@ -17783,7 +18093,8 @@
       "Reverse_Hyperextension/1.jpg"
     ],
     "id": "Reverse_Hyperextension",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Hiperextensión inversa"
   },
   {
     "name": "Reverse Machine Flyes",
@@ -17807,7 +18118,8 @@
       "Reverse_Machine_Flyes/1.jpg"
     ],
     "id": "Reverse_Machine_Flyes",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Aperturas posteriores en máquina"
   },
   {
     "name": "Reverse Plate Curls",
@@ -17834,7 +18146,8 @@
       "Reverse_Plate_Curls/1.jpg"
     ],
     "id": "Reverse_Plate_Curls",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl invertido con disco"
   },
   {
     "name": "Reverse Triceps Bench Press",
@@ -17862,7 +18175,8 @@
       "Reverse_Triceps_Bench_Press/1.jpg"
     ],
     "id": "Reverse_Triceps_Bench_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de banca para tríceps agarre invertido"
   },
   {
     "name": "Rhomboids-SMR",
@@ -17886,7 +18200,8 @@
       "Rhomboids-SMR/1.jpg"
     ],
     "id": "Rhomboids-SMR",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Automasaje de romboides (SMR)"
   },
   {
     "name": "Rickshaw Carry",
@@ -17916,7 +18231,8 @@
       "Rickshaw_Carry/1.jpg"
     ],
     "id": "Rickshaw_Carry",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Acarreo rickshaw"
   },
   {
     "name": "Rickshaw Deadlift",
@@ -17945,7 +18261,8 @@
       "Rickshaw_Deadlift/1.jpg"
     ],
     "id": "Rickshaw_Deadlift",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto en rickshaw"
   },
   {
     "name": "Ring Dips",
@@ -17972,7 +18289,8 @@
       "Ring_Dips/1.jpg"
     ],
     "id": "Ring_Dips",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Fondos en anillas"
   },
   {
     "name": "Rocket Jump",
@@ -17998,7 +18316,8 @@
       "Rocket_Jump/1.jpg"
     ],
     "id": "Rocket_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto cohete"
   },
   {
     "name": "Rocking Standing Calf Raise",
@@ -18026,7 +18345,8 @@
       "Rocking_Standing_Calf_Raise/1.jpg"
     ],
     "id": "Rocking_Standing_Calf_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de pantorrillas de pie con balanceo"
   },
   {
     "name": "Rocky Pull-Ups/Pulldowns",
@@ -18056,7 +18376,8 @@
       "Rocky_Pull-Ups_Pulldowns/1.jpg"
     ],
     "id": "Rocky_Pull-Ups_Pulldowns",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Dominadas/jalones Rocky"
   },
   {
     "name": "Romanian Deadlift",
@@ -18114,7 +18435,8 @@
       "Romanian_Deadlift_from_Deficit/1.jpg"
     ],
     "id": "Romanian_Deadlift_from_Deficit",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto rumano desde déficit"
   },
   {
     "name": "Rope Climb",
@@ -18144,7 +18466,8 @@
       "Rope_Climb/1.jpg"
     ],
     "id": "Rope_Climb",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Trepar la soga"
   },
   {
     "name": "Rope Crunch",
@@ -18169,7 +18492,8 @@
       "Rope_Crunch/1.jpg"
     ],
     "id": "Rope_Crunch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominal con soga en polea"
   },
   {
     "name": "Rope Jumping",
@@ -18219,7 +18543,8 @@
       "Rope_Straight-Arm_Pulldown/1.jpg"
     ],
     "id": "Rope_Straight-Arm_Pulldown",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Jalón con brazos rectos con soga"
   },
   {
     "name": "Round The World Shoulder Stretch",
@@ -18245,7 +18570,8 @@
       "Round_The_World_Shoulder_Stretch/1.jpg"
     ],
     "id": "Round_The_World_Shoulder_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de hombros circular"
   },
   {
     "name": "Rowing, Stationary",
@@ -18301,7 +18627,8 @@
       "Runners_Stretch/1.jpg"
     ],
     "id": "Runners_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento del corredor"
   },
   {
     "name": "Running, Treadmill",
@@ -18391,7 +18718,8 @@
       "Sandbag_Load/1.jpg"
     ],
     "id": "Sandbag_Load",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Carga de saco de arena"
   },
   {
     "name": "Scapular Pull-Up",
@@ -18417,7 +18745,8 @@
       "Scapular_Pull-Up/1.jpg"
     ],
     "id": "Scapular_Pull-Up",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Dominada escapular"
   },
   {
     "name": "Scissor Kick",
@@ -18442,7 +18771,8 @@
       "Scissor_Kick/1.jpg"
     ],
     "id": "Scissor_Kick",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Patada de tijera"
   },
   {
     "name": "Scissors Jump",
@@ -18469,7 +18799,8 @@
       "Scissors_Jump/1.jpg"
     ],
     "id": "Scissors_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto de tijera"
   },
   {
     "name": "Seated Band Hamstring Curl",
@@ -18493,7 +18824,8 @@
       "Seated_Band_Hamstring_Curl/1.jpg"
     ],
     "id": "Seated_Band_Hamstring_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl femoral sentado con banda"
   },
   {
     "name": "Seated Barbell Military Press",
@@ -18520,7 +18852,8 @@
       "Seated_Barbell_Military_Press/1.jpg"
     ],
     "id": "Seated_Barbell_Military_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press militar con barra sentado"
   },
   {
     "name": "Seated Barbell Twist",
@@ -18546,7 +18879,8 @@
       "Seated_Barbell_Twist/1.jpg"
     ],
     "id": "Seated_Barbell_Twist",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Giro con barra sentado"
   },
   {
     "name": "Seated Bent-Over One-Arm Dumbbell Triceps Extension",
@@ -18573,7 +18907,8 @@
       "Seated_Bent-Over_One-Arm_Dumbbell_Triceps_Extension/1.jpg"
     ],
     "id": "Seated_Bent-Over_One-Arm_Dumbbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps a un brazo con mancuerna inclinado sentado"
   },
   {
     "name": "Seated Bent-Over Rear Delt Raise",
@@ -18626,7 +18961,8 @@
       "Seated_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension/1.jpg"
     ],
     "id": "Seated_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps a dos brazos con mancuernas inclinado sentado"
   },
   {
     "name": "Seated Biceps",
@@ -18652,7 +18988,8 @@
       "Seated_Biceps/1.jpg"
     ],
     "id": "Seated_Biceps",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de bíceps sentado"
   },
   {
     "name": "Seated Cable Rows",
@@ -18708,7 +19045,8 @@
       "Seated_Cable_Shoulder_Press/1.jpg"
     ],
     "id": "Seated_Cable_Shoulder_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de hombros en polea sentado"
   },
   {
     "name": "Seated Calf Raise",
@@ -18762,7 +19100,8 @@
       "Seated_Calf_Stretch/1.jpg"
     ],
     "id": "Seated_Calf_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de pantorrilla sentado"
   },
   {
     "name": "Seated Close-Grip Concentration Barbell Curl",
@@ -18787,7 +19126,8 @@
       "Seated_Close-Grip_Concentration_Barbell_Curl/1.jpg"
     ],
     "id": "Seated_Close-Grip_Concentration_Barbell_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl concentrado con barra agarre cerrado sentado"
   },
   {
     "name": "Seated Dumbbell Curl",
@@ -18812,7 +19152,8 @@
       "Seated_Dumbbell_Curl/1.jpg"
     ],
     "id": "Seated_Dumbbell_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl con mancuernas sentado"
   },
   {
     "name": "Seated Dumbbell Inner Biceps Curl",
@@ -18838,7 +19179,8 @@
       "Seated_Dumbbell_Inner_Biceps_Curl/1.jpg"
     ],
     "id": "Seated_Dumbbell_Inner_Biceps_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl de bíceps interno con mancuernas sentado"
   },
   {
     "name": "Seated Dumbbell Palms-Down Wrist Curl",
@@ -18865,7 +19207,8 @@
       "Seated_Dumbbell_Palms-Down_Wrist_Curl/1.jpg"
     ],
     "id": "Seated_Dumbbell_Palms-Down_Wrist_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca con mancuernas palmas abajo sentado"
   },
   {
     "name": "Seated Dumbbell Palms-Up Wrist Curl",
@@ -18892,7 +19235,8 @@
       "Seated_Dumbbell_Palms-Up_Wrist_Curl/1.jpg"
     ],
     "id": "Seated_Dumbbell_Palms-Up_Wrist_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca con mancuernas palmas arriba sentado"
   },
   {
     "name": "Seated Dumbbell Press",
@@ -18920,7 +19264,8 @@
       "Seated_Dumbbell_Press/1.jpg"
     ],
     "id": "Seated_Dumbbell_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press con mancuernas sentado"
   },
   {
     "name": "Seated Flat Bench Leg Pull-In",
@@ -18944,7 +19289,8 @@
       "Seated_Flat_Bench_Leg_Pull-In/1.jpg"
     ],
     "id": "Seated_Flat_Bench_Leg_Pull-In",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Encogimiento de piernas sentado en banco plano"
   },
   {
     "name": "Seated Floor Hamstring Stretch",
@@ -18968,7 +19314,8 @@
       "Seated_Floor_Hamstring_Stretch/1.jpg"
     ],
     "id": "Seated_Floor_Hamstring_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de isquiotibiales sentado en el piso"
   },
   {
     "name": "Seated Front Deltoid",
@@ -18993,7 +19340,8 @@
       "Seated_Front_Deltoid/1.jpg"
     ],
     "id": "Seated_Front_Deltoid",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de deltoides frontal sentado"
   },
   {
     "name": "Seated Glute",
@@ -19018,7 +19366,8 @@
       "Seated_Glute/1.jpg"
     ],
     "id": "Seated_Glute",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de glúteo sentado"
   },
   {
     "name": "Seated Good Mornings",
@@ -19044,7 +19393,8 @@
       "Seated_Good_Mornings/1.jpg"
     ],
     "id": "Seated_Good_Mornings",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Buenos días sentado"
   },
   {
     "name": "Seated Hamstring",
@@ -19069,7 +19419,8 @@
       "Seated_Hamstring/1.jpg"
     ],
     "id": "Seated_Hamstring",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de isquiotibiales sentado"
   },
   {
     "name": "Seated Hamstring and Calf Stretch",
@@ -19093,7 +19444,8 @@
       "Seated_Hamstring_and_Calf_Stretch/1.jpg"
     ],
     "id": "Seated_Hamstring_and_Calf_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de isquiotibiales y pantorrilla sentado"
   },
   {
     "name": "Seated Head Harness Neck Resistance",
@@ -19119,7 +19471,8 @@
       "Seated_Head_Harness_Neck_Resistance/1.jpg"
     ],
     "id": "Seated_Head_Harness_Neck_Resistance",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Resistencia de cuello con arnés sentado"
   },
   {
     "name": "Seated Leg Curl",
@@ -19169,7 +19522,8 @@
       "Seated_Leg_Tucks/1.jpg"
     ],
     "id": "Seated_Leg_Tucks",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Encogimiento de piernas sentado"
   },
   {
     "name": "Seated One-Arm Dumbbell Palms-Down Wrist Curl",
@@ -19195,7 +19549,8 @@
       "Seated_One-Arm_Dumbbell_Palms-Down_Wrist_Curl/1.jpg"
     ],
     "id": "Seated_One-Arm_Dumbbell_Palms-Down_Wrist_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca a un brazo con mancuerna palmas abajo sentado"
   },
   {
     "name": "Seated One-Arm Dumbbell Palms-Up Wrist Curl",
@@ -19221,7 +19576,8 @@
       "Seated_One-Arm_Dumbbell_Palms-Up_Wrist_Curl/1.jpg"
     ],
     "id": "Seated_One-Arm_Dumbbell_Palms-Up_Wrist_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca a un brazo con mancuerna palmas arriba sentado"
   },
   {
     "name": "Seated One-arm Cable Pulley Rows",
@@ -19251,7 +19607,8 @@
       "Seated_One-arm_Cable_Pulley_Rows/1.jpg"
     ],
     "id": "Seated_One-arm_Cable_Pulley_Rows",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo en polea a un brazo sentado"
   },
   {
     "name": "Seated Overhead Stretch",
@@ -19275,7 +19632,8 @@
       "Seated_Overhead_Stretch/1.jpg"
     ],
     "id": "Seated_Overhead_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento sobre la cabeza sentado"
   },
   {
     "name": "Seated Palm-Up Barbell Wrist Curl",
@@ -19300,7 +19658,8 @@
       "Seated_Palm-Up_Barbell_Wrist_Curl/1.jpg"
     ],
     "id": "Seated_Palm-Up_Barbell_Wrist_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca con barra palmas arriba sentado"
   },
   {
     "name": "Seated Palms-Down Barbell Wrist Curl",
@@ -19325,7 +19684,8 @@
       "Seated_Palms-Down_Barbell_Wrist_Curl/1.jpg"
     ],
     "id": "Seated_Palms-Down_Barbell_Wrist_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca con barra palmas abajo sentado"
   },
   {
     "name": "Seated Side Lateral Raise",
@@ -19374,7 +19734,8 @@
       "Seated_Triceps_Press/1.jpg"
     ],
     "id": "Seated_Triceps_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de tríceps sentado"
   },
   {
     "name": "Seated Two-Arm Palms-Up Low-Pulley Wrist Curl",
@@ -19403,7 +19764,8 @@
       "Seated_Two-Arm_Palms-Up_Low-Pulley_Wrist_Curl/1.jpg"
     ],
     "id": "Seated_Two-Arm_Palms-Up_Low-Pulley_Wrist_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca a dos brazos palmas arriba en polea baja sentado"
   },
   {
     "name": "See-Saw Press (Alternating Side Press)",
@@ -19431,7 +19793,8 @@
       "See-Saw_Press_Alternating_Side_Press/1.jpg"
     ],
     "id": "See-Saw_Press_Alternating_Side_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press alternado (see-saw)"
   },
   {
     "name": "Shotgun Row",
@@ -19458,7 +19821,8 @@
       "Shotgun_Row/1.jpg"
     ],
     "id": "Shotgun_Row",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Remo shotgun"
   },
   {
     "name": "Shoulder Circles",
@@ -19482,7 +19846,8 @@
       "Shoulder_Circles/1.jpg"
     ],
     "id": "Shoulder_Circles",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Círculos de hombros"
   },
   {
     "name": "Shoulder Press - With Bands",
@@ -19507,7 +19872,8 @@
       "Shoulder_Press_-_With_Bands/1.jpg"
     ],
     "id": "Shoulder_Press_-_With_Bands",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de hombros con bandas"
   },
   {
     "name": "Shoulder Raise",
@@ -19530,7 +19896,8 @@
       "Shoulder_Raise/1.jpg"
     ],
     "id": "Shoulder_Raise",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación de hombros"
   },
   {
     "name": "Shoulder Stretch",
@@ -19551,7 +19918,8 @@
       "Shoulder_Stretch/1.jpg"
     ],
     "id": "Shoulder_Stretch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Estiramiento de hombros"
   },
   {
     "name": "Side-Lying Floor Stretch",
@@ -19573,7 +19941,8 @@
       "Side-Lying_Floor_Stretch/1.jpg"
     ],
     "id": "Side-Lying_Floor_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento en el piso de costado"
   },
   {
     "name": "Side Bridge",
@@ -19594,7 +19963,8 @@
       "Side_Bridge/1.jpg"
     ],
     "id": "Side_Bridge",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Puente lateral"
   },
   {
     "name": "Side Hop-Sprint",
@@ -19622,7 +19992,8 @@
       "Side_Hop-Sprint/1.jpg"
     ],
     "id": "Side_Hop-Sprint",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto lateral con sprint"
   },
   {
     "name": "Side Jackknife",
@@ -19641,7 +20012,8 @@
       "Side_Jackknife/1.jpg"
     ],
     "id": "Side_Jackknife",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Navaja lateral"
   },
   {
     "name": "Side Laterals to Front Raise",
@@ -19669,7 +20041,8 @@
       "Side_Laterals_to_Front_Raise/1.jpg"
     ],
     "id": "Side_Laterals_to_Front_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevaciones laterales a elevación frontal"
   },
   {
     "name": "Side Leg Raises",
@@ -19692,7 +20065,8 @@
       "Side_Leg_Raises/1.jpg"
     ],
     "id": "Side_Leg_Raises",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevaciones laterales de pierna"
   },
   {
     "name": "Side Lying Groin Stretch",
@@ -19717,7 +20091,8 @@
       "Side_Lying_Groin_Stretch/1.jpg"
     ],
     "id": "Side_Lying_Groin_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de ingle de costado"
   },
   {
     "name": "Side Neck Stretch",
@@ -19739,7 +20114,8 @@
       "Side_Neck_Stretch/1.jpg"
     ],
     "id": "Side_Neck_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento lateral de cuello"
   },
   {
     "name": "Side Standing Long Jump",
@@ -19766,7 +20142,8 @@
       "Side_Standing_Long_Jump/1.jpg"
     ],
     "id": "Side_Standing_Long_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto largo lateral de pie"
   },
   {
     "name": "Side To Side Chins",
@@ -19798,7 +20175,8 @@
       "Side_To_Side_Chins/1.jpg"
     ],
     "id": "Side_To_Side_Chins",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Dominadas de lado a lado"
   },
   {
     "name": "Side Wrist Pull",
@@ -19823,7 +20201,8 @@
       "Side_Wrist_Pull/1.jpg"
     ],
     "id": "Side_Wrist_Pull",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento lateral de muñeca"
   },
   {
     "name": "Side to Side Box Shuffle",
@@ -19851,7 +20230,8 @@
       "Side_to_Side_Box_Shuffle/1.jpg"
     ],
     "id": "Side_to_Side_Box_Shuffle",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Desplazamiento lateral sobre cajón"
   },
   {
     "name": "Single-Arm Cable Crossover",
@@ -19876,7 +20256,8 @@
       "Single-Arm_Cable_Crossover/1.jpg"
     ],
     "id": "Single-Arm_Cable_Crossover",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Cruce en polea a un brazo"
   },
   {
     "name": "Single-Arm Linear Jammer",
@@ -19903,7 +20284,8 @@
       "Single-Arm_Linear_Jammer/1.jpg"
     ],
     "id": "Single-Arm_Linear_Jammer",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Jammer lineal a un brazo"
   },
   {
     "name": "Single-Arm Push-Up",
@@ -19930,7 +20312,8 @@
       "Single-Arm_Push-Up/1.jpg"
     ],
     "id": "Single-Arm_Push-Up",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión a un brazo"
   },
   {
     "name": "Single-Cone Sprint Drill",
@@ -19957,7 +20340,8 @@
       "Single-Cone_Sprint_Drill/1.jpg"
     ],
     "id": "Single-Cone_Sprint_Drill",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Ejercicio de sprint con un cono"
   },
   {
     "name": "Single-Leg High Box Squat",
@@ -19983,7 +20367,8 @@
       "Single-Leg_High_Box_Squat/1.jpg"
     ],
     "id": "Single-Leg_High_Box_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla al cajón alto a una pierna"
   },
   {
     "name": "Single-Leg Hop Progression",
@@ -20012,7 +20397,8 @@
       "Single-Leg_Hop_Progression/1.jpg"
     ],
     "id": "Single-Leg_Hop_Progression",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Progresión de saltos a una pierna"
   },
   {
     "name": "Single-Leg Lateral Hop",
@@ -20041,7 +20427,8 @@
       "Single-Leg_Lateral_Hop/1.jpg"
     ],
     "id": "Single-Leg_Lateral_Hop",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto lateral a una pierna"
   },
   {
     "name": "Single-Leg Leg Extension",
@@ -20065,7 +20452,8 @@
       "Single-Leg_Leg_Extension/1.jpg"
     ],
     "id": "Single-Leg_Leg_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de pierna a una pierna"
   },
   {
     "name": "Single-Leg Stride Jump",
@@ -20093,7 +20481,8 @@
       "Single-Leg_Stride_Jump/1.jpg"
     ],
     "id": "Single-Leg_Stride_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto de zancada a una pierna"
   },
   {
     "name": "Single Dumbbell Raise",
@@ -20119,7 +20508,8 @@
       "Single_Dumbbell_Raise/1.jpg"
     ],
     "id": "Single_Dumbbell_Raise",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación con una mancuerna"
   },
   {
     "name": "Single Leg Butt Kick",
@@ -20146,7 +20536,8 @@
       "Single_Leg_Butt_Kick/1.jpg"
     ],
     "id": "Single_Leg_Butt_Kick",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Patada de glúteo a una pierna"
   },
   {
     "name": "Single Leg Glute Bridge",
@@ -20172,7 +20563,8 @@
       "Single_Leg_Glute_Bridge/1.jpg"
     ],
     "id": "Single_Leg_Glute_Bridge",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Puente de glúteo a una pierna"
   },
   {
     "name": "Single Leg Push-off",
@@ -20198,7 +20590,8 @@
       "Single_Leg_Push-off/1.jpg"
     ],
     "id": "Single_Leg_Push-off",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Impulso a una pierna"
   },
   {
     "name": "Sit-Up",
@@ -20251,7 +20644,8 @@
       "Sit_Squats/1.jpg"
     ],
     "id": "Sit_Squats",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadillas hasta sentarse"
   },
   {
     "name": "Skating",
@@ -20279,7 +20673,8 @@
       "Skating/1.jpg"
     ],
     "id": "Skating",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Patinaje"
   },
   {
     "name": "Sled Drag - Harness",
@@ -20305,7 +20700,8 @@
       "Sled_Drag_-_Harness/1.jpg"
     ],
     "id": "Sled_Drag_-_Harness",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrastre de trineo con arnés"
   },
   {
     "name": "Sled Overhead Backward Walk",
@@ -20332,7 +20728,8 @@
       "Sled_Overhead_Backward_Walk/1.jpg"
     ],
     "id": "Sled_Overhead_Backward_Walk",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Caminata hacia atrás con trineo sobre la cabeza"
   },
   {
     "name": "Sled Overhead Triceps Extension",
@@ -20356,7 +20753,8 @@
       "Sled_Overhead_Triceps_Extension/1.jpg"
     ],
     "id": "Sled_Overhead_Triceps_Extension",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Extensión de tríceps sobre la cabeza con trineo"
   },
   {
     "name": "Sled Push",
@@ -20384,7 +20782,8 @@
       "Sled_Push/1.jpg"
     ],
     "id": "Sled_Push",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Empuje de trineo"
   },
   {
     "name": "Sled Reverse Flye",
@@ -20408,7 +20807,8 @@
       "Sled_Reverse_Flye/1.jpg"
     ],
     "id": "Sled_Reverse_Flye",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Apertura posterior con trineo"
   },
   {
     "name": "Sled Row",
@@ -20435,7 +20835,8 @@
       "Sled_Row/1.jpg"
     ],
     "id": "Sled_Row",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Remo con trineo"
   },
   {
     "name": "Sledgehammer Swings",
@@ -20465,7 +20866,8 @@
       "Sledgehammer_Swings/1.jpg"
     ],
     "id": "Sledgehammer_Swings",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Golpes con maza"
   },
   {
     "name": "Smith Incline Shoulder Raise",
@@ -20493,7 +20895,8 @@
       "Smith_Incline_Shoulder_Raise/1.jpg"
     ],
     "id": "Smith_Incline_Shoulder_Raise",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación de hombros inclinada en máquina Smith"
   },
   {
     "name": "Smith Machine Behind the Back Shrug",
@@ -20520,7 +20923,8 @@
       "Smith_Machine_Behind_the_Back_Shrug/1.jpg"
     ],
     "id": "Smith_Machine_Behind_the_Back_Shrug",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Encogimiento por detrás en máquina Smith"
   },
   {
     "name": "Smith Machine Bench Press",
@@ -20548,7 +20952,8 @@
       "Smith_Machine_Bench_Press/1.jpg"
     ],
     "id": "Smith_Machine_Bench_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de banca en máquina Smith"
   },
   {
     "name": "Smith Machine Bent Over Row",
@@ -20578,7 +20983,8 @@
       "Smith_Machine_Bent_Over_Row/1.jpg"
     ],
     "id": "Smith_Machine_Bent_Over_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo inclinado en máquina Smith"
   },
   {
     "name": "Smith Machine Calf Raise",
@@ -20603,7 +21009,8 @@
       "Smith_Machine_Calf_Raise/1.jpg"
     ],
     "id": "Smith_Machine_Calf_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de pantorrillas en máquina Smith"
   },
   {
     "name": "Smith Machine Close-Grip Bench Press",
@@ -20631,7 +21038,8 @@
       "Smith_Machine_Close-Grip_Bench_Press/1.jpg"
     ],
     "id": "Smith_Machine_Close-Grip_Bench_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de banca agarre cerrado en máquina Smith"
   },
   {
     "name": "Smith Machine Decline Press",
@@ -20659,7 +21067,8 @@
       "Smith_Machine_Decline_Press/1.jpg"
     ],
     "id": "Smith_Machine_Decline_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press declinado en máquina Smith"
   },
   {
     "name": "Smith Machine Hang Power Clean",
@@ -20691,7 +21100,8 @@
       "Smith_Machine_Hang_Power_Clean/1.jpg"
     ],
     "id": "Smith_Machine_Hang_Power_Clean",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Cargada de potencia colgante en máquina Smith"
   },
   {
     "name": "Smith Machine Hip Raise",
@@ -20715,7 +21125,8 @@
       "Smith_Machine_Hip_Raise/1.jpg"
     ],
     "id": "Smith_Machine_Hip_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de cadera en máquina Smith"
   },
   {
     "name": "Smith Machine Incline Bench Press",
@@ -20743,7 +21154,8 @@
       "Smith_Machine_Incline_Bench_Press/1.jpg"
     ],
     "id": "Smith_Machine_Incline_Bench_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press inclinado en máquina Smith"
   },
   {
     "name": "Smith Machine Leg Press",
@@ -20770,7 +21182,8 @@
       "Smith_Machine_Leg_Press/1.jpg"
     ],
     "id": "Smith_Machine_Leg_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Prensa de piernas en máquina Smith"
   },
   {
     "name": "Smith Machine One-Arm Upright Row",
@@ -20798,7 +21211,8 @@
       "Smith_Machine_One-Arm_Upright_Row/1.jpg"
     ],
     "id": "Smith_Machine_One-Arm_Upright_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo al mentón a un brazo en máquina Smith"
   },
   {
     "name": "Smith Machine Overhead Shoulder Press",
@@ -20825,7 +21239,8 @@
       "Smith_Machine_Overhead_Shoulder_Press/1.jpg"
     ],
     "id": "Smith_Machine_Overhead_Shoulder_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de hombros sobre la cabeza en máquina Smith"
   },
   {
     "name": "Smith Machine Pistol Squat",
@@ -20854,7 +21269,8 @@
       "Smith_Machine_Pistol_Squat/1.jpg"
     ],
     "id": "Smith_Machine_Pistol_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla pistol en máquina Smith"
   },
   {
     "name": "Smith Machine Reverse Calf Raises",
@@ -20880,7 +21296,8 @@
       "Smith_Machine_Reverse_Calf_Raises/1.jpg"
     ],
     "id": "Smith_Machine_Reverse_Calf_Raises",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de pantorrillas invertida en máquina Smith"
   },
   {
     "name": "Smith Machine Squat",
@@ -20940,7 +21357,8 @@
       "Smith_Machine_Stiff-Legged_Deadlift/1.jpg"
     ],
     "id": "Smith_Machine_Stiff-Legged_Deadlift",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Peso muerto con piernas rígidas en máquina Smith"
   },
   {
     "name": "Smith Machine Upright Row",
@@ -20969,7 +21387,8 @@
       "Smith_Machine_Upright_Row/1.jpg"
     ],
     "id": "Smith_Machine_Upright_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo al mentón en máquina Smith"
   },
   {
     "name": "Smith Single-Leg Split Squat",
@@ -21000,7 +21419,8 @@
       "Smith_Single-Leg_Split_Squat/1.jpg"
     ],
     "id": "Smith_Single-Leg_Split_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla búlgara a una pierna en máquina Smith"
   },
   {
     "name": "Snatch",
@@ -21066,7 +21486,8 @@
       "Snatch_Balance/1.jpg"
     ],
     "id": "Snatch_Balance",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Snatch balance"
   },
   {
     "name": "Snatch Deadlift",
@@ -21096,7 +21517,8 @@
       "Snatch_Deadlift/1.jpg"
     ],
     "id": "Snatch_Deadlift",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto para arrancada"
   },
   {
     "name": "Snatch Pull",
@@ -21126,7 +21548,8 @@
       "Snatch_Pull/1.jpg"
     ],
     "id": "Snatch_Pull",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Tirón de arrancada"
   },
   {
     "name": "Snatch Shrug",
@@ -21151,7 +21574,8 @@
       "Snatch_Shrug/1.jpg"
     ],
     "id": "Snatch_Shrug",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Encogimiento de arrancada"
   },
   {
     "name": "Snatch from Blocks",
@@ -21185,7 +21609,8 @@
       "Snatch_from_Blocks/1.jpg"
     ],
     "id": "Snatch_from_Blocks",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrancada desde bloques"
   },
   {
     "name": "Speed Band Overhead Triceps",
@@ -21209,7 +21634,8 @@
       "Speed_Band_Overhead_Triceps/1.jpg"
     ],
     "id": "Speed_Band_Overhead_Triceps",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Tríceps sobre la cabeza con banda de velocidad"
   },
   {
     "name": "Speed Box Squat",
@@ -21238,7 +21664,8 @@
       "Speed_Box_Squat/1.jpg"
     ],
     "id": "Speed_Box_Squat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla al cajón de velocidad"
   },
   {
     "name": "Speed Squats",
@@ -21269,7 +21696,8 @@
       "Speed_Squats/1.jpg"
     ],
     "id": "Speed_Squats",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadillas de velocidad"
   },
   {
     "name": "Spell Caster",
@@ -21296,7 +21724,8 @@
       "Spell_Caster/1.jpg"
     ],
     "id": "Spell_Caster",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Spell caster (giro con mancuernas)"
   },
   {
     "name": "Spider Crawl",
@@ -21323,7 +21752,8 @@
       "Spider_Crawl/1.jpg"
     ],
     "id": "Spider_Crawl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Gateo araña"
   },
   {
     "name": "Spider Curl",
@@ -21350,7 +21780,8 @@
       "Spider_Curl/1.jpg"
     ],
     "id": "Spider_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl araña"
   },
   {
     "name": "Spinal Stretch",
@@ -21379,7 +21810,8 @@
       "Spinal_Stretch/1.jpg"
     ],
     "id": "Spinal_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de columna"
   },
   {
     "name": "Split Clean",
@@ -21413,7 +21845,8 @@
       "Split_Clean/1.jpg"
     ],
     "id": "Split_Clean",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cargada en tijera"
   },
   {
     "name": "Split Jerk",
@@ -21442,7 +21875,8 @@
       "Split_Jerk/1.jpg"
     ],
     "id": "Split_Jerk",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Envión en tijera"
   },
   {
     "name": "Split Jump",
@@ -21471,7 +21905,8 @@
       "Split_Jump/1.jpg"
     ],
     "id": "Split_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto en tijera"
   },
   {
     "name": "Split Snatch",
@@ -21507,7 +21942,8 @@
       "Split_Snatch/1.jpg"
     ],
     "id": "Split_Snatch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Arrancada en tijera"
   },
   {
     "name": "Split Squat with Dumbbells",
@@ -21534,7 +21970,8 @@
       "Split_Squat_with_Dumbbells/1.jpg"
     ],
     "id": "Split_Squat_with_Dumbbells",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla búlgara con mancuernas"
   },
   {
     "name": "Split Squats",
@@ -21590,7 +22027,8 @@
       "Squat_Jerk/1.jpg"
     ],
     "id": "Squat_Jerk",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Envión en sentadilla"
   },
   {
     "name": "Squat with Bands",
@@ -21620,7 +22058,8 @@
       "Squat_with_Bands/1.jpg"
     ],
     "id": "Squat_with_Bands",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla con bandas"
   },
   {
     "name": "Squat with Chains",
@@ -21650,7 +22089,8 @@
       "Squat_with_Chains/1.jpg"
     ],
     "id": "Squat_with_Chains",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla con cadenas"
   },
   {
     "name": "Squat with Plate Movers",
@@ -21684,7 +22124,8 @@
       "Squat_with_Plate_Movers/1.jpg"
     ],
     "id": "Squat_with_Plate_Movers",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla con discos deslizantes"
   },
   {
     "name": "Squats - With Bands",
@@ -21714,7 +22155,8 @@
       "Squats_-_With_Bands/1.jpg"
     ],
     "id": "Squats_-_With_Bands",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadillas con bandas"
   },
   {
     "name": "Stairmaster",
@@ -21741,7 +22183,8 @@
       "Stairmaster/1.jpg"
     ],
     "id": "Stairmaster",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Escaladora (stairmaster)"
   },
   {
     "name": "Standing Alternating Dumbbell Press",
@@ -21767,7 +22210,8 @@
       "Standing_Alternating_Dumbbell_Press/1.jpg"
     ],
     "id": "Standing_Alternating_Dumbbell_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press alternado con mancuernas de pie"
   },
   {
     "name": "Standing Barbell Calf Raise",
@@ -21793,7 +22237,8 @@
       "Standing_Barbell_Calf_Raise/1.jpg"
     ],
     "id": "Standing_Barbell_Calf_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de pantorrillas con barra de pie"
   },
   {
     "name": "Standing Barbell Press Behind Neck",
@@ -21821,7 +22266,8 @@
       "Standing_Barbell_Press_Behind_Neck/1.jpg"
     ],
     "id": "Standing_Barbell_Press_Behind_Neck",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press con barra por detrás de la nuca de pie"
   },
   {
     "name": "Standing Bent-Over One-Arm Dumbbell Triceps Extension",
@@ -21849,7 +22295,8 @@
       "Standing_Bent-Over_One-Arm_Dumbbell_Triceps_Extension/1.jpg"
     ],
     "id": "Standing_Bent-Over_One-Arm_Dumbbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps a un brazo con mancuerna inclinado de pie"
   },
   {
     "name": "Standing Bent-Over Two-Arm Dumbbell Triceps Extension",
@@ -21873,7 +22320,8 @@
       "Standing_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension/1.jpg"
     ],
     "id": "Standing_Bent-Over_Two-Arm_Dumbbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps a dos brazos con mancuernas inclinado de pie"
   },
   {
     "name": "Standing Biceps Cable Curl",
@@ -21897,7 +22345,8 @@
       "Standing_Biceps_Cable_Curl/1.jpg"
     ],
     "id": "Standing_Biceps_Cable_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl de bíceps en polea de pie"
   },
   {
     "name": "Standing Biceps Stretch",
@@ -21922,7 +22371,8 @@
       "Standing_Biceps_Stretch/1.jpg"
     ],
     "id": "Standing_Biceps_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de bíceps de pie"
   },
   {
     "name": "Standing Bradford Press",
@@ -21950,7 +22400,8 @@
       "Standing_Bradford_Press/1.jpg"
     ],
     "id": "Standing_Bradford_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press Bradford de pie"
   },
   {
     "name": "Standing Cable Chest Press",
@@ -21977,7 +22428,8 @@
       "Standing_Cable_Chest_Press/1.jpg"
     ],
     "id": "Standing_Cable_Chest_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de pecho en polea de pie"
   },
   {
     "name": "Standing Cable Lift",
@@ -22007,7 +22459,8 @@
       "Standing_Cable_Lift/1.jpg"
     ],
     "id": "Standing_Cable_Lift",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación en polea de pie"
   },
   {
     "name": "Standing Cable Wood Chop",
@@ -22037,7 +22490,8 @@
       "Standing_Cable_Wood_Chop/1.jpg"
     ],
     "id": "Standing_Cable_Wood_Chop",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Leñador en polea de pie"
   },
   {
     "name": "Standing Calf Raises",
@@ -22089,7 +22543,8 @@
       "Standing_Concentration_Curl/1.jpg"
     ],
     "id": "Standing_Concentration_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl concentrado de pie"
   },
   {
     "name": "Standing Dumbbell Calf Raise",
@@ -22113,7 +22568,8 @@
       "Standing_Dumbbell_Calf_Raise/1.jpg"
     ],
     "id": "Standing_Dumbbell_Calf_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevación de pantorrillas con mancuerna de pie"
   },
   {
     "name": "Standing Dumbbell Press",
@@ -22138,7 +22594,8 @@
       "Standing_Dumbbell_Press/1.jpg"
     ],
     "id": "Standing_Dumbbell_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press con mancuernas de pie"
   },
   {
     "name": "Standing Dumbbell Reverse Curl",
@@ -22164,7 +22621,8 @@
       "Standing_Dumbbell_Reverse_Curl/1.jpg"
     ],
     "id": "Standing_Dumbbell_Reverse_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl invertido con mancuernas de pie"
   },
   {
     "name": "Standing Dumbbell Straight-Arm Front Delt Raise Above Head",
@@ -22189,7 +22647,8 @@
       "Standing_Dumbbell_Straight-Arm_Front_Delt_Raise_Above_Head/1.jpg"
     ],
     "id": "Standing_Dumbbell_Straight-Arm_Front_Delt_Raise_Above_Head",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación frontal de deltoides con brazo recto por encima de la cabeza con mancuerna de pie"
   },
   {
     "name": "Standing Dumbbell Triceps Extension",
@@ -22214,7 +22673,8 @@
       "Standing_Dumbbell_Triceps_Extension/1.jpg"
     ],
     "id": "Standing_Dumbbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps con mancuernas de pie"
   },
   {
     "name": "Standing Dumbbell Upright Row",
@@ -22241,7 +22701,8 @@
       "Standing_Dumbbell_Upright_Row/1.jpg"
     ],
     "id": "Standing_Dumbbell_Upright_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo al mentón con mancuernas de pie"
   },
   {
     "name": "Standing Elevated Quad Stretch",
@@ -22264,7 +22725,8 @@
       "Standing_Elevated_Quad_Stretch/1.jpg"
     ],
     "id": "Standing_Elevated_Quad_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de cuádriceps con pie elevado de pie"
   },
   {
     "name": "Standing Front Barbell Raise Over Head",
@@ -22289,7 +22751,8 @@
       "Standing_Front_Barbell_Raise_Over_Head/1.jpg"
     ],
     "id": "Standing_Front_Barbell_Raise_Over_Head",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación frontal con barra por encima de la cabeza de pie"
   },
   {
     "name": "Standing Gastrocnemius Calf Stretch",
@@ -22314,7 +22777,8 @@
       "Standing_Gastrocnemius_Calf_Stretch/1.jpg"
     ],
     "id": "Standing_Gastrocnemius_Calf_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de gemelos de pie"
   },
   {
     "name": "Standing Hamstring and Calf Stretch",
@@ -22337,7 +22801,8 @@
       "Standing_Hamstring_and_Calf_Stretch/1.jpg"
     ],
     "id": "Standing_Hamstring_and_Calf_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de isquiotibiales y pantorrilla de pie"
   },
   {
     "name": "Standing Hip Circles",
@@ -22363,7 +22828,8 @@
       "Standing_Hip_Circles/1.jpg"
     ],
     "id": "Standing_Hip_Circles",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Círculos de cadera de pie"
   },
   {
     "name": "Standing Hip Flexors",
@@ -22385,7 +22851,8 @@
       "Standing_Hip_Flexors/1.jpg"
     ],
     "id": "Standing_Hip_Flexors",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de flexores de cadera de pie"
   },
   {
     "name": "Standing Inner-Biceps Curl",
@@ -22412,7 +22879,8 @@
       "Standing_Inner-Biceps_Curl/1.jpg"
     ],
     "id": "Standing_Inner-Biceps_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl de bíceps interno de pie"
   },
   {
     "name": "Standing Lateral Stretch",
@@ -22436,7 +22904,8 @@
       "Standing_Lateral_Stretch/1.jpg"
     ],
     "id": "Standing_Lateral_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento lateral de pie"
   },
   {
     "name": "Standing Leg Curl",
@@ -22461,7 +22930,8 @@
       "Standing_Leg_Curl/1.jpg"
     ],
     "id": "Standing_Leg_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl femoral de pie"
   },
   {
     "name": "Standing Long Jump",
@@ -22489,7 +22959,8 @@
       "Standing_Long_Jump/1.jpg"
     ],
     "id": "Standing_Long_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto largo de pie"
   },
   {
     "name": "Standing Low-Pulley Deltoid Raise",
@@ -22517,7 +22988,8 @@
       "Standing_Low-Pulley_Deltoid_Raise/1.jpg"
     ],
     "id": "Standing_Low-Pulley_Deltoid_Raise",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Elevación de deltoides en polea baja de pie"
   },
   {
     "name": "Standing Low-Pulley One-Arm Triceps Extension",
@@ -22545,7 +23017,8 @@
       "Standing_Low-Pulley_One-Arm_Triceps_Extension/1.jpg"
     ],
     "id": "Standing_Low-Pulley_One-Arm_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps a un brazo en polea baja de pie"
   },
   {
     "name": "Standing Military Press",
@@ -22600,7 +23073,8 @@
       "Standing_Olympic_Plate_Hand_Squeeze/1.jpg"
     ],
     "id": "Standing_Olympic_Plate_Hand_Squeeze",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Apriete de disco olímpico con la mano de pie"
   },
   {
     "name": "Standing One-Arm Cable Curl",
@@ -22626,7 +23100,8 @@
       "Standing_One-Arm_Cable_Curl/1.jpg"
     ],
     "id": "Standing_One-Arm_Cable_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl a un brazo en polea de pie"
   },
   {
     "name": "Standing One-Arm Dumbbell Curl Over Incline Bench",
@@ -22652,7 +23127,8 @@
       "Standing_One-Arm_Dumbbell_Curl_Over_Incline_Bench/1.jpg"
     ],
     "id": "Standing_One-Arm_Dumbbell_Curl_Over_Incline_Bench",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl a un brazo con mancuerna sobre banco inclinado de pie"
   },
   {
     "name": "Standing One-Arm Dumbbell Triceps Extension",
@@ -22681,7 +23157,8 @@
       "Standing_One-Arm_Dumbbell_Triceps_Extension/1.jpg"
     ],
     "id": "Standing_One-Arm_Dumbbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps a un brazo con mancuerna de pie"
   },
   {
     "name": "Standing Overhead Barbell Triceps Extension",
@@ -22708,7 +23185,8 @@
       "Standing_Overhead_Barbell_Triceps_Extension/1.jpg"
     ],
     "id": "Standing_Overhead_Barbell_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps con barra sobre la cabeza de pie"
   },
   {
     "name": "Standing Palm-In One-Arm Dumbbell Press",
@@ -22737,7 +23215,8 @@
       "Standing_Palm-In_One-Arm_Dumbbell_Press/1.jpg"
     ],
     "id": "Standing_Palm-In_One-Arm_Dumbbell_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press a un brazo con mancuerna palma hacia adentro de pie"
   },
   {
     "name": "Standing Palms-In Dumbbell Press",
@@ -22763,7 +23242,8 @@
       "Standing_Palms-In_Dumbbell_Press/1.jpg"
     ],
     "id": "Standing_Palms-In_Dumbbell_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press con mancuernas palmas hacia adentro de pie"
   },
   {
     "name": "Standing Palms-Up Barbell Behind The Back Wrist Curl",
@@ -22789,7 +23269,8 @@
       "Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl/1.jpg"
     ],
     "id": "Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Curl de muñeca con barra por detrás palmas arriba de pie"
   },
   {
     "name": "Standing Pelvic Tilt",
@@ -22814,7 +23295,8 @@
       "Standing_Pelvic_Tilt/1.jpg"
     ],
     "id": "Standing_Pelvic_Tilt",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Báscula pélvica de pie"
   },
   {
     "name": "Standing Rope Crunch",
@@ -22838,7 +23320,8 @@
       "Standing_Rope_Crunch/1.jpg"
     ],
     "id": "Standing_Rope_Crunch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominal con soga de pie"
   },
   {
     "name": "Standing Soleus And Achilles Stretch",
@@ -22860,7 +23343,8 @@
       "Standing_Soleus_And_Achilles_Stretch/1.jpg"
     ],
     "id": "Standing_Soleus_And_Achilles_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de sóleo y tendón de Aquiles de pie"
   },
   {
     "name": "Standing Toe Touches",
@@ -22884,7 +23368,8 @@
       "Standing_Toe_Touches/1.jpg"
     ],
     "id": "Standing_Toe_Touches",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Tocar los dedos de los pies de pie"
   },
   {
     "name": "Standing Towel Triceps Extension",
@@ -22908,7 +23393,8 @@
       "Standing_Towel_Triceps_Extension/1.jpg"
     ],
     "id": "Standing_Towel_Triceps_Extension",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps con toalla de pie"
   },
   {
     "name": "Standing Two-Arm Overhead Throw",
@@ -22934,7 +23420,8 @@
       "Standing_Two-Arm_Overhead_Throw/1.jpg"
     ],
     "id": "Standing_Two-Arm_Overhead_Throw",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Lanzamiento a dos brazos sobre la cabeza de pie"
   },
   {
     "name": "Star Jump",
@@ -22962,7 +23449,8 @@
       "Star_Jump/1.jpg"
     ],
     "id": "Star_Jump",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto de estrella"
   },
   {
     "name": "Step-up with Knee Raise",
@@ -22988,7 +23476,8 @@
       "Step-up_with_Knee_Raise/1.jpg"
     ],
     "id": "Step-up_with_Knee_Raise",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Subida al cajón con elevación de rodilla"
   },
   {
     "name": "Step Mill",
@@ -23014,7 +23503,8 @@
       "Step_Mill/1.jpg"
     ],
     "id": "Step_Mill",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Escaladora de escalones"
   },
   {
     "name": "Stiff-Legged Barbell Deadlift",
@@ -23071,7 +23561,8 @@
       "Stiff-Legged_Dumbbell_Deadlift/1.jpg"
     ],
     "id": "Stiff-Legged_Dumbbell_Deadlift",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Peso muerto con piernas rígidas con mancuernas"
   },
   {
     "name": "Stiff Leg Barbell Good Morning",
@@ -23100,7 +23591,8 @@
       "Stiff_Leg_Barbell_Good_Morning/1.jpg"
     ],
     "id": "Stiff_Leg_Barbell_Good_Morning",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Buenos días con barra y piernas rígidas"
   },
   {
     "name": "Stomach Vacuum",
@@ -23125,7 +23617,8 @@
       "Stomach_Vacuum/1.jpg"
     ],
     "id": "Stomach_Vacuum",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Vacío abdominal"
   },
   {
     "name": "Straight-Arm Dumbbell Pullover",
@@ -23155,7 +23648,8 @@
       "Straight-Arm_Dumbbell_Pullover/1.jpg"
     ],
     "id": "Straight-Arm_Dumbbell_Pullover",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Pullover con mancuerna con brazos rectos"
   },
   {
     "name": "Straight-Arm Pulldown",
@@ -23207,7 +23701,8 @@
       "Straight_Bar_Bench_Mid_Rows/1.jpg"
     ],
     "id": "Straight_Bar_Bench_Mid_Rows",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo medio en banco con barra recta"
   },
   {
     "name": "Straight Raises on Incline Bench",
@@ -23233,7 +23728,8 @@
       "Straight_Raises_on_Incline_Bench/1.jpg"
     ],
     "id": "Straight_Raises_on_Incline_Bench",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Elevaciones rectas en banco inclinado"
   },
   {
     "name": "Stride Jump Crossover",
@@ -23262,7 +23758,8 @@
       "Stride_Jump_Crossover/1.jpg"
     ],
     "id": "Stride_Jump_Crossover",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Salto de zancada cruzado"
   },
   {
     "name": "Sumo Deadlift",
@@ -23328,7 +23825,8 @@
       "Sumo_Deadlift_with_Bands/1.jpg"
     ],
     "id": "Sumo_Deadlift_with_Bands",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto sumo con bandas"
   },
   {
     "name": "Sumo Deadlift with Chains",
@@ -23362,7 +23860,8 @@
       "Sumo_Deadlift_with_Chains/1.jpg"
     ],
     "id": "Sumo_Deadlift_with_Chains",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto sumo con cadenas"
   },
   {
     "name": "Superman",
@@ -23417,7 +23916,8 @@
       "Supine_Chest_Throw/1.jpg"
     ],
     "id": "Supine_Chest_Throw",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Lanzamiento de pecho boca arriba"
   },
   {
     "name": "Supine One-Arm Overhead Throw",
@@ -23444,7 +23944,8 @@
       "Supine_One-Arm_Overhead_Throw/1.jpg"
     ],
     "id": "Supine_One-Arm_Overhead_Throw",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Lanzamiento a un brazo sobre la cabeza boca arriba"
   },
   {
     "name": "Supine Two-Arm Overhead Throw",
@@ -23472,7 +23973,8 @@
       "Supine_Two-Arm_Overhead_Throw/1.jpg"
     ],
     "id": "Supine_Two-Arm_Overhead_Throw",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Lanzamiento a dos brazos sobre la cabeza boca arriba"
   },
   {
     "name": "Suspended Fallout",
@@ -23501,7 +24003,8 @@
       "Suspended_Fallout/1.jpg"
     ],
     "id": "Suspended_Fallout",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Fallout suspendido"
   },
   {
     "name": "Suspended Push-Up",
@@ -23528,7 +24031,8 @@
       "Suspended_Push-Up/1.jpg"
     ],
     "id": "Suspended_Push-Up",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Flexión suspendida"
   },
   {
     "name": "Suspended Reverse Crunch",
@@ -23552,7 +24056,8 @@
       "Suspended_Reverse_Crunch/1.jpg"
     ],
     "id": "Suspended_Reverse_Crunch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominal invertido suspendido"
   },
   {
     "name": "Suspended Row",
@@ -23578,7 +24083,8 @@
       "Suspended_Row/1.jpg"
     ],
     "id": "Suspended_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo suspendido"
   },
   {
     "name": "Suspended Split Squat",
@@ -23608,7 +24114,8 @@
       "Suspended_Split_Squat/1.jpg"
     ],
     "id": "Suspended_Split_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla búlgara suspendida"
   },
   {
     "name": "Svend Press",
@@ -23636,7 +24143,8 @@
       "Svend_Press/1.jpg"
     ],
     "id": "Svend_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press Svend"
   },
   {
     "name": "T-Bar Row with Handle",
@@ -23693,7 +24201,8 @@
       "Tate_Press/1.jpg"
     ],
     "id": "Tate_Press",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Press Tate"
   },
   {
     "name": "The Straddle",
@@ -23718,7 +24227,8 @@
       "The_Straddle/1.jpg"
     ],
     "id": "The_Straddle",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de piernas abiertas (straddle)"
   },
   {
     "name": "Thigh Abductor",
@@ -23806,7 +24316,8 @@
       "Tire_Flip/1.jpg"
     ],
     "id": "Tire_Flip",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Volteo de neumático"
   },
   {
     "name": "Toe Touchers",
@@ -23832,7 +24343,8 @@
       "Toe_Touchers/1.jpg"
     ],
     "id": "Toe_Touchers",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Tocar los dedos de los pies"
   },
   {
     "name": "Torso Rotation",
@@ -23854,7 +24366,8 @@
       "Torso_Rotation/1.jpg"
     ],
     "id": "Torso_Rotation",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Rotación de torso"
   },
   {
     "name": "Trail Running/Walking",
@@ -23880,7 +24393,8 @@
       "Trail_Running_Walking/1.jpg"
     ],
     "id": "Trail_Running_Walking",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Trote/caminata en sendero"
   },
   {
     "name": "Trap Bar Deadlift",
@@ -23907,7 +24421,8 @@
       "Trap_Bar_Deadlift/1.jpg"
     ],
     "id": "Trap_Bar_Deadlift",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Peso muerto con barra hexagonal"
   },
   {
     "name": "Tricep Dumbbell Kickback",
@@ -23955,7 +24470,8 @@
       "Tricep_Side_Stretch/1.jpg"
     ],
     "id": "Tricep_Side_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento lateral de tríceps"
   },
   {
     "name": "Triceps Overhead Extension with Rope",
@@ -23979,7 +24495,8 @@
       "Triceps_Overhead_Extension_with_Rope/1.jpg"
     ],
     "id": "Triceps_Overhead_Extension_with_Rope",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps sobre la cabeza con soga"
   },
   {
     "name": "Triceps Pushdown",
@@ -24056,7 +24573,8 @@
       "Triceps_Pushdown_-_V-Bar_Attachment/1.jpg"
     ],
     "id": "Triceps_Pushdown_-_V-Bar_Attachment",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Extensión de tríceps en polea con barra en V"
   },
   {
     "name": "Triceps Stretch",
@@ -24079,7 +24597,8 @@
       "Triceps_Stretch/1.jpg"
     ],
     "id": "Triceps_Stretch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Estiramiento de tríceps"
   },
   {
     "name": "Tuck Crunch",
@@ -24105,7 +24624,8 @@
       "Tuck_Crunch/1.jpg"
     ],
     "id": "Tuck_Crunch",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominal con rodillas flexionadas"
   },
   {
     "name": "Two-Arm Dumbbell Preacher Curl",
@@ -24129,7 +24649,8 @@
       "Two-Arm_Dumbbell_Preacher_Curl/1.jpg"
     ],
     "id": "Two-Arm_Dumbbell_Preacher_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl predicador con mancuernas a dos brazos"
   },
   {
     "name": "Two-Arm Kettlebell Clean",
@@ -24158,7 +24679,8 @@
       "Two-Arm_Kettlebell_Clean/1.jpg"
     ],
     "id": "Two-Arm_Kettlebell_Clean",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Cargada con kettlebells a dos brazos"
   },
   {
     "name": "Two-Arm Kettlebell Jerk",
@@ -24183,7 +24705,8 @@
       "Two-Arm_Kettlebell_Jerk/1.jpg"
     ],
     "id": "Two-Arm_Kettlebell_Jerk",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Envión con kettlebells a dos brazos"
   },
   {
     "name": "Two-Arm Kettlebell Military Press",
@@ -24207,7 +24730,8 @@
       "Two-Arm_Kettlebell_Military_Press/1.jpg"
     ],
     "id": "Two-Arm_Kettlebell_Military_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press militar con kettlebells a dos brazos"
   },
   {
     "name": "Two-Arm Kettlebell Row",
@@ -24232,7 +24756,8 @@
       "Two-Arm_Kettlebell_Row/1.jpg"
     ],
     "id": "Two-Arm_Kettlebell_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo con kettlebells a dos brazos"
   },
   {
     "name": "Underhand Cable Pulldowns",
@@ -24262,7 +24787,8 @@
       "Underhand_Cable_Pulldowns/1.jpg"
     ],
     "id": "Underhand_Cable_Pulldowns",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Jalón agarre supino en polea"
   },
   {
     "name": "Upper Back-Leg Grab",
@@ -24287,7 +24813,8 @@
       "Upper_Back-Leg_Grab/1.jpg"
     ],
     "id": "Upper_Back-Leg_Grab",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Agarre de pierna para espalda alta"
   },
   {
     "name": "Upper Back Stretch",
@@ -24310,7 +24837,8 @@
       "Upper_Back_Stretch/1.jpg"
     ],
     "id": "Upper_Back_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento de espalda alta"
   },
   {
     "name": "Upright Barbell Row",
@@ -24363,7 +24891,8 @@
       "Upright_Cable_Row/1.jpg"
     ],
     "id": "Upright_Cable_Row",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo al mentón en polea"
   },
   {
     "name": "Upright Row - With Bands",
@@ -24389,7 +24918,8 @@
       "Upright_Row_-_With_Bands/1.jpg"
     ],
     "id": "Upright_Row_-_With_Bands",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Remo al mentón con bandas"
   },
   {
     "name": "Upward Stretch",
@@ -24414,7 +24944,8 @@
       "Upward_Stretch/1.jpg"
     ],
     "id": "Upward_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Estiramiento hacia arriba"
   },
   {
     "name": "V-Bar Pulldown",
@@ -24444,7 +24975,8 @@
       "V-Bar_Pulldown/1.jpg"
     ],
     "id": "V-Bar_Pulldown",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Jalón con barra en V"
   },
   {
     "name": "V-Bar Pullup",
@@ -24473,7 +25005,8 @@
       "V-Bar_Pullup/1.jpg"
     ],
     "id": "V-Bar_Pullup",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Dominada con barra en V"
   },
   {
     "name": "Vertical Swing",
@@ -24501,7 +25034,8 @@
       "Vertical_Swing/1.jpg"
     ],
     "id": "Vertical_Swing",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Swing vertical"
   },
   {
     "name": "Walking, Treadmill",
@@ -24527,7 +25061,8 @@
       "Walking_Treadmill/1.jpg"
     ],
     "id": "Walking_Treadmill",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Caminata en cinta"
   },
   {
     "name": "Weighted Ball Hyperextension",
@@ -24555,7 +25090,8 @@
       "Weighted_Ball_Hyperextension/1.jpg"
     ],
     "id": "Weighted_Ball_Hyperextension",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Hiperextensión con balón y peso"
   },
   {
     "name": "Weighted Ball Side Bend",
@@ -24582,7 +25118,8 @@
       "Weighted_Ball_Side_Bend/1.jpg"
     ],
     "id": "Weighted_Ball_Side_Bend",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Flexión lateral con balón y peso"
   },
   {
     "name": "Weighted Bench Dip",
@@ -24610,7 +25147,8 @@
       "Weighted_Bench_Dip/1.jpg"
     ],
     "id": "Weighted_Bench_Dip",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Fondos en banco con peso"
   },
   {
     "name": "Weighted Crunches",
@@ -24635,7 +25173,8 @@
       "Weighted_Crunches/1.jpg"
     ],
     "id": "Weighted_Crunches",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominales con peso"
   },
   {
     "name": "Weighted Jump Squat",
@@ -24664,7 +25203,8 @@
       "Weighted_Jump_Squat/1.jpg"
     ],
     "id": "Weighted_Jump_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla con salto con peso"
   },
   {
     "name": "Weighted Pull Ups",
@@ -24691,7 +25231,8 @@
       "Weighted_Pull_Ups/1.jpg"
     ],
     "id": "Weighted_Pull_Ups",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Dominadas con peso"
   },
   {
     "name": "Weighted Sissy Squat",
@@ -24719,7 +25260,8 @@
       "Weighted_Sissy_Squat/1.jpg"
     ],
     "id": "Weighted_Sissy_Squat",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadilla sissy con peso"
   },
   {
     "name": "Weighted Sit-Ups - With Bands",
@@ -24743,7 +25285,8 @@
       "Weighted_Sit-Ups_-_With_Bands/1.jpg"
     ],
     "id": "Weighted_Sit-Ups_-_With_Bands",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Abdominales con peso y bandas"
   },
   {
     "name": "Weighted Squat",
@@ -24772,7 +25315,8 @@
       "Weighted_Squat/1.jpg"
     ],
     "id": "Weighted_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla con peso"
   },
   {
     "name": "Wide-Grip Barbell Bench Press",
@@ -24799,7 +25343,8 @@
       "Wide-Grip_Barbell_Bench_Press/1.jpg"
     ],
     "id": "Wide-Grip_Barbell_Bench_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de banca con barra agarre abierto"
   },
   {
     "name": "Wide-Grip Decline Barbell Bench Press",
@@ -24826,7 +25371,8 @@
       "Wide-Grip_Decline_Barbell_Bench_Press/1.jpg"
     ],
     "id": "Wide-Grip_Decline_Barbell_Bench_Press",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Press de banca declinado con barra agarre abierto"
   },
   {
     "name": "Wide-Grip Decline Barbell Pullover",
@@ -24855,7 +25401,8 @@
       "Wide-Grip_Decline_Barbell_Pullover/1.jpg"
     ],
     "id": "Wide-Grip_Decline_Barbell_Pullover",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Pullover declinado con barra agarre abierto"
   },
   {
     "name": "Wide-Grip Lat Pulldown",
@@ -24916,7 +25463,8 @@
       "Wide-Grip_Pulldown_Behind_The_Neck/1.jpg"
     ],
     "id": "Wide-Grip_Pulldown_Behind_The_Neck",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Jalón por detrás de la nuca agarre abierto"
   },
   {
     "name": "Wide-Grip Rear Pull-Up",
@@ -24945,7 +25493,8 @@
       "Wide-Grip_Rear_Pull-Up/1.jpg"
     ],
     "id": "Wide-Grip_Rear_Pull-Up",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Dominada posterior agarre abierto"
   },
   {
     "name": "Wide-Grip Standing Barbell Curl",
@@ -24970,7 +25519,8 @@
       "Wide-Grip_Standing_Barbell_Curl/1.jpg"
     ],
     "id": "Wide-Grip_Standing_Barbell_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl con barra agarre abierto de pie"
   },
   {
     "name": "Wide Stance Barbell Squat",
@@ -25001,7 +25551,8 @@
       "Wide_Stance_Barbell_Squat/1.jpg"
     ],
     "id": "Wide_Stance_Barbell_Squat",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Sentadilla con barra postura abierta"
   },
   {
     "name": "Wide Stance Stiff Legs",
@@ -25027,7 +25578,8 @@
       "Wide_Stance_Stiff_Legs/1.jpg"
     ],
     "id": "Wide_Stance_Stiff_Legs",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Peso muerto piernas rígidas postura abierta"
   },
   {
     "name": "Wind Sprints",
@@ -25051,7 +25603,8 @@
       "Wind_Sprints/1.jpg"
     ],
     "id": "Wind_Sprints",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sprints"
   },
   {
     "name": "Windmills",
@@ -25078,7 +25631,8 @@
       "Windmills/1.jpg"
     ],
     "id": "Windmills",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Molinos"
   },
   {
     "name": "World's Greatest Stretch",
@@ -25105,7 +25659,8 @@
       "Worlds_Greatest_Stretch/1.jpg"
     ],
     "id": "Worlds_Greatest_Stretch",
-    "fame": 3
+    "fame": 3,
+    "nombre": "El mejor estiramiento del mundo"
   },
   {
     "name": "Wrist Circles",
@@ -25128,7 +25683,8 @@
       "Wrist_Circles/1.jpg"
     ],
     "id": "Wrist_Circles",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Círculos de muñeca"
   },
   {
     "name": "Wrist Roller",
@@ -25155,7 +25711,8 @@
       "Wrist_Roller/1.jpg"
     ],
     "id": "Wrist_Roller",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Enrollador de muñeca"
   },
   {
     "name": "Wrist Rotations with Straight Bar",
@@ -25178,7 +25735,8 @@
       "Wrist_Rotations_with_Straight_Bar/1.jpg"
     ],
     "id": "Wrist_Rotations_with_Straight_Bar",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Rotaciones de muñeca con barra recta"
   },
   {
     "name": "Yoke Walk",
@@ -25209,7 +25767,8 @@
       "Yoke_Walk/1.jpg"
     ],
     "id": "Yoke_Walk",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Caminata con yugo (yoke)"
   },
   {
     "name": "Zercher Squats",
@@ -25239,7 +25798,8 @@
       "Zercher_Squats/1.jpg"
     ],
     "id": "Zercher_Squats",
-    "fame": 3
+    "fame": 3,
+    "nombre": "Sentadillas Zercher"
   },
   {
     "name": "Zottman Curl",
@@ -25269,7 +25829,8 @@
       "Zottman_Curl/1.jpg"
     ],
     "id": "Zottman_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl Zottman"
   },
   {
     "name": "Zottman Preacher Curl",
@@ -25297,6 +25858,7 @@
       "Zottman_Preacher_Curl/1.jpg"
     ],
     "id": "Zottman_Preacher_Curl",
-    "fame": 2
+    "fame": 2,
+    "nombre": "Curl predicador Zottman"
   }
 ]
