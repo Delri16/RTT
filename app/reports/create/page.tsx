@@ -16,6 +16,7 @@ import Link from "next/link"
 import { checkAndAwardReportAchievements } from "@/lib/achievements"
 import { uploadToStorage, makePhotoPath } from "@/lib/upload"
 import { BodyPhotoCapture } from "@/components/body-photo-capture"
+import { REPORT_POINTS } from "@/lib/points"
 
 export default function CreateReportPage() {
   const { username } = useApp()
@@ -161,6 +162,7 @@ export default function CreateReportPage() {
             <Scale className="w-6 h-6 text-toro-primary" />
             Reporte Quincenal
           </CardTitle>
+          <p className="text-sm text-toro-foreground/60">Sumás +{REPORT_POINTS} puntos al grupo al enviar.</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

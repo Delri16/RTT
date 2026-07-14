@@ -67,6 +67,9 @@ export default function FeedPost({ item }: { item: FeedItem }) {
             Subió su reporte de peso: <span className="font-semibold">{item.weight} kg</span>
           </p>
         </div>
+        <div className="shrink-0 rounded-full bg-toro-accent/15 text-toro-accent font-bold text-sm px-3 py-1">
+          +{item.points}
+        </div>
       </div>
       {photos.length > 0 && (
         <div className={`grid gap-0.5 ${photos.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>

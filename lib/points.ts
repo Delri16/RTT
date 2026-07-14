@@ -21,6 +21,9 @@ export type WeightGoal = "lose" | "gain" | "maintain"
 
 export const GOAL_K = 0.15
 
+/** Flat points awarded when submitting a bi-weekly weight report. */
+export const REPORT_POINTS = 5
+
 export function applyGoalMultiplier(
   basePoints: number,
   aerobicPct: number | null | undefined,

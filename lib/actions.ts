@@ -4,7 +4,7 @@ import { supabase, getSupabaseAdmin } from "./supabase"
 import { revalidatePath } from "next/cache"
 import { createClient } from "@supabase/supabase-js"
 import { supabaseAnonKey, supabaseUrl } from "./supabase"
-import { applyGoalMultiplier } from "./points"
+import { applyGoalMultiplier, REPORT_POINTS } from "./points"
 
 export async function createOrGetProfile(username: string) {
   // Check if profile exists
@@ -893,11 +893,30 @@ export async function createReport(input: {
     return { success: false, error: error.message }
   }
 
-  // Keep the action short: no full achievement scan here (that was dozens of RPCs).
-  await supabase.from("profiles").update({ current_weight: input.reported_weight }).eq("username", input.username)
+  await Promise.all([
+    supabase.from("profiles").update({ current_weight: input.reported_weight }).eq("username", input.username),
+    awardReportPoints(input.username, input.group_id),
+  ])
 
   revalidatePath("/reports")
   return { success: true }
+}
+
+/** Credits REPORT_POINTS into user_activities so rankings pick them up. activity_id is null
+ *  so the feed can skip this row (the report post already shows the event). */
+async function awardReportPoints(username: string, groupId: string) {
+  const { error } = await supabase.from("user_activities").insert([
+    {
+      username,
+      group_id: groupId,
+      activity_id: null,
+      points_earned: REPORT_POINTS,
+      minutes_performed: null,
+    },
+  ])
+  if (error) {
+    console.error("[report] failed to award points:", error.message)
+  }
 }
 
 export async function createBiWeeklyReport(formData: FormData) {
@@ -959,6 +978,7 @@ export async function createBiWeeklyReport(formData: FormData) {
 
   // Update profile weight
   await supabase.from("profiles").update({ current_weight: reported_weight }).eq("username", username)
+  await awardReportPoints(username, group_id)
 
   revalidatePath("/reports")
   revalidatePath("/")
@@ -1168,6 +1188,7 @@ export type FeedItem =
       weight: number
       scalePhotoUrl: string | null
       bodyPhotoUrl: string | null
+      points: number
     }
 
 export async function getGroupFeed(
@@ -1207,7 +1228,10 @@ export async function getGroupFeed(
   const [{ data: acts }, { data: reps }] = await Promise.all([actQ, repQ])
 
   const merged: FeedItem[] = [
-    ...((acts ?? []).map((a: any) => ({
+    ...((acts ?? [])
+      // Skip synthetic report-point rows (activity_id null) — the report post covers them
+      .filter((a: any) => a.group_activities?.name)
+      .map((a: any) => ({
       type: "activity" as const,
       id: a.id,
       username: a.username,
@@ -1228,6 +1252,7 @@ export async function getGroupFeed(
       weight: r.reported_weight,
       scalePhotoUrl: r.scale_photo_url || null,
       bodyPhotoUrl: r.body_photo_url || null,
+      points: REPORT_POINTS,
     }))),
   ].sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0))
 
@@ -1260,7 +1285,10 @@ export async function getAllUserActivities(username: string) {
     return { success: false, error: error.message }
   }
 
-  return { success: true, activities: data || [] }
+  return {
+    success: true,
+    activities: (data || []).filter((a: any) => a.activity_id && a.group_activities),
+  }
 }
 
 export async function getGroupRanking(groupId: string, period: "week" | "biweekly" | "month" | "quarter" = "week") {
