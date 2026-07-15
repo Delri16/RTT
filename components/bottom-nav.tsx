@@ -2,15 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Dumbbell, Shield, BarChart2, Plus, Trophy } from "lucide-react"
+import { Home, Dumbbell, Shield, BarChart2, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// El botón de Inicio se sacó: a Inicio se accede tocando el logo arriba.
 const navItems = [
-  { href: "/mi-rutina", label: "Rutina", icon: Dumbbell },
+  { href: "/", label: "Inicio", icon: Home },
   { href: "/groups", label: "Grupos", icon: Shield },
   { href: "/reports", label: "Reportes", icon: BarChart2 },
-  { href: "/achievements", label: "Logros", icon: Trophy },
+  { href: "/mi-rutina", label: "Rutina", icon: Dumbbell },
 ]
 
 export default function BottomNav() {

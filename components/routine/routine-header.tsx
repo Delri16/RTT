@@ -6,11 +6,7 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import type { ReactNode } from "react"
 
-/**
- * Header estándar de la sección Mi Rutina.
- * El logo arriba a la izquierda linkea a Inicio ("/"): así se accede al feed
- * sin botón en el footer (el de Inicio se reemplazó por Rutina).
- */
+/** Header estándar de la sección Mi Rutina. */
 export default function RoutineHeader({
   title,
   subtitle,

@@ -13,7 +13,7 @@ import { getUserProfile, updateProfile, getWeeklyPoints } from "@/lib/actions"
 import AvatarSelector from "@/components/avatar-selector"
 import UserAvatar from "@/components/user-avatar"
 import MotivationalQuote from "@/components/motivational-quote"
-import { User, Weight, Target, Save, CheckCircle, Trophy, LogOut, Mail, TrendingDown, TrendingUp, Minus } from "lucide-react"
+import { User, Weight, Target, Save, CheckCircle, Trophy, LogOut, Mail, TrendingDown, TrendingUp, Minus, ChevronRight, Medal } from "lucide-react"
 
 const GOALS = [
   { value: "lose", label: "Bajar de peso", desc: "Suman más las actividades aeróbicas (cardio)", icon: TrendingDown },
@@ -226,6 +226,20 @@ export default function ProfilePage() {
       </div>
 
       <MotivationalQuote />
+
+      <Link
+        href="/achievements"
+        className="flex items-center gap-3 p-4 rounded-xl border border-toro-secondary/40 bg-toro-secondary/10 hover:bg-toro-secondary/20 active:scale-[0.99] transition"
+      >
+        <div className="w-10 h-10 rounded-xl bg-toro-secondary/30 flex items-center justify-center shrink-0">
+          <Medal className="w-5 h-5 text-toro-foreground" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-toro-foreground">Logros</p>
+          <p className="text-xs text-toro-foreground/60">Mirá tus hitos desbloqueados</p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-toro-foreground/40 shrink-0" />
+      </Link>
 
       {/* Alerts */}
       {error && (

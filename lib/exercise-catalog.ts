@@ -18,6 +18,8 @@ export type Exercise = {
   name: string
   /** nombre en español */
   nombre: string
+  /** nombres/sinónimos alternativos, para que la búsqueda también matchee por ellos */
+  otherNames?: string[]
   force: "pull" | "push" | "static" | null
   level: "beginner" | "intermediate" | "expert"
   mechanic: "compound" | "isolation" | null
@@ -138,6 +140,7 @@ function normalizeExercise(e: any): Exercise {
     ...e,
     name: typeof e.name === "string" ? e.name : "",
     nombre: typeof e.nombre === "string" && e.nombre ? e.nombre : e.name || "Ejercicio",
+    otherNames: Array.isArray(e.otherNames) ? e.otherNames : undefined,
     instructions: Array.isArray(e.instructions) ? e.instructions : [],
     instrucciones:
       Array.isArray(e.instrucciones) && e.instrucciones.length
@@ -229,10 +232,11 @@ export function filterExercises(all: Exercise[], f: ExerciseFilters): Exercise[]
     if (f.level?.length && !f.level.includes(e.level)) return false
     if (f.mechanic?.length && !(e.mechanic && f.mechanic.includes(e.mechanic))) return false
     if (q) {
-      // busca en nombre ES e EN + músculos ES/EN
+      // busca en nombre ES e EN + sinónimos (otherNames) + músculos ES/EN
       const hay =
         norm(e.nombre).includes(q) ||
         norm(e.name).includes(q) ||
+        (e.otherNames?.some((n) => norm(n).includes(q)) ?? false) ||
         e.primaryMuscles.some((m) => norm(tMuscle(m)).includes(q) || norm(m).includes(q))
       if (!hay) return false
     }
