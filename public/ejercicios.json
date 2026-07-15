@@ -7029,7 +7029,7 @@
   },
   {
     "name": "Decline Smith Press",
-    "nombre": "Press de Smith inclinado",
+    "nombre": "Press de Smith declinado",
     "force": "push",
     "level": "beginner",
     "mechanic": "compound",
