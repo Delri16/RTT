@@ -5,6 +5,7 @@ import { Dumbbell, Scale, Clock, Trophy, ArrowUp } from "lucide-react"
 import UserAvatar from "@/components/user-avatar"
 import type { FeedItem } from "@/lib/actions"
 import { timeAgo } from "@/lib/date-utils"
+import RoutineFeedCard from "@/components/feed/routine-feed-card"
 
 function PostHeader({ item }: { item: FeedItem }) {
   return (
@@ -49,6 +50,15 @@ export default function FeedPost({ item }: { item: FeedItem }) {
             +{item.points}
           </div>
         </div>
+      </article>
+    )
+  }
+
+  if (item.type === "routine") {
+    return (
+      <article className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
+        <PostHeader item={item} />
+        <RoutineFeedCard item={item} />
       </article>
     )
   }

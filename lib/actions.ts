@@ -1203,6 +1203,18 @@ export type FeedItem =
       reps: number
       prevWeight: number | null
     }
+  | {
+      type: "routine"
+      id: string
+      username: string
+      ts: string
+      groupName: string | null
+      avatar: string | null
+      routineName: string
+      emoji: string
+      description: string | null
+      exercises: RoutineExercise[]
+    }
 
 // Deja una sola fila por key (mantiene la primera, ya vienen ordenadas por fecha desc).
 function dedupeBy<T>(rows: T[], key: (r: T) => string): T[] {
@@ -1259,7 +1271,15 @@ export async function getGroupFeed(
     .limit(limit + 1)
   if (before) prQ = prQ.lt("created_at", before)
 
-  const [{ data: acts }, { data: reps }, { data: prs }] = await Promise.all([actQ, repQ, prQ])
+  let rtQ = supabase
+    .from("shared_routines")
+    .select("id, share_id, username, group_id, name, emoji, description, exercises, created_at, groups (name)")
+    .in("group_id", groupIds)
+    .order("created_at", { ascending: false })
+    .limit(limit + 1)
+  if (before) rtQ = rtQ.lt("created_at", before)
+
+  const [{ data: acts }, { data: reps }, { data: prs }, { data: routines }] = await Promise.all([actQ, repQ, prQ, rtQ])
 
   const merged: FeedItem[] = [
     ...((acts ?? [])
@@ -1301,6 +1321,19 @@ export async function getGroupFeed(
       weight: Number(p.weight),
       reps: p.reps,
       prevWeight: p.prev_weight != null ? Number(p.prev_weight) : null,
+    })),
+    // Deduplica rutinas compartidas por share_id (una fila por grupo).
+    ...dedupeBy(routines ?? [], (r: any) => r.share_id ?? r.id).map((r: any) => ({
+      type: "routine" as const,
+      id: r.share_id ?? r.id,
+      username: r.username,
+      ts: r.created_at,
+      groupName: r.groups?.name ?? null,
+      avatar: null,
+      routineName: r.name,
+      emoji: r.emoji || "💪",
+      description: r.description ?? null,
+      exercises: Array.isArray(r.exercises) ? r.exercises : [],
     })),
   ].sort((a, b) => (a.ts < b.ts ? 1 : a.ts > b.ts ? -1 : 0))
 
@@ -3665,4 +3698,52 @@ export async function sharePR(input: {
 
   revalidatePath("/")
   return { success: true, sharedTo: groupIds.length }
+}
+
+/** Comparte una rutina al feed de todos los grupos del usuario (snapshot). */
+export async function shareRoutine(routineId: string, username: string) {
+  const { data: routine, error: rErr } = await supabase.from("routines").select("*").eq("id", routineId).single()
+  if (rErr || !routine) return { success: false, error: rErr?.message || "Rutina no encontrada." }
+
+  const { data: memberships, error: mErr } = await supabase
+    .from("group_members")
+    .select("group_id")
+    .eq("username", username)
+  if (mErr) return { success: false, error: mErr.message }
+  const groupIds = (memberships ?? []).map((m: any) => m.group_id)
+  if (groupIds.length === 0) {
+    return { success: false, error: "No estás en ningún grupo para compartir." }
+  }
+
+  const shareId = crypto.randomUUID()
+  const rows = groupIds.map((group_id: string) => ({
+    share_id: shareId,
+    username,
+    group_id,
+    routine_id: routineId,
+    name: (routine as any).name,
+    emoji: (routine as any).emoji || "💪",
+    description: (routine as any).description ?? null,
+    exercises: (routine as any).exercises ?? [],
+  }))
+
+  const { error } = await supabase.from("shared_routines").insert(rows)
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath("/")
+  return { success: true, sharedTo: groupIds.length }
+}
+
+/** Copia una rutina compartida a las rutinas propias del usuario. */
+export async function addSharedRoutine(
+  username: string,
+  input: { name: string; emoji?: string; description?: string | null; exercises?: RoutineExercise[] },
+) {
+  return createRoutine({
+    username,
+    name: input.name,
+    emoji: input.emoji,
+    description: input.description ?? undefined,
+    exercises: input.exercises ?? [],
+  })
 }

@@ -35,6 +35,12 @@
   * {
     @apply border-border;
   }
+  html,
+  body {
+    /* Evita el "pull-to-refresh" del navegador/PWA: deslizar rápido hacia abajo
+       ya no recarga la página (se perdía lo que estabas armando en la rutina). */
+    overscroll-behavior-y: contain;
+  }
   body {
     /* Changed from bg-toro-background to use the CSS variable directly */
     background-color: #fdf7e4;

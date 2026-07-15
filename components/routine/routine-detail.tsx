@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Play, Share2, Pencil, Trash2, Dumbbell, Check, Copy, Loader2 } from "lucide-react"
+import { Play, Share2, Pencil, Trash2, Dumbbell, Check, Loader2, Users } from "lucide-react"
 import RoutineHeader from "@/components/routine/routine-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,14 +17,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { loadExercises, exerciseThumb, type Exercise } from "@/lib/exercise-catalog"
-import { deleteRoutine, type Routine } from "@/lib/actions"
+import { deleteRoutine, shareRoutine, type Routine } from "@/lib/actions"
 
-export default function RoutineDetail({ routine }: { routine: Routine }) {
+export default function RoutineDetail({ routine, username }: { routine: Routine; username: string }) {
   const router = useRouter()
   const [catalog, setCatalog] = useState<Map<string, Exercise>>(new Map())
   const [confirmDel, setConfirmDel] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [confirmShare, setConfirmShare] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [shareResult, setShareResult] = useState<string | null>(null)
 
   useEffect(() => {
     loadExercises().then((all) => {
@@ -37,31 +39,17 @@ export default function RoutineDetail({ routine }: { routine: Routine }) {
     })
   }, [routine])
 
-  function shareText() {
-    const lines = routine.exercises.map(
-      (ex, i) =>
-        `${i + 1}. ${ex.name}${ex.target_sets && ex.target_reps ? ` — ${ex.target_sets}×${ex.target_reps}` : ""}`,
-    )
-    return `${routine.emoji} ${routine.name} (Rutina RTT 🐂)\n\n${lines.join("\n")}\n\n¡Armá la tuya en ToroApp!`
-  }
-
   async function share() {
-    const text = shareText()
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({ title: routine.name, text })
-        return
-      } catch {
-        /* usuario canceló -> cae al copiar */
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      /* noop */
-    }
+    setSharing(true)
+    const res = await shareRoutine(routine.id, username)
+    setSharing(false)
+    setConfirmShare(false)
+    setShareResult(
+      res.success
+        ? `Compartida en ${res.sharedTo} grupo${res.sharedTo === 1 ? "" : "s"} 🎉`
+        : res.error || "No se pudo compartir.",
+    )
+    setTimeout(() => setShareResult(null), 3500)
   }
 
   async function doDelete() {
@@ -78,8 +66,8 @@ export default function RoutineDetail({ routine }: { routine: Routine }) {
         back="/mi-rutina"
         right={
           <div className="flex items-center gap-0.5">
-            <button onClick={share} aria-label="Compartir" className="p-2 rounded-xl text-toro-foreground/60 hover:bg-black/5">
-              {copied ? <Check className="w-5 h-5 text-toro-accent" /> : <Share2 className="w-5 h-5" />}
+            <button onClick={() => setConfirmShare(true)} aria-label="Compartir con mis grupos" className="p-2 rounded-xl text-toro-foreground/60 hover:bg-black/5">
+              <Share2 className="w-5 h-5" />
             </button>
             <Link href={`/mi-rutina/${routine.id}/editar`} aria-label="Editar" className="p-2 rounded-xl text-toro-foreground/60 hover:bg-black/5">
               <Pencil className="w-5 h-5" />
@@ -103,9 +91,9 @@ export default function RoutineDetail({ routine }: { routine: Routine }) {
           </div>
         </div>
 
-        {copied && (
-          <div className="mb-3 text-sm text-toro-accent flex items-center justify-center gap-1.5">
-            <Copy className="w-4 h-4" /> Rutina copiada al portapapeles
+        {shareResult && (
+          <div className="mb-3 text-sm text-toro-accent flex items-center justify-center gap-1.5 text-center">
+            <Check className="w-4 h-4 shrink-0" /> {shareResult}
           </div>
         )}
 
@@ -149,6 +137,33 @@ export default function RoutineDetail({ routine }: { routine: Routine }) {
           </Link>
         </div>
       </div>
+
+      <AlertDialog open={confirmShare} onOpenChange={setConfirmShare}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-toro-primary" /> ¿Compartir con tus grupos?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              "{routine.name}" va a aparecer en el inicio de tus grupos. Los demás van a poder verla y agregarla como
+              rutina propia para editarla a su gusto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={sharing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                share()
+              }}
+              disabled={sharing}
+              className="bg-toro-primary hover:bg-toro-primary/90"
+            >
+              {sharing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Compartir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={confirmDel} onOpenChange={setConfirmDel}>
         <AlertDialogContent>

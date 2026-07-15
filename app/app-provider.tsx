@@ -75,7 +75,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         <div className="flex flex-col h-screen">
           <NotificationListener />
           <ActivityTagsBadge username={username} />
-          <main className="flex-1 overflow-y-auto pb-16">{children}</main>
+          <main className="flex-1 overflow-y-auto overscroll-contain pb-16">{children}</main>
           <BottomNav />
         </div>
       ) : (
