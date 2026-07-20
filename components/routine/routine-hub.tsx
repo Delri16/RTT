@@ -2,12 +2,19 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Plus, Dumbbell, Trophy, ChevronRight, Search, Flame, Layers } from "lucide-react"
+import { Plus, Dumbbell, Trophy, ChevronRight, Search, Flame, Layers, Star } from "lucide-react"
 import RoutineHeader from "@/components/routine/routine-header"
+import FavoritesTab from "@/components/routine/favorites-tab"
 import { Button } from "@/components/ui/button"
 import { getRoutines, getWorkoutStats, getPersonalRecords, type Routine } from "@/lib/actions"
 
+const TABS = [
+  { value: "rutinas", label: "Rutinas", icon: Layers },
+  { value: "favoritos", label: "Favoritos", icon: Star },
+] as const
+
 export default function RoutineHub({ username }: { username: string }) {
+  const [tab, setTab] = useState<(typeof TABS)[number]["value"]>("rutinas")
   const [routines, setRoutines] = useState<Routine[]>([])
   const [stats, setStats] = useState<{ totalSets: number; totalVolume: number; prCount: number } | null>(null)
   const [records, setRecords] = useState<{ exercise_id: string; exercise_name: string; weight: number; reps: number }[]>([])
@@ -53,85 +60,106 @@ export default function RoutineHub({ username }: { username: string }) {
           />
         </div>
 
-        {/* Rutinas */}
-        <section>
-          <div className="flex items-center justify-between mb-2 px-1">
-            <h2 className="font-display text-lg text-toro-foreground">Mis rutinas</h2>
-            <Link href="/mi-rutina/nueva">
-              <Button size="sm" className="bg-toro-primary hover:bg-toro-primary/90 text-white rounded-xl h-8">
-                <Plus className="w-4 h-4 mr-1" /> Nueva
-              </Button>
-            </Link>
-          </div>
+        {/* Segmentado Rutinas / Favoritos */}
+        <div className="grid grid-cols-2 gap-1 p-1 bg-black/5 rounded-xl">
+          {TABS.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setTab(t.value)}
+              className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-bold transition ${
+                tab === t.value ? "bg-white shadow-sm text-toro-primary" : "text-toro-foreground/50"
+              }`}
+            >
+              <t.icon className="w-4 h-4" /> {t.label}
+            </button>
+          ))}
+        </div>
 
-          {loading ? (
-            <div className="flex justify-center py-10">
-              <Dumbbell className="animate-spin w-7 h-7 text-toro-primary" />
-            </div>
-          ) : routines.length === 0 ? (
-            <EmptyRoutines />
-          ) : (
-            <div className="space-y-2">
-              {routines.map((r) => (
-                <Link
-                  key={r.id}
-                  href={`/mi-rutina/${r.id}`}
-                  className="flex items-center gap-3 bg-white rounded-2xl border border-black/5 p-3 shadow-sm active:scale-[0.99] transition"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-toro-background flex items-center justify-center text-2xl shrink-0">
-                    {r.emoji}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-bold text-toro-foreground leading-tight truncate">{r.name}</div>
-                    <div className="text-xs text-toro-foreground/50">
-                      {r.exercises.length} ejercicio{r.exercises.length === 1 ? "" : "s"}
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-toro-foreground/30 shrink-0" />
+        {tab === "favoritos" ? (
+          <FavoritesTab username={username} />
+        ) : (
+          <>
+            {/* Rutinas */}
+            <section>
+              <div className="flex items-center justify-between mb-2 px-1">
+                <h2 className="font-display text-lg text-toro-foreground">Mis rutinas</h2>
+                <Link href="/mi-rutina/nueva">
+                  <Button size="sm" className="bg-toro-primary hover:bg-toro-primary/90 text-white rounded-xl h-8">
+                    <Plus className="w-4 h-4 mr-1" /> Nueva
+                  </Button>
                 </Link>
-              ))}
-            </div>
-          )}
-        </section>
+              </div>
 
-        {/* Récords personales */}
-        {records.length > 0 && (
-          <section>
-            <h2 className="font-display text-lg text-toro-foreground mb-2 px-1">Tus récords</h2>
-            <div className="space-y-2">
-              {records.map((rec) => (
-                <div key={rec.exercise_id} className="flex items-center gap-3 bg-white rounded-2xl border border-black/5 p-3 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-toro-secondary/20 flex items-center justify-center shrink-0">
-                    <Trophy className="w-5 h-5 text-toro-secondary" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-semibold text-toro-foreground text-sm leading-tight truncate">{rec.exercise_name}</div>
-                    <div className="text-xs text-toro-foreground/50">{rec.reps} reps</div>
-                  </div>
-                  <div className="shrink-0 font-display text-xl text-toro-foreground">
-                    {rec.weight}
-                    <span className="text-xs text-toro-foreground/40 ml-0.5">kg</span>
-                  </div>
+              {loading ? (
+                <div className="flex justify-center py-10">
+                  <Dumbbell className="animate-spin w-7 h-7 text-toro-primary" />
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+              ) : routines.length === 0 ? (
+                <EmptyRoutines />
+              ) : (
+                <div className="space-y-2">
+                  {routines.map((r) => (
+                    <Link
+                      key={r.id}
+                      href={`/mi-rutina/${r.id}`}
+                      className="flex items-center gap-3 bg-white rounded-2xl border border-black/5 p-3 shadow-sm active:scale-[0.99] transition"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-toro-background flex items-center justify-center text-2xl shrink-0">
+                        {r.emoji}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-toro-foreground leading-tight truncate">{r.name}</div>
+                        <div className="text-xs text-toro-foreground/50">
+                          {r.exercises.length} ejercicio{r.exercises.length === 1 ? "" : "s"}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-toro-foreground/30 shrink-0" />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
 
-        {/* Explorar catálogo */}
-        <Link
-          href="/mi-rutina/ejercicios"
-          className="flex items-center gap-3 bg-gradient-to-br from-toro-accent/15 to-toro-primary/10 rounded-2xl p-4 border border-black/5"
-        >
-          <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center shrink-0">
-            <Search className="w-5 h-5 text-toro-accent" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-toro-foreground">Explorar ejercicios</div>
-            <div className="text-xs text-toro-foreground/50">870 ejercicios con fotos, filtros y traducción</div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-toro-foreground/30 shrink-0" />
-        </Link>
+            {/* Récords personales */}
+            {records.length > 0 && (
+              <section>
+                <h2 className="font-display text-lg text-toro-foreground mb-2 px-1">Tus récords</h2>
+                <div className="space-y-2">
+                  {records.map((rec) => (
+                    <div key={rec.exercise_id} className="flex items-center gap-3 bg-white rounded-2xl border border-black/5 p-3 shadow-sm">
+                      <div className="w-10 h-10 rounded-xl bg-toro-secondary/20 flex items-center justify-center shrink-0">
+                        <Trophy className="w-5 h-5 text-toro-secondary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-toro-foreground text-sm leading-tight truncate">{rec.exercise_name}</div>
+                        <div className="text-xs text-toro-foreground/50">{rec.reps} reps</div>
+                      </div>
+                      <div className="shrink-0 font-display text-xl text-toro-foreground">
+                        {rec.weight}
+                        <span className="text-xs text-toro-foreground/40 ml-0.5">kg</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Explorar catálogo */}
+            <Link
+              href="/mi-rutina/ejercicios"
+              className="flex items-center gap-3 bg-gradient-to-br from-toro-accent/15 to-toro-primary/10 rounded-2xl p-4 border border-black/5"
+            >
+              <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center shrink-0">
+                <Search className="w-5 h-5 text-toro-accent" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-toro-foreground">Explorar ejercicios</div>
+                <div className="text-xs text-toro-foreground/50">870 ejercicios con fotos, filtros y traducción</div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-toro-foreground/30 shrink-0" />
+            </Link>
+          </>
+        )}
       </div>
     </div>
   )

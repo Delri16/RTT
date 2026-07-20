@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer"
 import ExerciseDetailDrawer from "@/components/routine/exercise-detail-drawer"
+import FavoriteButton from "@/components/routine/favorite-button"
+import { getFavoriteExercises } from "@/lib/actions"
 import {
   type Exercise,
   type ExerciseFilters,
@@ -52,6 +54,7 @@ export default function ExerciseCatalog({
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [visible, setVisible] = useState(PAGE)
   const [detail, setDetail] = useState<Exercise | null>(null)
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
   const sentinel = useRef<HTMLDivElement | null>(null)
 
   const selected = useMemo(() => new Set(selectedIds ?? []), [selectedIds])
@@ -61,6 +64,13 @@ export default function ExerciseCatalog({
       .then((data) => setAll(data))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!username) return
+    getFavoriteExercises(username).then((res) => {
+      if (res.success) setFavoriteIds(new Set(res.favorites.map((f) => f.exercise_id)))
+    })
+  }, [username])
 
   const facets = useMemo(() => (all.length ? facetValues(all) : { muscles: [], equipment: [], category: [] }), [all])
 
@@ -185,6 +195,23 @@ export default function ExerciseCatalog({
                       <div className="text-[11px] text-toro-foreground/40 truncate">{tEquipment(ex.equipment)}</div>
                     </div>
                   </button>
+
+                  {username && (
+                    <FavoriteButton
+                      username={username}
+                      exerciseId={ex.id}
+                      exerciseName={ex.nombre}
+                      favorited={favoriteIds.has(ex.id)}
+                      onChange={(v) =>
+                        setFavoriteIds((prev) => {
+                          const next = new Set(prev)
+                          v ? next.add(ex.id) : next.delete(ex.id)
+                          return next
+                        })
+                      }
+                      className="w-9 h-9"
+                    />
+                  )}
 
                   {mode === "select" && onAdd && (
                     <button

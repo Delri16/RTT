@@ -82,6 +82,12 @@ Sección personal para armar rutinas de gym, entrenar registrando series (peso/r
 
 **Falta correr en Supabase:** [scripts/37-add-routines.sql](scripts/37-add-routines.sql) (crea `routines`, `workout_sets`, `shared_prs`). Sin esto, el hub de Mi Rutina carga vacío (las lecturas fallan silenciosamente y muestran estado vacío, no rompen), pero crear rutinas / registrar series / compartir PRs falla hasta correrlo. El feed sigue andando aunque falte la tabla `shared_prs` (la query devuelve vacío).
 
+### Favoritos + registro suelto (sin rutina)
+
+El hub de Mi Rutina (`routine-hub.tsx`) tiene un segmentado **Rutinas / Favoritos**. En "Favoritos" (`components/routine/favorites-tab.tsx`) se listan los ejercicios marcados con la estrella (`components/routine/favorite-button.tsx`, disponible en el catálogo y en el drawer de detalle) — tocar uno abre `components/routine/exercise-progress-drawer.tsx`, que permite registrar series peso/reps sueltas (`logWorkoutSet` con `routine_id: null`, reutiliza la misma tabla `workout_sets` y la misma detección de PR/`sharePR` que el flujo de rutinas) y muestra un gráfico de progreso de peso por fecha con `recharts` (ya era dependencia del proyecto).
+
+**Falta correr en Supabase:** [scripts/38-add-favorite-exercises.sql](scripts/38-add-favorite-exercises.sql) (crea `favorite_exercises`, único por `username`+`exercise_id`). Sin esto, marcar/desmarcar favoritos falla silenciosamente y la tab "Favoritos" siempre aparece vacía.
+
 ## Convenciones existentes (no introducidas por este cambio)
 
 - Colores de marca: `toro-background #FDF7E4`, `toro-foreground #3A3A3A`, `toro-primary #FF6B6B`, `toro-secondary #FFD166`, `toro-accent #06D6A0` (ver `tailwind.config.ts`).

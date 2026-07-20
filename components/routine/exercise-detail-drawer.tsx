@@ -5,6 +5,8 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dumbbell, Plus, Check, Trophy } from "lucide-react"
+import FavoriteButton from "@/components/routine/favorite-button"
+import { getFavoriteExercises } from "@/lib/actions"
 import {
   type Exercise,
   exerciseImageUrl,
@@ -40,6 +42,18 @@ export default function ExerciseDetailDrawer({
 }) {
   const [imgIndex, setImgIndex] = useState(0)
   const [best, setBest] = useState<{ weight: number; reps: number } | null>(null)
+  const [isFavorite, setIsFavorite] = useState(false)
+
+  useEffect(() => {
+    if (!open || !exercise || !username) return
+    let active = true
+    getFavoriteExercises(username).then((res) => {
+      if (active && res.success) setIsFavorite(res.favorites.some((f) => f.exercise_id === exercise.id))
+    })
+    return () => {
+      active = false
+    }
+  }, [open, exercise, username])
 
   // Alterna las 2 imágenes (posición inicial / final) automáticamente.
   useEffect(() => {
@@ -102,7 +116,19 @@ export default function ExerciseDetailDrawer({
               <h2 className="text-xl font-display text-toro-foreground leading-tight">{exercise.nombre}</h2>
               <p className="text-sm text-toro-foreground/40">{exercise.name}</p>
             </div>
-            {fame && <Badge className={`shrink-0 border-0 ${fame.className}`}>{fame.label}</Badge>}
+            <div className="flex items-center gap-2 shrink-0">
+              {fame && <Badge className={`border-0 ${fame.className}`}>{fame.label}</Badge>}
+              {username && (
+                <FavoriteButton
+                  username={username}
+                  exerciseId={exercise.id}
+                  exerciseName={exercise.nombre}
+                  favorited={isFavorite}
+                  onChange={setIsFavorite}
+                  className="w-8 h-8"
+                />
+              )}
+            </div>
           </div>
 
           {/* Récord personal */}

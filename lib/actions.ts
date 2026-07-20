@@ -3663,6 +3663,52 @@ export async function getWorkoutStats(username: string) {
   return { success: true, totalSets: (data ?? []).length, totalVolume, prCount, lastAt }
 }
 
+// ---------------------------------------------------------------------------
+// Favoritos: ejercicios marcados para la tab "Favoritos" de Mi Rutina, donde
+// se pueden registrar series sueltas (routine_id null) sin armar una rutina.
+// ---------------------------------------------------------------------------
+
+export type FavoriteExercise = {
+  id: string
+  username: string
+  exercise_id: string
+  exercise_name: string
+  created_at: string
+}
+
+export async function getFavoriteExercises(username: string) {
+  const { data, error } = await supabase
+    .from("favorite_exercises")
+    .select("*")
+    .eq("username", username)
+    .order("created_at", { ascending: false })
+
+  if (error) return { success: false, error: error.message, favorites: [] as FavoriteExercise[] }
+  return { success: true, favorites: (data ?? []) as FavoriteExercise[] }
+}
+
+/** Marca/desmarca un ejercicio como favorito. Devuelve el nuevo estado. */
+export async function toggleFavoriteExercise(username: string, exerciseId: string, exerciseName: string) {
+  const { data: existing } = await supabase
+    .from("favorite_exercises")
+    .select("id")
+    .eq("username", username)
+    .eq("exercise_id", exerciseId)
+    .maybeSingle()
+
+  if (existing) {
+    const { error } = await supabase.from("favorite_exercises").delete().eq("id", existing.id)
+    if (error) return { success: false, error: error.message, favorited: true }
+    return { success: true, favorited: false }
+  }
+
+  const { error } = await supabase
+    .from("favorite_exercises")
+    .insert([{ username, exercise_id: exerciseId, exercise_name: exerciseName }])
+  if (error) return { success: false, error: error.message, favorited: false }
+  return { success: true, favorited: true }
+}
+
 /** Comparte un PR al feed de todos los grupos del usuario (como un reporte). */
 export async function sharePR(input: {
   username: string
