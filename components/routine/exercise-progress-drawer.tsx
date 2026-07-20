@@ -18,11 +18,14 @@ export default function ExerciseProgressDrawer({
   username,
   open,
   onOpenChange,
+  readOnly = false,
 }: {
   exercise: Pick<Exercise, "id" | "nombre" | "images"> | null
   username: string
   open: boolean
   onOpenChange: (v: boolean) => void
+  /** Vista de solo lectura (perfil de otro usuario): sin registro de series ni compartir. */
+  readOnly?: boolean
 }) {
   const [history, setHistory] = useState<SetEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -117,37 +120,39 @@ export default function ExerciseProgressDrawer({
           )}
 
           {/* Registro rápido */}
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <label className="text-[10px] uppercase tracking-wide text-toro-foreground/40">Kg</label>
-              <Input
-                type="number"
-                inputMode="decimal"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                placeholder="0"
-                className="h-10 text-center bg-white border-black/10"
-              />
+          {!readOnly && (
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="text-[10px] uppercase tracking-wide text-toro-foreground/40">Kg</label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  placeholder="0"
+                  className="h-10 text-center bg-white border-black/10"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-[10px] uppercase tracking-wide text-toro-foreground/40">Reps</label>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  value={reps}
+                  onChange={(e) => setReps(e.target.value)}
+                  placeholder="0"
+                  className="h-10 text-center bg-white border-black/10"
+                />
+              </div>
+              <Button
+                onClick={addSet}
+                disabled={saving || !reps}
+                className="h-10 bg-toro-primary hover:bg-toro-primary/90 text-white shrink-0"
+              >
+                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+              </Button>
             </div>
-            <div className="flex-1">
-              <label className="text-[10px] uppercase tracking-wide text-toro-foreground/40">Reps</label>
-              <Input
-                type="number"
-                inputMode="numeric"
-                value={reps}
-                onChange={(e) => setReps(e.target.value)}
-                placeholder="0"
-                className="h-10 text-center bg-white border-black/10"
-              />
-            </div>
-            <Button
-              onClick={addSet}
-              disabled={saving || !reps}
-              className="h-10 bg-toro-primary hover:bg-toro-primary/90 text-white shrink-0"
-            >
-              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-            </Button>
-          </div>
+          )}
 
           {/* Gráfico de progreso */}
           {chartData.length >= 2 && (
@@ -194,13 +199,15 @@ export default function ExerciseProgressDrawer({
                       <span className="text-xs text-toro-foreground/40">
                         {new Date(s.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" })}
                       </span>
-                      <button
-                        onClick={() => removeSet(s.id)}
-                        aria-label="Eliminar serie"
-                        className="text-toro-foreground/30 hover:text-toro-primary"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {!readOnly && (
+                        <button
+                          onClick={() => removeSet(s.id)}
+                          aria-label="Eliminar serie"
+                          className="text-toro-foreground/30 hover:text-toro-primary"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -210,7 +217,7 @@ export default function ExerciseProgressDrawer({
         </div>
       </DrawerContent>
 
-      <PRCelebration pr={pr} username={username} onClose={() => setPr(null)} />
+      {!readOnly && <PRCelebration pr={pr} username={username} onClose={() => setPr(null)} />}
     </Drawer>
   )
 }

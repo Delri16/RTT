@@ -6,10 +6,12 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, User, Activity, Users, TrendingUp, Calendar, Scale } from "lucide-react"
+import { ArrowLeft, User, Activity, Users, TrendingUp, Calendar, Scale, Dumbbell } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useApp } from "@/app/app-provider"
 import { getUserProfile, getUserGroups, getUserActivities, getUserWeightReports } from "@/lib/actions"
 import UserAvatar from "@/components/user-avatar"
+import PublicRoutineTab from "@/components/routine/public-routine-tab"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 
@@ -115,6 +117,21 @@ export default function UserProfilePage() {
         </CardContent>
       </Card>
 
+      <Tabs defaultValue="perfil" className="w-full">
+        <TabsList className="grid grid-cols-2 w-full mb-4">
+          <TabsTrigger value="perfil" className="flex items-center gap-1.5">
+            <User className="w-4 h-4" /> Perfil
+          </TabsTrigger>
+          <TabsTrigger value="rutina" className="flex items-center gap-1.5">
+            <Dumbbell className="w-4 h-4" /> Rutina
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="rutina" className="mt-0">
+          <PublicRoutineTab username={username} />
+        </TabsContent>
+
+        <TabsContent value="perfil" className="mt-0 space-y-6">
       {/* Weight Info */}
       {(profile.current_weight || profile.target_weight) && (
         <Card className="bg-white shadow-sm mb-6">
@@ -269,6 +286,8 @@ export default function UserProfilePage() {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
