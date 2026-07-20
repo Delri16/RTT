@@ -7,7 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Users, Plus, Settings, Copy, Check, LogOut, Trophy } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { ArrowLeft, Users, Plus, Settings, Copy, Check, LogOut, Trophy, Share2 } from 'lucide-react'
 import { useApp } from "@/app/app-provider"
 import { getGroupDetails, leaveGroup, getWeeklyWinners, getGroupWeeklyRecords } from "@/lib/actions"
 import ActivityManager from "@/components/activity-manager"
@@ -34,6 +44,8 @@ export default function GroupDetailPage() {
   const [isMember, setIsMember] = useState(false)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const [shared, setShared] = useState(false)
 
   useEffect(() => {
     if (groupId && username) {
@@ -70,12 +82,32 @@ export default function GroupDetailPage() {
     }
   }
 
-  const handleLeaveGroup = async () => {
-    if (confirm("¿Estás seguro de que quieres abandonar este grupo?")) {
-      const result = await leaveGroup(groupId, username!)
-      if (result.success) {
-        window.location.href = "/groups"
+  const handleShareInvite = async () => {
+    if (!group?.invite_code) return
+    const link = `${window.location.origin}/join/${group.invite_code}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Unite a ${group.name} en Road to Toro`,
+          text: `Te invito a sumarte al grupo "${group.name}" en Road to Toro`,
+          url: link,
+        })
+      } catch {
+        // Usuario canceló el share, no hacer nada
       }
+      return
+    }
+
+    await navigator.clipboard.writeText(link)
+    setShared(true)
+    setTimeout(() => setShared(false), 2000)
+  }
+
+  const handleLeaveGroup = async () => {
+    const result = await leaveGroup(groupId, username!)
+    if (result.success) {
+      window.location.href = "/groups"
     }
   }
 
@@ -120,7 +152,7 @@ export default function GroupDetailPage() {
         </div>
         <div className="flex gap-2">
           {isMember && !isAdmin && (
-            <Button variant="outline" size="sm" onClick={handleLeaveGroup}>
+            <Button variant="outline" size="sm" onClick={() => setShowLeaveConfirm(true)}>
               <LogOut className="w-4 h-4 mr-1" />
               Salir
             </Button>
@@ -149,6 +181,10 @@ export default function GroupDetailPage() {
               <Button variant="outline" size="sm" onClick={handleCopyInviteCode}>
                 {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}
                 {copied ? "Copiado!" : group.invite_code}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShareInvite}>
+                {shared ? <Check className="w-4 h-4 mr-1" /> : <Share2 className="w-4 h-4 mr-1" />}
+                {shared ? "Copiado!" : "Compartir"}
               </Button>
             </div>
           </div>
@@ -286,6 +322,21 @@ export default function GroupDetailPage() {
           <RodeosTab groupId={groupId} username={username!} isAdmin={isAdmin} />
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Abandonar el grupo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a dejar de ser miembro de {group.name}. Podés volver a unirte más tarde con el código de invitación.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLeaveGroup}>Salir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

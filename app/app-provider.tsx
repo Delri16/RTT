@@ -1,12 +1,15 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { useRouter } from "next/navigation"
 import LoginScreen from "@/components/login-screen"
 import BottomNav from "@/components/bottom-nav"
 import { ActivityTagsBadge } from "@/components/activity-tags-badge"
 import { NotificationListener } from "@/components/notification-listener"
 import { supabase } from "@/lib/supabase"
-import { getProfileByAuthUserId } from "@/lib/actions"
+import { getProfileByAuthUserId, joinGroupByInviteCode } from "@/lib/actions"
+
+export const PENDING_INVITE_KEY = "rtt_pending_invite_code"
 
 type AppContextType = {
   username: string | null
@@ -19,6 +22,23 @@ const AppContext = createContext<AppContextType | null>(null)
 export function AppProvider({ children }: { children: ReactNode }) {
   const [username, setUsername] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!username) return
+
+    const inviteCode = localStorage.getItem(PENDING_INVITE_KEY)
+    if (!inviteCode) return
+
+    localStorage.removeItem(PENDING_INVITE_KEY)
+    joinGroupByInviteCode(inviteCode, username).then((result) => {
+      if (result.success && "groupId" in result) {
+        router.replace(`/groups/${result.groupId}`)
+      } else {
+        router.replace("/groups")
+      }
+    })
+  }, [username, router])
 
   useEffect(() => {
     let active = true

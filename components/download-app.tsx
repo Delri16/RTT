@@ -175,9 +175,23 @@ export default function DownloadApp() {
                     Instalar Ahora
                   </Button>
                 ) : (
-                  <div className="text-center text-sm text-gray-600">
-                    <p>Ve al menú de tu navegador y selecciona</p>
-                    <p className="font-medium">"Agregar a pantalla de inicio"</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <div className="text-sm">
+                        <p className="font-medium">Chrome</p>
+                        <p className="text-gray-600">
+                          Menú (⋮ arriba a la derecha) → "Instalar aplicación" o "Agregar a pantalla de inicio"
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                      <div className="text-sm">
+                        <p className="font-medium">Samsung Internet</p>
+                        <p className="text-gray-600">
+                          Menú (☰ abajo a la derecha) → "Añadir página a" → "Pantalla de inicio"
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
                 <Button

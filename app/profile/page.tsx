@@ -13,6 +13,7 @@ import { getUserProfile, updateProfile, getWeeklyPoints } from "@/lib/actions"
 import AvatarSelector from "@/components/avatar-selector"
 import UserAvatar from "@/components/user-avatar"
 import MotivationalQuote from "@/components/motivational-quote"
+import DownloadApp from "@/components/download-app"
 import { User, Weight, Target, Save, CheckCircle, Trophy, LogOut, Mail, TrendingDown, TrendingUp, Minus, ChevronRight, Medal } from "lucide-react"
 
 const GOALS = [
@@ -226,6 +227,8 @@ export default function ProfilePage() {
       </div>
 
       <MotivationalQuote />
+
+      <DownloadApp />
 
       <Link
         href="/achievements"

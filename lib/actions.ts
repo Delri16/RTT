@@ -353,9 +353,13 @@ export async function joinGroupByInviteCode(inviteCode: string, username: string
     return { success: false, error: "Código de invitación inválido" }
   }
 
-  // Join the group
+  // Join the group (ya ser miembro no es un error para este flujo, solo redirige)
   const result = await joinGroup(group.id, username)
-  return result
+  if (!result.success && result.error !== "Ya eres miembro de este grupo") {
+    return { success: false as const, error: result.error, groupId: undefined }
+  }
+
+  return { success: true as const, groupId: group.id, error: undefined }
 }
 
 export async function leaveGroup(groupId: string, username: string) {
