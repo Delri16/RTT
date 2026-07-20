@@ -48,14 +48,6 @@ export default function DownloadApp() {
     }
   }
 
-  const handleDownloadAPK = () => {
-    // In a real app, this would download the actual APK file
-    // For now, we'll show instructions
-    alert(
-      "En una app real, esto descargaría el archivo APK. Por ahora, usa 'Agregar a pantalla de inicio' en tu navegador.",
-    )
-  }
-
   if (isInstalled) {
     return null // Don't show if already installed
   }
@@ -104,15 +96,15 @@ export default function DownloadApp() {
                   Instalar
                 </Button>
               )}
-              {isAndroid && (
+              {isAndroid && !deferredPrompt && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleDownloadAPK}
-                  className="flex-1 border-toro-secondary text-toro-secondary hover:bg-toro-secondary hover:text-white bg-transparent"
+                  onClick={() => setShowInstallPrompt(true)}
+                  className="flex-1 border-toro-primary text-toro-primary hover:bg-toro-primary hover:text-white"
                 >
                   <Download className="w-4 h-4 mr-1" />
-                  APK
+                  Instalar
                 </Button>
               )}
               {!isIOS && !isAndroid && (
@@ -194,14 +186,6 @@ export default function DownloadApp() {
                     </div>
                   </div>
                 )}
-                <Button
-                  variant="outline"
-                  onClick={handleDownloadAPK}
-                  className="w-full border-toro-secondary text-toro-secondary hover:bg-toro-secondary hover:text-white bg-transparent"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar APK
-                </Button>
               </div>
             ) : (
               <div className="text-center text-sm text-gray-600">
