@@ -10,11 +10,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { useApp } from "@/app/app-provider"
 import { getUserProfile, updateProfile, getWeeklyPoints } from "@/lib/actions"
+import { supabase } from "@/lib/supabase"
 import AvatarSelector from "@/components/avatar-selector"
 import UserAvatar from "@/components/user-avatar"
 import MotivationalQuote from "@/components/motivational-quote"
 import DownloadApp from "@/components/download-app"
-import { User, Weight, Target, Save, CheckCircle, Trophy, LogOut, Mail, TrendingDown, TrendingUp, Minus, ChevronRight, Medal } from "lucide-react"
+import { User, Weight, Target, Save, CheckCircle, Trophy, LogOut, Mail, TrendingDown, TrendingUp, Minus, ChevronRight, Medal, KeyRound } from "lucide-react"
 
 const GOALS = [
   { value: "lose", label: "Bajar de peso", desc: "Suman más las actividades aeróbicas (cardio)", icon: TrendingDown },
@@ -34,6 +35,12 @@ export default function ProfilePage() {
   const [currentWeight, setCurrentWeight] = useState("")
   const [targetWeight, setTargetWeight] = useState("")
   const [goal, setGoal] = useState("maintain")
+
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState("")
+  const [passwordSuccess, setPasswordSuccess] = useState("")
 
   useEffect(() => {
     if (username) loadProfile()
@@ -144,6 +151,36 @@ export default function ProfilePage() {
       setError("Error de conexión")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSetPassword = async () => {
+    setPasswordError("")
+    setPasswordSuccess("")
+
+    if (newPassword.length < 6) {
+      setPasswordError("La contraseña debe tener al menos 6 caracteres.")
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Las contraseñas no coinciden.")
+      return
+    }
+
+    setSavingPassword(true)
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+      if (updateError) {
+        setPasswordError(updateError.message || "No pudimos guardar la contraseña.")
+      } else {
+        setPasswordSuccess("Contraseña guardada. Ya podés entrar con usuario, email y contraseña.")
+        setNewPassword("")
+        setConfirmPassword("")
+      }
+    } catch {
+      setPasswordError("Error de conexión")
+    } finally {
+      setSavingPassword(false)
     }
   }
 
@@ -396,6 +433,76 @@ export default function ProfilePage() {
               Cerrar sesión
             </Button>
           </Link>
+        </CardContent>
+      </Card>
+
+      {/* Password */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <KeyRound className="w-5 h-5" />
+            Contraseña
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-toro-foreground/70 -mt-1">
+            Poné una contraseña para poder entrar con usuario, email y contraseña, sin esperar el código por mail.
+          </p>
+
+          {passwordError && (
+            <Alert variant="destructive">
+              <AlertDescription>{passwordError}</AlertDescription>
+            </Alert>
+          )}
+          {passwordSuccess && (
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <AlertDescription className="text-green-800">{passwordSuccess}</AlertDescription>
+            </Alert>
+          )}
+
+          <div>
+            <Label htmlFor="newPassword">Nueva contraseña</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              disabled={savingPassword}
+              autoComplete="new-password"
+            />
+          </div>
+          <div>
+            <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Repetí la contraseña"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={savingPassword}
+              autoComplete="new-password"
+            />
+          </div>
+
+          <Button
+            onClick={handleSetPassword}
+            disabled={savingPassword || !newPassword || !confirmPassword}
+            className="w-full bg-toro-primary hover:bg-toro-primary/90"
+          >
+            {savingPassword ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                Guardando...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Save className="w-4 h-4" />
+                Guardar contraseña
+              </div>
+            )}
+          </Button>
         </CardContent>
       </Card>
     </div>

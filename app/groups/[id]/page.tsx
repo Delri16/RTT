@@ -170,13 +170,13 @@ export default function GroupDetailPage() {
       {/* Group Info */}
       <Card className="bg-white shadow-sm mb-6">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Users className="w-6 h-6 text-toro-accent" />
-              <span className="font-bold">{members.length} miembros</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Users className="w-6 h-6 text-toro-accent shrink-0" />
+              <span className="font-bold whitespace-nowrap">{members.length} miembros</span>
               {group.is_public && <Badge className="bg-green-100 text-green-700">Público</Badge>}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {group.end_date && <Badge variant="outline">Hasta {new Date(group.end_date).toLocaleDateString()}</Badge>}
               <Button variant="outline" size="sm" onClick={handleCopyInviteCode}>
                 {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}
