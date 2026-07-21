@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import LoadingSplash from "@/components/ui/loading-splash"
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -123,7 +124,7 @@ export default function GroupDetailPage() {
   if (loading) {
     return (
       <div className="p-4 bg-toro-background min-h-full flex items-center justify-center">
-        <Users className="animate-spin w-8 h-8 text-toro-primary" />
+        <LoadingSplash />
       </div>
     )
   }

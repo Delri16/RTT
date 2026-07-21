@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import LoadingSplash from "@/components/ui/loading-splash"
 import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -50,7 +51,7 @@ export default function ReportHistoryPage() {
   if (loading) {
     return (
       <div className="p-4 bg-toro-background min-h-full flex items-center justify-center">
-        <Camera className="animate-spin w-8 h-8 text-toro-primary" />
+        <LoadingSplash />
       </div>
     )
   }

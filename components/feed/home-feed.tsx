@@ -9,6 +9,7 @@ import { useApp } from "@/app/app-provider"
 import { getGroupFeed, type FeedItem } from "@/lib/actions"
 import FeedPost from "@/components/feed/feed-post"
 import NotificationBell from "@/components/notifications/notification-bell"
+import { FeedSkeleton } from "@/components/ui/skeletons"
 
 const PAGE_SIZE = 20
 
@@ -62,10 +63,10 @@ export default function HomeFeed() {
   return (
     <div className="bg-toro-background min-h-full">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-toro-background/90 backdrop-blur-sm border-b border-black/5">
+      <header className="sticky top-0 z-10 bg-toro-background/80 backdrop-blur-md border-b border-black/5">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2 active:scale-95 transition" aria-label="Inicio">
-            <Image src="/logo-header.png" alt="Road to Toro" width={36} height={36} className="rounded-lg" />
+            <Image src="/logo-header.png" alt="Road to Toro" width={36} height={36} className="rounded-lg shadow-soft" />
             <h1 className="text-xl font-display text-toro-foreground">Inicio</h1>
           </Link>
           <div className="flex items-center gap-1">
@@ -81,15 +82,19 @@ export default function HomeFeed() {
 
       <div className="p-4 space-y-3 max-w-xl mx-auto">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Dumbbell className="animate-spin w-8 h-8 text-toro-primary" />
-          </div>
+          <FeedSkeleton count={5} />
         ) : items.length === 0 ? (
           <EmptyState />
         ) : (
           <>
-            {items.map((item) => (
-              <FeedPost key={`${item.type}-${item.id}`} item={item} />
+            {items.map((item, i) => (
+              <div
+                key={`${item.type}-${item.id}`}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${Math.min(i, 6) * 0.05}s` }}
+              >
+                <FeedPost item={item} />
+              </div>
             ))}
             <div ref={sentinel} />
             {loadingMore && (

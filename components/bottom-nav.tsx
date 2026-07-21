@@ -34,6 +34,9 @@ export default function BottomNav() {
                       : "text-gray-400 hover:text-toro-primary/70 hover:bg-gray-50",
                   )}
                 >
+                  {isActive && (
+                    <span className="absolute -top-0.5 w-1.5 h-1.5 rounded-full bg-toro-primary animate-pop" />
+                  )}
                   <item.icon className={cn("transition-all", isActive ? "w-5 h-5" : "w-4 h-4")} />
                   <span className={cn("font-semibold text-[9px] leading-tight", isActive && "font-bold")}>
                     {item.label}
@@ -62,12 +65,15 @@ export default function BottomNav() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 py-2 px-3 transition-all duration-200 min-w-[50px] rounded-xl",
+                    "flex flex-col items-center justify-center gap-1 py-2 px-3 transition-all duration-200 min-w-[50px] rounded-xl relative",
                     isActive
                       ? "text-toro-primary scale-105"
                       : "text-gray-400 hover:text-toro-primary/70 hover:bg-gray-50",
                   )}
                 >
+                  {isActive && (
+                    <span className="absolute -top-0.5 w-1.5 h-1.5 rounded-full bg-toro-primary animate-pop" />
+                  )}
                   <item.icon className={cn("transition-all", isActive ? "w-5 h-5" : "w-4 h-4")} />
                   <span className={cn("font-semibold text-[9px] leading-tight", isActive && "font-bold")}>
                     {item.label}

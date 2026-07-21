@@ -30,7 +30,7 @@ function PostHeader({ item }: { item: FeedItem }) {
 export default function FeedPost({ item }: { item: FeedItem }) {
   if (item.type === "activity") {
     return (
-      <article className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
+      <article className="bg-white rounded-2xl shadow-soft border border-black/5 overflow-hidden card-interactive">
         <PostHeader item={item} />
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="w-11 h-11 rounded-xl bg-toro-primary/10 flex items-center justify-center shrink-0">
@@ -56,7 +56,7 @@ export default function FeedPost({ item }: { item: FeedItem }) {
 
   if (item.type === "routine") {
     return (
-      <article className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
+      <article className="bg-white rounded-2xl shadow-soft border border-black/5 overflow-hidden card-interactive">
         <PostHeader item={item} />
         <RoutineFeedCard item={item} />
       </article>
@@ -65,7 +65,7 @@ export default function FeedPost({ item }: { item: FeedItem }) {
 
   if (item.type === "pr") {
     return (
-      <article className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
+      <article className="bg-white rounded-2xl shadow-soft border border-black/5 overflow-hidden card-interactive">
         <PostHeader item={item} />
         <div className="mx-4 mb-3 mt-1 rounded-xl bg-gradient-to-br from-toro-secondary/25 to-toro-accent/15 p-3">
           <div className="flex items-center gap-3">
@@ -100,7 +100,7 @@ export default function FeedPost({ item }: { item: FeedItem }) {
   // report
   const photos = [item.scalePhotoUrl, item.bodyPhotoUrl].filter(Boolean) as string[]
   return (
-    <article className="bg-white rounded-2xl shadow-sm border border-black/5 overflow-hidden">
+    <article className="bg-white rounded-2xl shadow-soft border border-black/5 overflow-hidden card-interactive">
       <PostHeader item={item} />
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="w-11 h-11 rounded-xl bg-toro-secondary/20 flex items-center justify-center shrink-0">

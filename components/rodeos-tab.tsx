@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import LoadingSplash from "@/components/ui/loading-splash"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -133,7 +134,7 @@ export default function RodeosTab({ groupId, username, isAdmin }: RodeosTabProps
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Trophy className="animate-spin w-8 h-8 text-toro-primary" />
+        <LoadingSplash />
       </div>
     )
   }

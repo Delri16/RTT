@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { ListSkeleton } from "@/components/ui/skeletons"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,8 +32,11 @@ export default function GroupsPage() {
 
   if (loading) {
     return (
-      <div className="p-4 bg-toro-background min-h-full flex items-center justify-center">
-        <Shield className="animate-spin w-8 h-8 text-toro-primary" />
+      <div className="p-4 bg-toro-background min-h-full">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl text-toro-foreground font-display">Mis Grupos</h1>
+        </div>
+        <ListSkeleton count={4} />
       </div>
     )
   }

@@ -45,6 +45,10 @@
     /* Changed from bg-toro-background to use the CSS variable directly */
     background-color: #fdf7e4;
     color: #3a3a3a;
+    /* Tipografía más nítida en pantallas modernas */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   h1,
   h2,
@@ -53,5 +57,93 @@
   h5,
   h6 {
     @apply font-display;
+  }
+  /* Foco visible y prolijo en toda la app (accesibilidad) */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #fdf7e4, 0 0 0 4px rgba(255, 107, 107, 0.55);
+    border-radius: 0.5rem;
+  }
+}
+
+@layer utilities {
+  /* Skeleton con brillo que barre, más moderno que el pulse plano */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: hsl(var(--muted));
+  }
+  .skeleton-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.65),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+
+  /* Escalonar la entrada de listas: cada hijo entra un poco después */
+  .stagger > * {
+    animation: fade-in-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0.02s; }
+  .stagger > *:nth-child(2) { animation-delay: 0.06s; }
+  .stagger > *:nth-child(3) { animation-delay: 0.1s; }
+  .stagger > *:nth-child(4) { animation-delay: 0.14s; }
+  .stagger > *:nth-child(5) { animation-delay: 0.18s; }
+  .stagger > *:nth-child(6) { animation-delay: 0.22s; }
+  .stagger > *:nth-child(7) { animation-delay: 0.26s; }
+  .stagger > *:nth-child(8) { animation-delay: 0.3s; }
+
+  /* Tarjeta interactiva: leve elevación al tocar/hover */
+  .card-interactive {
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.2s ease;
+  }
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px -6px rgba(58, 58, 58, 0.12),
+      0 2px 8px -2px rgba(58, 58, 58, 0.06);
+  }
+  .card-interactive:active {
+    transform: translateY(0) scale(0.99);
+  }
+
+  /* Degradé de marca reutilizable para acentos/títulos */
+  .text-gradient-toro {
+    background: linear-gradient(120deg, #ff6b6b, #06d6a0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Scrollbars finos y discretos */
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(58, 58, 58, 0.2) transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background-color: rgba(58, 58, 58, 0.2);
+    border-radius: 9999px;
+  }
+}
+
+/* Respeta a quien pide menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }

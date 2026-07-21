@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Dumbbell } from "lucide-react"
 import { getRoutine, type Routine } from "@/lib/actions"
 import { Button } from "@/components/ui/button"
+import LoadingSplash from "@/components/ui/loading-splash"
 
 /** Carga una rutina por id (client-side) y la pasa al children render-prop. */
 export default function RoutineLoader({
@@ -34,11 +34,7 @@ export default function RoutineLoader({
   }, [id])
 
   if (state === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] bg-toro-background">
-        <Dumbbell className="animate-spin w-8 h-8 text-toro-primary" />
-      </div>
-    )
+    return <LoadingSplash />
   }
 
   if (state === "error" || !routine) {

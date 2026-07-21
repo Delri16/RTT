@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import LoadingSplash from "@/components/ui/loading-splash"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -116,7 +117,7 @@ export default function AchievementsPage() {
   if (loading) {
     return (
       <div className="p-4 bg-toro-background min-h-full flex items-center justify-center">
-        <Trophy className="animate-spin w-8 h-8 text-toro-primary" />
+        <LoadingSplash />
       </div>
     )
   }

@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { useRouter } from "next/navigation"
 import LoginScreen from "@/components/login-screen"
 import BottomNav from "@/components/bottom-nav"
+import LoadingSplash from "@/components/ui/loading-splash"
 import { ActivityTagsBadge } from "@/components/activity-tags-badge"
 import { NotificationListener } from "@/components/notification-listener"
 import { supabase } from "@/lib/supabase"
@@ -83,8 +84,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-toro-background">
-        <div className="font-display text-4xl text-toro-foreground">Cargando...</div>
+      <div className="min-h-screen bg-toro-background">
+        <LoadingSplash />
       </div>
     )
   }

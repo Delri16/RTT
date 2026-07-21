@@ -16,6 +16,7 @@ import {
   linkProfileToAuthUser,
 } from "@/lib/actions"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { Spinner } from "@/components/ui/spinner"
 import { KeyRound, LogIn, Mail, ShieldCheck, User } from "lucide-react"
 
 type AuthMode = "password" | "otp"
@@ -210,15 +211,15 @@ export default function LoginScreen() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-toro-background via-toro-secondary/10 to-toro-accent/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-4">
-          <div className="text-8xl">🐂</div>
+        <div className="text-center space-y-4 animate-fade-in-down">
+          <div className="text-8xl animate-float drop-shadow-sm">🐂</div>
           <div>
-            <h1 className="text-4xl font-bold text-toro-primary font-display">Road to Toro</h1>
+            <h1 className="text-4xl font-bold font-display text-gradient-toro">Road to Toro</h1>
             <p className="text-toro-foreground/70 mt-2">Tu camino hacia la transformación</p>
           </div>
         </div>
 
-        <Card className="shadow-xl border-toro-primary/20">
+        <Card className="shadow-soft-lg border-toro-primary/15 animate-fade-in-up">
           <CardHeader className="text-center space-y-3">
             <CardTitle className="flex items-center justify-center gap-2">
               {step === "verify" ? (
@@ -319,7 +320,7 @@ export default function LoginScreen() {
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                      <Spinner className="w-4 h-4" />
                       Entrando...
                     </div>
                   ) : (
@@ -371,7 +372,7 @@ export default function LoginScreen() {
                 >
                   {loading ? (
                     <div className="flex items-center gap-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                      <Spinner className="w-4 h-4" />
                       Enviando código...
                     </div>
                   ) : (
@@ -423,7 +424,7 @@ export default function LoginScreen() {
                   >
                     {loading ? (
                       <div className="flex items-center gap-2">
-                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                        <Spinner className="w-4 h-4" />
                         Verificando...
                       </div>
                     ) : (

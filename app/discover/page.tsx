@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { ListSkeleton } from "@/components/ui/skeletons"
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -67,8 +68,9 @@ export default function DiscoverPage() {
 
   if (loading) {
     return (
-      <div className="p-4 bg-toro-background min-h-full flex items-center justify-center">
-        <Search className="animate-spin w-8 h-8 text-toro-primary" />
+      <div className="p-4 bg-toro-background min-h-full">
+        <h1 className="text-3xl text-toro-foreground font-display mb-6">Descubrir</h1>
+        <ListSkeleton count={5} />
       </div>
     )
   }
