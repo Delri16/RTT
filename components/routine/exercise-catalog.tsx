@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Search, SlidersHorizontal, X, Dumbbell, Plus, Check } from "lucide-react"
+import { Search, SlidersHorizontal, X, Dumbbell, Plus, Check, Sparkles } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer"
@@ -15,6 +15,7 @@ import {
   loadExercises,
   filterExercises,
   facetValues,
+  detectRoutineFilters,
   exerciseThumb,
   tMuscle,
   tEquipment,
@@ -40,18 +41,39 @@ export default function ExerciseCatalog({
   mode = "browse",
   selectedIds,
   onAdd,
+  suggestName,
 }: {
   username?: string | null
   mode?: "browse" | "select"
   selectedIds?: string[]
   onAdd?: (ex: Exercise) => void
+  /** Nombre de la rutina en curso: si menciona un músculo/fuerza, pre-carga esos filtros. */
+  suggestName?: string
 }) {
+  // Sugerencia inferida del nombre de la rutina (una sola vez, al montar).
+  const suggestion = useMemo(() => (suggestName ? detectRoutineFilters(suggestName) : null), [suggestName])
+
   const [all, setAll] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
-  const [fame, setFame] = useState<Fame>(1)
-  const [filters, setFilters] = useState<Omit<ExerciseFilters, "search" | "fame">>({})
+  // Si hay sugerencia, arrancamos en "Comunes" (populares + comunes = tab del medio).
+  const [fame, setFame] = useState<Fame>(suggestion ? 2 : 1)
+  const [filters, setFilters] = useState<Omit<ExerciseFilters, "search" | "fame">>(() =>
+    suggestion
+      ? {
+          ...(suggestion.muscles.length ? { muscles: suggestion.muscles } : {}),
+          ...(suggestion.force.length ? { force: suggestion.force } : {}),
+        }
+      : {},
+  )
+  const [suggestionOn, setSuggestionOn] = useState<boolean>(!!suggestion)
   const [filtersOpen, setFiltersOpen] = useState(false)
+
+  function dismissSuggestion() {
+    setSuggestionOn(false)
+    setFilters({})
+    setFame(1)
+  }
   const [visible, setVisible] = useState(PAGE)
   const [detail, setDetail] = useState<Exercise | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
@@ -154,6 +176,25 @@ export default function ExerciseCatalog({
           ))}
         </div>
       </div>
+
+      {/* Cartel de filtros sugeridos por el nombre de la rutina */}
+      {suggestion && suggestionOn && (
+        <div className="mx-3 mt-2 flex items-start gap-2 rounded-xl bg-toro-secondary/15 border border-toro-secondary/40 px-3 py-2">
+          <Sparkles className="w-4 h-4 text-toro-secondary shrink-0 mt-0.5" />
+          <p className="flex-1 text-xs text-toro-foreground/70 leading-snug">
+            Creemos que estos ejercicios son los que buscás
+            <span className="font-semibold text-toro-foreground/90"> ({suggestion.labels.join(", ")})</span>. Aplicamos
+            el filtro automáticamente.
+          </p>
+          <button
+            onClick={dismissSuggestion}
+            className="text-toro-foreground/40 hover:text-toro-primary shrink-0"
+            aria-label="Desactivar filtro sugerido"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Lista */}
       <div className="px-3 py-2">

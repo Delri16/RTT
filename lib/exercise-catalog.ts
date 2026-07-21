@@ -219,6 +219,73 @@ export function facetValues(all: Exercise[]) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Detección de filtros a partir del nombre de una rutina.
+//
+// Si el usuario nombra su rutina "Pecho y tríceps", "Push", "Leg day", etc.,
+// intentamos adivinar qué músculos/fuerza está buscando para pre-cargar los
+// filtros del catálogo. Devuelve los valores "crudos" (en inglés) que entienden
+// los filtros, más labels en español para mostrarlos en el cartel.
+// ---------------------------------------------------------------------------
+
+type NameHint = { keywords: string[]; muscles?: string[]; force?: string[]; label: string }
+
+const NAME_HINTS: NameHint[] = [
+  { keywords: ["push", "empuje"], force: ["push"], label: "Empuje" },
+  { keywords: ["pull", "tiron", "jalon"], force: ["pull"], label: "Tirón" },
+  { keywords: ["pecho", "chest", "pectoral", "pectorales"], muscles: ["chest"], label: "Pecho" },
+  {
+    keywords: ["espalda", "back", "dorsal", "dorsales", "lat", "lats"],
+    muscles: ["lats", "middle back", "lower back", "traps"],
+    label: "Espalda",
+  },
+  {
+    keywords: ["hombro", "hombros", "shoulder", "shoulders", "deltoide", "deltoides", "delts"],
+    muscles: ["shoulders"],
+    label: "Hombros",
+  },
+  { keywords: ["bicep", "biceps", "bis"], muscles: ["biceps"], label: "Bíceps" },
+  { keywords: ["tricep", "triceps", "tris"], muscles: ["triceps"], label: "Tríceps" },
+  {
+    keywords: ["pierna", "piernas", "leg", "legs", "cuadricep", "cuadriceps", "quad", "quads"],
+    muscles: ["quadriceps", "hamstrings", "calves", "glutes"],
+    label: "Piernas",
+  },
+  { keywords: ["gluteo", "gluteos", "glute", "glutes", "cola"], muscles: ["glutes"], label: "Glúteos" },
+  {
+    keywords: ["isquio", "isquios", "isquiotibiales", "hamstring", "hamstrings", "femoral", "femorales"],
+    muscles: ["hamstrings"],
+    label: "Isquiotibiales",
+  },
+  { keywords: ["gemelo", "gemelos", "pantorrilla", "pantorrillas", "calf", "calves"], muscles: ["calves"], label: "Gemelos" },
+  { keywords: ["abdominal", "abdominales", "abdomen", "abs", "core"], muscles: ["abdominals"], label: "Abdominales" },
+  { keywords: ["antebrazo", "antebrazos", "forearm", "forearms"], muscles: ["forearms"], label: "Antebrazos" },
+  { keywords: ["trapecio", "trapecios", "trap", "traps"], muscles: ["traps"], label: "Trapecios" },
+]
+
+export type DetectedFilters = { muscles: string[]; force: string[]; labels: string[] }
+
+/** Analiza el nombre de una rutina y sugiere filtros de músculo/fuerza. */
+export function detectRoutineFilters(name: string): DetectedFilters | null {
+  const hay = norm(name)
+  if (!hay) return null
+
+  const muscles = new Set<string>()
+  const force = new Set<string>()
+  const labels: string[] = []
+
+  for (const hint of NAME_HINTS) {
+    const matched = hint.keywords.some((k) => new RegExp(`\\b${k}\\b`).test(hay))
+    if (!matched) continue
+    labels.push(hint.label)
+    hint.muscles?.forEach((m) => muscles.add(m))
+    hint.force?.forEach((f) => force.add(f))
+  }
+
+  if (muscles.size === 0 && force.size === 0) return null
+  return { muscles: [...muscles], force: [...force], labels }
+}
+
 export function filterExercises(all: Exercise[], f: ExerciseFilters): Exercise[] {
   const q = f.search ? norm(f.search) : ""
   const fame = f.fame ?? 1

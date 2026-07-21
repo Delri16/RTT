@@ -246,7 +246,13 @@ export default function RoutineBuilder({
             </Button>
           </DrawerHeader>
           <div className="overflow-y-auto">
-            <ExerciseCatalog username={username} mode="select" selectedIds={selectedIds} onAdd={addExercise} />
+            <ExerciseCatalog
+              username={username}
+              mode="select"
+              selectedIds={selectedIds}
+              onAdd={addExercise}
+              suggestName={name}
+            />
           </div>
         </DrawerContent>
       </Drawer>
