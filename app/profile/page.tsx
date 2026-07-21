@@ -35,6 +35,7 @@ export default function ProfilePage() {
   const [currentWeight, setCurrentWeight] = useState("")
   const [targetWeight, setTargetWeight] = useState("")
   const [goal, setGoal] = useState("maintain")
+  const [goalUpdatedAt, setGoalUpdatedAt] = useState<string | null>(null)
 
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -55,6 +56,7 @@ export default function ProfilePage() {
         setCurrentWeight(result.profile.current_weight?.toString() || "")
         setTargetWeight(result.profile.target_weight?.toString() || "")
         setGoal(result.profile.goal || "maintain")
+        setGoalUpdatedAt(result.profile.goal_updated_at || null)
       } else {
         setError(result.error || "Error al cargar perfil")
       }
@@ -87,8 +89,16 @@ export default function ProfilePage() {
     }
   }
 
+  const nextGoalChangeDate = (() => {
+    if (!goalUpdatedAt) return null
+    const next = new Date(goalUpdatedAt)
+    next.setMonth(next.getMonth() + 1)
+    return next
+  })()
+  const canChangeGoal = !nextGoalChangeDate || new Date() >= nextGoalChangeDate
+
   const handleGoalChange = async (newGoal: string) => {
-    if (!username || newGoal === goal) return
+    if (!username || newGoal === goal || !canChangeGoal) return
     const prevGoal = goal
     setGoal(newGoal) // optimista
     setError("")
@@ -97,6 +107,7 @@ export default function ProfilePage() {
       const result = await updateProfile(username, { goal: newGoal })
       if (result.success) {
         setProfile(result.profile)
+        setGoalUpdatedAt(result.profile.goal_updated_at || null)
         setSuccess("Objetivo actualizado")
         setTimeout(() => setSuccess(""), 3000)
       } else {
@@ -307,6 +318,12 @@ export default function ProfilePage() {
             Según tu objetivo, algunas actividades te suman más o menos puntos. El ajuste es leve (máx. ±15%) para que
             siga siendo parejo.
           </p>
+          {!canChangeGoal && nextGoalChangeDate && (
+            <p className="text-xs text-toro-foreground/60 -mt-1 mb-2">
+              Ya cambiaste tu objetivo este mes. Podrás volver a cambiarlo el{" "}
+              {nextGoalChangeDate.toLocaleDateString("es-AR")}.
+            </p>
+          )}
           {GOALS.map((g) => {
             const Icon = g.icon
             const active = goal === g.value
@@ -314,12 +331,13 @@ export default function ProfilePage() {
               <button
                 key={g.value}
                 type="button"
+                disabled={!canChangeGoal && !active}
                 onClick={() => handleGoalChange(g.value)}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
                   active
                     ? "border-toro-primary bg-toro-primary/10"
                     : "border-gray-200 bg-white hover:bg-gray-50"
-                }`}
+                } ${!canChangeGoal && !active ? "opacity-50 cursor-not-allowed hover:bg-white" : ""}`}
               >
                 <Icon className={`w-5 h-5 shrink-0 ${active ? "text-toro-primary" : "text-toro-foreground/50"}`} />
                 <div className="flex-1">

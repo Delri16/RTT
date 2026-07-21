@@ -7,6 +7,17 @@ import { loadExercises, exerciseThumb, type Exercise } from "@/lib/exercise-cata
 import { getFavoriteExercises, getPersonalRecords, type FavoriteExercise } from "@/lib/actions"
 import ExerciseProgressDrawer from "@/components/routine/exercise-progress-drawer"
 
+// Los 6 grupos musculares del filtro, agrupando los músculos "crudos" del catálogo
+// (en inglés) que corresponden a cada uno. Espalda y Piernas suman varios cada uno.
+const MUSCLE_GROUPS: { label: string; muscles: string[] }[] = [
+  { label: "Bíceps", muscles: ["biceps"] },
+  { label: "Tríceps", muscles: ["triceps"] },
+  { label: "Pecho", muscles: ["chest"] },
+  { label: "Espalda", muscles: ["lats", "lower back", "middle back", "traps"] },
+  { label: "Hombros", muscles: ["shoulders"] },
+  { label: "Piernas", muscles: ["quadriceps", "hamstrings", "calves", "glutes", "abductors", "adductors"] },
+]
+
 /** Tab "Favoritos" del hub de Mi Rutina: ejercicios marcados, registro suelto y progreso. */
 export default function FavoritesTab({ username }: { username: string }) {
   const [favorites, setFavorites] = useState<FavoriteExercise[]>([])
@@ -14,6 +25,7 @@ export default function FavoritesTab({ username }: { username: string }) {
   const [records, setRecords] = useState<Map<string, { weight: number; reps: number }>>(new Map())
   const [loading, setLoading] = useState(true)
   const [active, setActive] = useState<FavoriteExercise | null>(null)
+  const [muscleFilter, setMuscleFilter] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -46,6 +58,16 @@ export default function FavoritesTab({ username }: { username: string }) {
     return cat ?? { id: active.exercise_id, nombre: active.exercise_name, images: [] as string[] }
   }, [active, catalog])
 
+  const visibleFavorites = useMemo(() => {
+    if (!muscleFilter) return favorites
+    const group = MUSCLE_GROUPS.find((g) => g.label === muscleFilter)
+    if (!group) return favorites
+    return favorites.filter((f) => {
+      const cat = catalog.get(f.exercise_id)
+      return cat ? group.muscles.some((m) => cat.primaryMuscles.includes(m)) : false
+    })
+  }, [favorites, catalog, muscleFilter])
+
   if (loading) {
     return (
       <div className="flex justify-center py-16">
@@ -74,8 +96,32 @@ export default function FavoritesTab({ username }: { username: string }) {
 
   return (
     <>
+      <div className="flex gap-2 overflow-x-auto pb-1 mb-3 -mx-1 px-1 no-scrollbar">
+        {MUSCLE_GROUPS.map((g) => {
+          const active = muscleFilter === g.label
+          return (
+            <button
+              key={g.label}
+              onClick={() => setMuscleFilter(active ? null : g.label)}
+              className={`shrink-0 text-sm font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                active
+                  ? "bg-toro-primary text-white border-toro-primary"
+                  : "bg-white text-toro-foreground/70 border-black/10"
+              }`}
+            >
+              {g.label}
+            </button>
+          )
+        })}
+      </div>
+
+      {visibleFavorites.length === 0 ? (
+        <div className="text-center py-8 px-6 bg-white rounded-2xl border border-dashed border-black/10">
+          <p className="text-sm text-toro-foreground/60">No tenés favoritos de este grupo muscular.</p>
+        </div>
+      ) : (
       <div className="space-y-2">
-        {favorites.map((f) => {
+        {visibleFavorites.map((f) => {
           const cat = catalog.get(f.exercise_id)
           const rec = records.get(f.exercise_id)
           return (
@@ -113,6 +159,7 @@ export default function FavoritesTab({ username }: { username: string }) {
           )
         })}
       </div>
+      )}
 
       <ExerciseProgressDrawer
         exercise={activeExercise}

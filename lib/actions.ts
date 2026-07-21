@@ -173,7 +173,33 @@ export async function updateProfile(
     updates.avatar = updates.avatar_url
   }
 
-  const { data, error } = await supabase.from("profiles").update(updates).eq("username", username).select().single()
+  const dbUpdates: any = { ...updates }
+
+  if (updates.goal) {
+    const { data: current } = await supabase
+      .from("profiles")
+      .select("goal, goal_updated_at")
+      .eq("username", username)
+      .single()
+
+    if (current?.goal_updated_at) {
+      const lastChange = new Date(current.goal_updated_at)
+      const nextAllowed = new Date(lastChange)
+      nextAllowed.setMonth(nextAllowed.getMonth() + 1)
+      if (updates.goal !== current.goal && new Date() < nextAllowed) {
+        return {
+          success: false,
+          error: `Solo podés cambiar tu objetivo 1 vez por mes. Próximo cambio disponible el ${nextAllowed.toLocaleDateString("es-AR")}.`,
+        }
+      }
+    }
+
+    if (updates.goal !== current?.goal) {
+      dbUpdates.goal_updated_at = new Date().toISOString()
+    }
+  }
+
+  const { data, error } = await supabase.from("profiles").update(dbUpdates).eq("username", username).select().single()
 
   if (error) {
     return { success: false, error: error.message }
@@ -3089,6 +3115,30 @@ export async function getPendingRequestsCount(username: string, groupId: string)
 // NOTIFICATIONS AND ACTIVITY TAGS FUNCTIONS
 // ============================================================================
 
+export type NotificationType =
+  | "activity_tag"
+  | "activity_request"
+  | "group_invite"
+  | "rank_overtake_weekly"
+  | "rank_overtake_general"
+  | "rank_lead_weekly"
+  | "rank_lead_general"
+  | "report_available"
+
+export type AppNotification = {
+  id: string
+  user_username: string
+  group_id: string
+  notification_type: NotificationType
+  activity_tag_id: string | null
+  activity_request_id: string | null
+  title: string
+  message: string
+  is_read: boolean
+  read_at: string | null
+  created_at: string
+}
+
 export async function getUserNotifications(username: string) {
   const { data: notifications, error } = await supabase
     .from("notifications")
@@ -3099,10 +3149,10 @@ export async function getUserNotifications(username: string) {
 
   if (error) {
     console.error("[v0] Error fetching notifications:", error)
-    return { success: false, error: error.message, notifications: [] }
+    return { success: false, error: error.message, notifications: [] as AppNotification[] }
   }
 
-  return { success: true, notifications: notifications || [] }
+  return { success: true, notifications: (notifications || []) as AppNotification[] }
 }
 
 export async function getUnreadNotificationsCount(username: string) {

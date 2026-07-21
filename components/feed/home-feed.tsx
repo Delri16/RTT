@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useApp } from "@/app/app-provider"
 import { getGroupFeed, type FeedItem } from "@/lib/actions"
 import FeedPost from "@/components/feed/feed-post"
+import NotificationBell from "@/components/notifications/notification-bell"
 
 const PAGE_SIZE = 20
 
@@ -67,11 +68,14 @@ export default function HomeFeed() {
             <Image src="/logo-header.png" alt="Road to Toro" width={36} height={36} className="rounded-lg" />
             <h1 className="text-xl font-display text-toro-foreground">Inicio</h1>
           </Link>
-          <Link href="/profile">
-            <Button variant="ghost" size="icon" aria-label="Perfil">
-              <User className="w-5 h-5" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <Link href="/profile">
+              <Button variant="ghost" size="icon" aria-label="Perfil">
+                <User className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 

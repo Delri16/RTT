@@ -71,6 +71,8 @@ UI: selector de objetivo en el perfil ([app/profile/page.tsx](app/profile/page.t
 
 **Falta correr en Supabase:** [scripts/36-add-goal-and-aerobic.sql](scripts/36-add-goal-and-aerobic.sql) (agrega `profiles.goal` y `group_activities.aerobic_pct`). Sin esto, crear/editar actividades falla al insertar `aerobic_pct`. Las ~1091 actividades existentes quedan en `aerobic_pct = 50` (neutro), así que no cambian de puntaje hasta configurarlas.
 
+El objetivo solo se puede cambiar 1 vez por mes: `profiles.goal_updated_at` guarda la fecha del último cambio real de `goal` (no se toca si se reenvía el mismo valor). `updateProfile` en [lib/actions.ts](lib/actions.ts) rechaza el update si no pasó un mes desde `goal_updated_at`; el selector en [app/profile/page.tsx](app/profile/page.tsx) además deshabilita visualmente las otras opciones mientras el cambio está bloqueado. **Falta correr en Supabase:** [scripts/39-add-goal-updated-at.sql](scripts/39-add-goal-updated-at.sql) (agrega la columna `profiles.goal_updated_at`).
+
 ## Mi Rutina (rutinas de gimnasio + PRs)
 
 Sección personal para armar rutinas de gym, entrenar registrando series (peso/reps) y compartir récords (PR) al feed. Se accede desde el botón **Rutina** del footer (reemplaza al viejo botón Inicio: a Inicio ahora se llega tocando el logo de arriba, ver [components/bottom-nav.tsx](components/bottom-nav.tsx) y [components/routine/routine-header.tsx](components/routine/routine-header.tsx)).
@@ -89,6 +91,18 @@ El hub de Mi Rutina (`routine-hub.tsx`) tiene un segmentado **Rutinas / Favorito
 **Falta correr en Supabase:** [scripts/38-add-favorite-exercises.sql](scripts/38-add-favorite-exercises.sql) (crea `favorite_exercises`, único por `username`+`exercise_id`). Sin esto, marcar/desmarcar favoritos falla silenciosamente y la tab "Favoritos" siempre aparece vacía. **(Ya corrido en el proyecto real.)**
 
 Rutinas, favoritos y `workout_sets` son públicos para lectura: las funciones de `lib/actions.ts` (`getRoutines`, `getFavoriteExercises`, `getPersonalRecords`, `getWorkoutStats`, `getExerciseHistory`) ya reciben `username` como parámetro sin chequear que sea el usuario logueado — funcionan igual para consultar a cualquier persona porque la policy RLS es permisiva. [app/profile/[username]/page.tsx](app/profile/[username]/page.tsx) expone esto en una tab **"Rutina"** (junto a "Perfil") usando [components/routine/public-routine-tab.tsx](components/routine/public-routine-tab.tsx): mismas stats/rutinas/favoritos que el hub propio pero 100% solo-lectura (sin registrar series, sin editar/borrar rutinas, sin compartir PR). Para eso, `exercise-progress-drawer.tsx` acepta un prop `readOnly` que oculta el formulario de carga, el botón de borrar serie y el cartel de compartir récord — se usa `readOnly` en el perfil ajeno y sin ese prop (registro habilitado) en el propio hub de Mi Rutina.
+
+## Notificaciones
+
+UI en [app/notifications/page.tsx](app/notifications/page.tsx) + campanita con badge en el header de [home-feed.tsx](components/feed/home-feed.tsx) ([components/notifications/notification-bell.tsx](components/notifications/notification-bell.tsx)). Usa las funciones ya existentes en `lib/actions.ts` (`getUserNotifications`, `getUnreadNotificationsCount`, `markNotificationAsRead`, `markAllNotificationsAsRead`) sobre la tabla `notifications` (creada en [scripts/19-create-activity-tags-system.sql](scripts/19-create-activity-tags-system.sql)).
+
+Tipos de notificación (`notification_type`): los originales `activity_tag` / `activity_request` / `group_invite`, más 5 agregados en [scripts/40-notification-triggers.sql](scripts/40-notification-triggers.sql):
+
+- `rank_overtake_general` / `rank_overtake_weekly`: se disparan solas via un trigger `AFTER INSERT ON user_activities` (`notify_rank_changes()`) — cubre tanto `logActivity` como `logRelatedActivity`, que insertan ahí sea cual sea el flujo. Comparan el total de cada rival del grupo antes/después de sumar la actividad; si algún rival quedó justo en el medio, lo acabás de pasar y se le notifica a él/ella. "Semana" = lunes 00:00 a domingo 23:59:59 en hora Argentina, mismo criterio que `getGroupRankingByWeek`.
+- `rank_lead_general` / `rank_lead_weekly`: mismo trigger, pero te notifica a VOS cuando pasás a liderar el ranking (motivacional).
+- `report_available`: se dispara con `notify_pending_reports()`, pensada para correr diaria por `pg_cron` (requiere habilitar la extensión en Database → Extensions del proyecto Supabase). Mismo criterio de "falta reporte" que `getUserReportStatus` (nunca reportó, o pasaron ≥15 días desde el último), con dedupe para no re-notificar en cada corrida del cron.
+
+**Falta correr en Supabase:** [scripts/40-notification-triggers.sql](scripts/40-notification-triggers.sql) (amplía los CHECK constraints de `notification_type`/`has_related_entity`, crea el trigger de ranking y la función+cron de reportes). Sin esto, `getUserNotifications` sigue funcionando pero solo va a mostrar `activity_tag`/`activity_request`/`group_invite`; nunca aparecen los avisos de ranking ni de reporte. Si `pg_cron` no está habilitado en el proyecto, `notify_pending_reports()` queda creada pero sin programar — hay que habilitar la extensión o llamarla desde otro scheduler.
 
 ## Convenciones existentes (no introducidas por este cambio)
 
