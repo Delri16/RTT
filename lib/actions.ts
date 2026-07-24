@@ -3851,8 +3851,9 @@ export async function addSharedRoutine(
 // ===========================================================================
 // REACCIONES + COMENTARIOS sobre posts del feed.
 //
-// Tablas (ver scripts/41-add-post-reactions-comments.sql):
-//   post_reactions -> una fila por (post, usuario, emoji); toggle = insert/delete
+// Tablas (ver scripts/41-add-post-reactions-comments.sql y
+// scripts/42-one-reaction-per-user.sql):
+//   post_reactions -> UNA reacción por (post, usuario); elegir otro emoji reemplaza
 //   post_comments  -> comentarios en texto plano
 //
 // Solo aplican a reportes, rutinas compartidas y PRs (no a actividades).
@@ -3874,22 +3875,24 @@ export type PostComment = {
 }
 
 export type PostInteractions = {
-  /** emoji -> cantidad de reacciones */
+  /** emoji -> cantidad de personas que reaccionaron con ese emoji */
   counts: Record<string, number>
-  /** emojis con los que reaccionó el usuario actual */
-  mine: string[]
+  /** el emoji con el que reaccionó el usuario actual (uno solo, o null) */
+  mine: string | null
   commentCount: number
+  /** los últimos comentarios (máx. PREVIEW_COMMENTS), para mostrar sin abrir el post */
+  preview: PostComment[]
 }
 
-const emptyInteractions = (): PostInteractions => ({ counts: {}, mine: [], commentCount: 0 })
+/** Cuántos comentarios se muestran en el feed antes del "Ver más". */
+const PREVIEW_COMMENTS = 2
 
-// La clave del map que devuelve `getPostsInteractions` es `${type}:${id}`.
-// El helper vive en el cliente (`components/feed/home-feed.tsx`) porque este
-// archivo es "use server" y no puede exportar funciones sync.
+const emptyInteractions = (): PostInteractions => ({ counts: {}, mine: null, commentCount: 0, preview: [] })
 
 /**
- * Trae reacciones + cantidad de comentarios de varios posts de una (dos queries
- * en total, no una por post) para no pegarle N veces a Supabase por página de feed.
+ * Trae reacciones + comentarios de varios posts de una (dos queries en total, no
+ * una por post) para no pegarle N veces a Supabase por página de feed.
+ * La clave del map que devuelve es `${type}:${id}`.
  */
 export async function getPostsInteractions(
   posts: { type: string; id: string }[],
@@ -3902,7 +3905,11 @@ export async function getPostsInteractions(
 
   const [{ data: reactions }, { data: comments }] = await Promise.all([
     supabase.from("post_reactions").select("post_type, post_id, username, emoji").in("post_id", ids),
-    supabase.from("post_comments").select("post_type, post_id").in("post_id", ids),
+    supabase
+      .from("post_comments")
+      .select("id, post_type, post_id, username, body, created_at")
+      .in("post_id", ids)
+      .order("created_at", { ascending: true }),
   ])
 
   const out: Record<string, PostInteractions> = {}
@@ -3913,20 +3920,40 @@ export async function getPostsInteractions(
     if (!entry) continue
     const emoji = (r as any).emoji
     entry.counts[emoji] = (entry.counts[emoji] ?? 0) + 1
-    if (viewer && (r as any).username === viewer) entry.mine.push(emoji)
+    if (viewer && (r as any).username === viewer) entry.mine = emoji
   }
 
   for (const c of comments ?? []) {
     const entry = out[`${(c as any).post_type}:${(c as any).post_id}`]
     if (!entry) continue
     entry.commentCount++
+    // Vienen ordenados asc: empujo y corto por izquierda para quedarme con los últimos.
+    entry.preview.push(c as PostComment)
+    if (entry.preview.length > PREVIEW_COMMENTS) entry.preview.shift()
   }
+
+  await attachCommentAvatars(Object.values(out).flatMap((e) => e.preview))
 
   return out
 }
 
-/** Agrega o quita la reacción del usuario. Devuelve el estado final (`reacted`). */
-export async function togglePostReaction(input: {
+/** Completa el avatar de cada comentario en una sola query sobre `profiles`. */
+async function attachCommentAvatars(comments: PostComment[]) {
+  const usernames = [...new Set(comments.map((c) => c.username))]
+  if (usernames.length === 0) return
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("username, avatar, avatar_url")
+    .in("username", usernames)
+  const avatarMap = new Map((profiles ?? []).map((p: any) => [p.username, p.avatar || p.avatar_url || null]))
+  for (const c of comments) c.avatar = avatarMap.get(c.username) ?? null
+}
+
+/**
+ * Setea la reacción del usuario en un post. Una sola por persona: tocar el mismo
+ * emoji la saca, tocar otro la reemplaza. Devuelve el emoji final (o null).
+ */
+export async function setPostReaction(input: {
   postType: InteractivePostType
   postId: string
   username: string
@@ -3936,26 +3963,44 @@ export async function togglePostReaction(input: {
 
   const { data: existing, error: selErr } = await supabase
     .from("post_reactions")
-    .select("id")
+    .select("id, emoji")
     .eq("post_type", postType)
     .eq("post_id", postId)
     .eq("username", username)
-    .eq("emoji", emoji)
     .maybeSingle()
 
-  if (selErr) return { success: false, error: selErr.message }
+  if (selErr) return { success: false, error: selErr.message, emoji: null as string | null }
 
   if (existing) {
-    const { error } = await supabase.from("post_reactions").delete().eq("id", (existing as any).id)
-    if (error) return { success: false, error: error.message }
-    return { success: true, reacted: false }
+    // Mismo emoji => se saca la reacción.
+    if ((existing as any).emoji === emoji) {
+      const { error } = await supabase.from("post_reactions").delete().eq("id", (existing as any).id)
+      if (error) return { success: false, error: error.message, emoji: null as string | null }
+      return { success: true, emoji: null as string | null }
+    }
+    const { error } = await supabase.from("post_reactions").update({ emoji }).eq("id", (existing as any).id)
+    if (error) return { success: false, error: error.message, emoji: null as string | null }
+    return { success: true, emoji: emoji as string | null }
   }
 
   const { error } = await supabase
     .from("post_reactions")
     .insert({ post_type: postType, post_id: postId, username, emoji })
-  if (error) return { success: false, error: error.message }
-  return { success: true, reacted: true }
+  if (error) return { success: false, error: error.message, emoji: null as string | null }
+  return { success: true, emoji: emoji as string | null }
+}
+
+/** Quién reaccionó con qué, para el detalle de un post. */
+export async function getPostReactors(postType: InteractivePostType, postId: string) {
+  const { data, error } = await supabase
+    .from("post_reactions")
+    .select("username, emoji, created_at")
+    .eq("post_type", postType)
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true })
+
+  if (error) return { success: false, error: error.message, reactors: [] as { username: string; emoji: string }[] }
+  return { success: true, reactors: (data ?? []) as { username: string; emoji: string }[] }
 }
 
 export async function getPostComments(postType: InteractivePostType, postId: string) {
@@ -3969,16 +4014,7 @@ export async function getPostComments(postType: InteractivePostType, postId: str
   if (error) return { success: false, error: error.message, comments: [] as PostComment[] }
 
   const comments = (data ?? []) as PostComment[]
-  const usernames = [...new Set(comments.map((c) => c.username))]
-  if (usernames.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("username, avatar, avatar_url")
-      .in("username", usernames)
-    const avatarMap = new Map((profiles ?? []).map((p: any) => [p.username, p.avatar || p.avatar_url || null]))
-    for (const c of comments) c.avatar = avatarMap.get(c.username) ?? null
-  }
-
+  await attachCommentAvatars(comments)
   return { success: true, comments }
 }
 
@@ -3999,7 +4035,10 @@ export async function addPostComment(input: {
     .single()
 
   if (error) return { success: false, error: error.message }
-  return { success: true, comment: data as PostComment }
+
+  const comment = data as PostComment
+  await attachCommentAvatars([comment])
+  return { success: true, comment }
 }
 
 /** Solo el autor del comentario puede borrarlo (se chequea acá, la RLS es permisiva). */

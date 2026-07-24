@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { MessageCircle, Send, Trash2 } from "lucide-react"
+import { MessageCircle, Send, SmilePlus, Trash2 } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import UserAvatar from "@/components/user-avatar"
 import { useApp } from "@/app/app-provider"
 import { timeAgo } from "@/lib/date-utils"
@@ -10,16 +11,13 @@ import {
   addPostComment,
   deletePostComment,
   getPostComments,
-  togglePostReaction,
+  setPostReaction,
   type InteractivePostType,
   type PostComment,
   type PostInteractions,
 } from "@/lib/actions"
 
-/**
- * Paleta fija de reacciones. Se muestran todas siempre (son pocas y entran en
- * una fila scrolleable en mobile), así no hace falta un picker aparte.
- */
+/** Paleta de reacciones que ofrece el popover. Una sola por persona por post. */
 export const REACTIONS: { emoji: string; label: string }[] = [
   { emoji: "🐂", label: "Toro" },
   { emoji: "🔥", label: "Fuego" },
@@ -29,6 +27,8 @@ export const REACTIONS: { emoji: string; label: string }[] = [
   { emoji: "💪", label: "Fuerza" },
   { emoji: "😂", label: "Risa" },
   { emoji: "🐐", label: "GOAT" },
+  { emoji: "👏", label: "Aplausos" },
+  { emoji: "🤯", label: "Cabeza explotada" },
 ]
 
 type Props = {
@@ -41,59 +41,77 @@ export default function PostInteractions({ postType, postId, initial }: Props) {
   const { username } = useApp()
 
   const [counts, setCounts] = useState<Record<string, number>>(initial?.counts ?? {})
-  const [mine, setMine] = useState<string[]>(initial?.mine ?? [])
+  const [mine, setMine] = useState<string | null>(initial?.mine ?? null)
   const [commentCount, setCommentCount] = useState(initial?.commentCount ?? 0)
+  const [preview, setPreview] = useState<PostComment[]>(initial?.preview ?? [])
 
-  const [open, setOpen] = useState(false)
-  const [comments, setComments] = useState<PostComment[] | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const [allComments, setAllComments] = useState<PostComment[] | null>(null)
   const [loadingComments, setLoadingComments] = useState(false)
   const [draft, setDraft] = useState("")
   const [sending, setSending] = useState(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  // El feed puede recargar la página de interacciones después de montar.
+  // El feed precarga las interacciones después de montar la lista.
   useEffect(() => {
     if (!initial) return
     setCounts(initial.counts)
     setMine(initial.mine)
     setCommentCount(initial.commentCount)
+    setPreview(initial.preview)
   }, [initial])
 
-  async function toggle(emoji: string) {
+  /** Una sola reacción por persona: el mismo emoji la saca, otro la reemplaza. */
+  async function react(emoji: string) {
     if (!username) return
-    const had = mine.includes(emoji)
+    setPickerOpen(false)
 
-    // Optimista: la reacción tiene que sentirse instantánea.
-    setMine((prev) => (had ? prev.filter((e) => e !== emoji) : [...prev, emoji]))
+    const prevMine = mine
+    const nextMine = prevMine === emoji ? null : emoji
+
+    // Optimista: tiene que sentirse instantáneo.
+    setMine(nextMine)
     setCounts((prev) => {
       const next = { ...prev }
-      next[emoji] = Math.max(0, (next[emoji] ?? 0) + (had ? -1 : 1))
-      if (next[emoji] === 0) delete next[emoji]
+      if (prevMine) {
+        next[prevMine] = (next[prevMine] ?? 1) - 1
+        if (next[prevMine] <= 0) delete next[prevMine]
+      }
+      if (nextMine) next[nextMine] = (next[nextMine] ?? 0) + 1
       return next
     })
 
-    const res = await togglePostReaction({ postType, postId, username, emoji })
+    const res = await setPostReaction({ postType, postId, username, emoji })
     if (!res.success) {
       // Revertimos si falló.
-      setMine((prev) => (had ? [...prev, emoji] : prev.filter((e) => e !== emoji)))
+      setMine(prevMine)
       setCounts((prev) => {
         const next = { ...prev }
-        next[emoji] = Math.max(0, (next[emoji] ?? 0) + (had ? 1 : -1))
-        if (next[emoji] === 0) delete next[emoji]
+        if (nextMine) {
+          next[nextMine] = (next[nextMine] ?? 1) - 1
+          if (next[nextMine] <= 0) delete next[nextMine]
+        }
+        if (prevMine) next[prevMine] = (next[prevMine] ?? 0) + 1
         return next
       })
     }
   }
 
-  async function openComments() {
-    const next = !open
-    setOpen(next)
-    if (!next || comments !== null) return
+  async function loadAll() {
+    if (allComments !== null) return
     setLoadingComments(true)
     const res = await getPostComments(postType, postId)
-    setComments(res.comments)
+    setAllComments(res.comments)
     setCommentCount(res.comments.length)
+    setPreview(res.comments.slice(-2))
     setLoadingComments(false)
+  }
+
+  async function toggleComments() {
+    const next = !expanded
+    setExpanded(next)
+    if (next) await loadAll()
   }
 
   async function submit(e: React.FormEvent) {
@@ -109,79 +127,126 @@ export default function PostInteractions({ postType, postId, initial }: Props) {
     if (!res.success || !created) return
 
     setDraft("")
-    setComments((prev) => [...(prev ?? []), created])
+    setAllComments((prev) => [...(prev ?? []), created])
+    setPreview((prev) => [...prev, created].slice(-2))
     setCommentCount((c) => c + 1)
     inputRef.current?.focus()
   }
 
   async function remove(id: string) {
     if (!username) return
-    const prev = comments ?? []
-    setComments(prev.filter((c) => c.id !== id))
+    const prevAll = allComments ?? []
+    const prevPreview = preview
+    const nextAll = prevAll.filter((c) => c.id !== id)
+
+    setAllComments(nextAll)
+    setPreview(nextAll.slice(-2))
     setCommentCount((c) => Math.max(0, c - 1))
+
     const res = await deletePostComment(id, username)
     if (!res.success) {
-      setComments(prev)
-      setCommentCount(prev.length)
+      setAllComments(prevAll)
+      setPreview(prevPreview)
+      setCommentCount(prevAll.length)
     }
   }
 
+  // Emojis con al menos una reacción, del más votado al menos.
+  const summary = Object.entries(counts)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1])
+
+  const shown = expanded ? allComments ?? [] : preview
+  const hiddenCount = commentCount - preview.length
+
   return (
     <div className="border-t border-black/5">
-      {/* Barra de reacciones */}
-      <div className="flex items-center gap-1.5 px-3 py-2 overflow-x-auto no-scrollbar">
-        {REACTIONS.map(({ emoji, label }) => {
-          const count = counts[emoji] ?? 0
-          const active = mine.includes(emoji)
-          return (
+      {/* Resumen de reacciones + los dos botones */}
+      <div className="flex items-center gap-2 px-3 py-2">
+        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <PopoverTrigger asChild>
             <button
-              key={emoji}
               type="button"
-              onClick={() => toggle(emoji)}
               disabled={!username}
-              aria-label={`Reaccionar con ${label}`}
-              aria-pressed={active}
-              className={`shrink-0 flex items-center gap-1 rounded-full px-2 py-1 text-sm transition active:scale-90 border ${
-                active
-                  ? "bg-toro-primary/15 border-toro-primary/40"
-                  : "bg-toro-background/60 border-transparent hover:bg-toro-background"
+              aria-label="Dejar una reacción"
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition active:scale-95 border ${
+                mine
+                  ? "bg-toro-primary/15 border-toro-primary/40 text-toro-primary"
+                  : "bg-toro-background/60 border-transparent text-toro-foreground/60 hover:bg-toro-background"
               }`}
             >
-              <span className="leading-none">{emoji}</span>
-              {count > 0 && (
-                <span
-                  className={`text-[11px] font-bold leading-none ${
-                    active ? "text-toro-primary" : "text-toro-foreground/50"
+              {mine ? <span className="text-base leading-none">{mine}</span> : <SmilePlus className="w-4 h-4" />}
+              <span>{mine ? "Reaccionaste" : "Reaccionar"}</span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" side="top" className="w-auto max-w-[min(20rem,90vw)] p-2 rounded-2xl">
+            <div className="flex flex-wrap gap-1 justify-center">
+              {REACTIONS.map(({ emoji, label }) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => react(emoji)}
+                  aria-label={label}
+                  title={label}
+                  className={`w-9 h-9 rounded-full text-xl leading-none flex items-center justify-center transition hover:scale-125 active:scale-95 ${
+                    mine === emoji ? "bg-toro-primary/15 ring-1 ring-toro-primary/40" : "hover:bg-toro-background"
                   }`}
                 >
-                  {count}
-                </span>
-              )}
-            </button>
-          )
-        })}
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <button
           type="button"
-          onClick={openComments}
-          className="shrink-0 ml-auto flex items-center gap-1 rounded-full px-2.5 py-1 text-toro-foreground/60 hover:bg-toro-background transition active:scale-90"
+          onClick={toggleComments}
           aria-label="Comentarios"
-          aria-expanded={open}
+          aria-expanded={expanded}
+          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-toro-foreground/60 bg-toro-background/60 hover:bg-toro-background transition active:scale-95"
         >
           <MessageCircle className="w-4 h-4" />
-          {commentCount > 0 && <span className="text-[11px] font-bold leading-none">{commentCount}</span>}
+          <span>{commentCount}</span>
         </button>
+
+        {/* Cuántas reacciones tiene de cada emoji */}
+        {summary.length > 0 && (
+          <div className="flex items-center gap-1 ml-auto overflow-x-auto no-scrollbar">
+            {summary.map(([emoji, n]) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => react(emoji)}
+                disabled={!username}
+                aria-label={`${n} ${emoji}`}
+                className={`shrink-0 flex items-center gap-0.5 rounded-full px-2 py-1 text-sm transition active:scale-90 border ${
+                  mine === emoji ? "bg-toro-primary/15 border-toro-primary/40" : "bg-toro-background/60 border-transparent"
+                }`}
+              >
+                <span className="leading-none">{emoji}</span>
+                <span
+                  className={`text-[11px] font-bold leading-none ${
+                    mine === emoji ? "text-toro-primary" : "text-toro-foreground/50"
+                  }`}
+                >
+                  {n}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Comentarios */}
-      {open && (
-        <div className="px-3 pb-3 border-t border-black/5 pt-2 space-y-2.5">
-          {loadingComments ? (
-            <p className="text-xs text-toro-foreground/40 py-2">Cargando comentarios…</p>
-          ) : (comments ?? []).length === 0 ? (
+      {/* Comentarios: preview de hasta 2, o la lista completa si está expandido */}
+      {(shown.length > 0 || expanded) && (
+        <div className="px-3 pb-2 space-y-2">
+          {loadingComments && shown.length === 0 ? (
+            <p className="text-xs text-toro-foreground/40 py-1">Cargando comentarios…</p>
+          ) : shown.length === 0 ? (
             <p className="text-xs text-toro-foreground/40 py-1">Todavía no hay comentarios. Estrenalo vos.</p>
           ) : (
-            (comments ?? []).map((c) => (
+            shown.map((c) => (
               <div key={c.id} className="flex items-start gap-2">
                 <Link href={`/profile/${c.username}`} className="shrink-0 mt-0.5">
                   <UserAvatar avatarId={c.avatar || "default"} username={c.username} size="sm" />
@@ -212,7 +277,17 @@ export default function PostInteractions({ postType, postId, initial }: Props) {
             ))
           )}
 
-          {username && (
+          {!expanded && hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={toggleComments}
+              className="text-xs font-semibold text-toro-foreground/50 hover:text-toro-primary transition"
+            >
+              Ver {hiddenCount === 1 ? "1 comentario más" : `los ${commentCount} comentarios`}
+            </button>
+          )}
+
+          {expanded && username && (
             <form onSubmit={submit} className="flex items-center gap-2 pt-1">
               <input
                 ref={inputRef}
