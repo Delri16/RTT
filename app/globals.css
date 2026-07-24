@@ -135,6 +135,15 @@
     background-color: rgba(58, 58, 58, 0.2);
     border-radius: 9999px;
   }
+
+  /* Scroll horizontal sin barra visible (barra de reacciones del feed) */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Respeta a quien pide menos movimiento */

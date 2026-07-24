@@ -3847,3 +3847,164 @@ export async function addSharedRoutine(
     exercises: input.exercises ?? [],
   })
 }
+
+// ===========================================================================
+// REACCIONES + COMENTARIOS sobre posts del feed.
+//
+// Tablas (ver scripts/41-add-post-reactions-comments.sql):
+//   post_reactions -> una fila por (post, usuario, emoji); toggle = insert/delete
+//   post_comments  -> comentarios en texto plano
+//
+// Solo aplican a reportes, rutinas compartidas y PRs (no a actividades).
+// La clave lógica es (post_type, post_id), donde post_id es el mismo `id` que
+// expone `FeedItem` (el id de la fila para reportes, el `share_id` para
+// rutinas/PRs). Todo es público: cualquiera ve reacciones y comentarios.
+// ===========================================================================
+
+export type InteractivePostType = "report" | "routine" | "pr"
+
+export type PostComment = {
+  id: string
+  post_type: InteractivePostType
+  post_id: string
+  username: string
+  body: string
+  created_at: string
+  avatar?: string | null
+}
+
+export type PostInteractions = {
+  /** emoji -> cantidad de reacciones */
+  counts: Record<string, number>
+  /** emojis con los que reaccionó el usuario actual */
+  mine: string[]
+  commentCount: number
+}
+
+const emptyInteractions = (): PostInteractions => ({ counts: {}, mine: [], commentCount: 0 })
+
+// La clave del map que devuelve `getPostsInteractions` es `${type}:${id}`.
+// El helper vive en el cliente (`components/feed/home-feed.tsx`) porque este
+// archivo es "use server" y no puede exportar funciones sync.
+
+/**
+ * Trae reacciones + cantidad de comentarios de varios posts de una (dos queries
+ * en total, no una por post) para no pegarle N veces a Supabase por página de feed.
+ */
+export async function getPostsInteractions(
+  posts: { type: string; id: string }[],
+  viewer?: string | null,
+): Promise<Record<string, PostInteractions>> {
+  const targets = posts.filter((p) => p.type === "report" || p.type === "routine" || p.type === "pr")
+  if (targets.length === 0) return {}
+
+  const ids = [...new Set(targets.map((p) => p.id))]
+
+  const [{ data: reactions }, { data: comments }] = await Promise.all([
+    supabase.from("post_reactions").select("post_type, post_id, username, emoji").in("post_id", ids),
+    supabase.from("post_comments").select("post_type, post_id").in("post_id", ids),
+  ])
+
+  const out: Record<string, PostInteractions> = {}
+  for (const p of targets) out[`${p.type}:${p.id}`] = emptyInteractions()
+
+  for (const r of reactions ?? []) {
+    const entry = out[`${(r as any).post_type}:${(r as any).post_id}`]
+    if (!entry) continue
+    const emoji = (r as any).emoji
+    entry.counts[emoji] = (entry.counts[emoji] ?? 0) + 1
+    if (viewer && (r as any).username === viewer) entry.mine.push(emoji)
+  }
+
+  for (const c of comments ?? []) {
+    const entry = out[`${(c as any).post_type}:${(c as any).post_id}`]
+    if (!entry) continue
+    entry.commentCount++
+  }
+
+  return out
+}
+
+/** Agrega o quita la reacción del usuario. Devuelve el estado final (`reacted`). */
+export async function togglePostReaction(input: {
+  postType: InteractivePostType
+  postId: string
+  username: string
+  emoji: string
+}) {
+  const { postType, postId, username, emoji } = input
+
+  const { data: existing, error: selErr } = await supabase
+    .from("post_reactions")
+    .select("id")
+    .eq("post_type", postType)
+    .eq("post_id", postId)
+    .eq("username", username)
+    .eq("emoji", emoji)
+    .maybeSingle()
+
+  if (selErr) return { success: false, error: selErr.message }
+
+  if (existing) {
+    const { error } = await supabase.from("post_reactions").delete().eq("id", (existing as any).id)
+    if (error) return { success: false, error: error.message }
+    return { success: true, reacted: false }
+  }
+
+  const { error } = await supabase
+    .from("post_reactions")
+    .insert({ post_type: postType, post_id: postId, username, emoji })
+  if (error) return { success: false, error: error.message }
+  return { success: true, reacted: true }
+}
+
+export async function getPostComments(postType: InteractivePostType, postId: string) {
+  const { data, error } = await supabase
+    .from("post_comments")
+    .select("*")
+    .eq("post_type", postType)
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true })
+
+  if (error) return { success: false, error: error.message, comments: [] as PostComment[] }
+
+  const comments = (data ?? []) as PostComment[]
+  const usernames = [...new Set(comments.map((c) => c.username))]
+  if (usernames.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("username, avatar, avatar_url")
+      .in("username", usernames)
+    const avatarMap = new Map((profiles ?? []).map((p: any) => [p.username, p.avatar || p.avatar_url || null]))
+    for (const c of comments) c.avatar = avatarMap.get(c.username) ?? null
+  }
+
+  return { success: true, comments }
+}
+
+export async function addPostComment(input: {
+  postType: InteractivePostType
+  postId: string
+  username: string
+  body: string
+}) {
+  const body = input.body.trim()
+  if (!body) return { success: false, error: "El comentario está vacío." }
+  if (body.length > 500) return { success: false, error: "Máximo 500 caracteres." }
+
+  const { data, error } = await supabase
+    .from("post_comments")
+    .insert({ post_type: input.postType, post_id: input.postId, username: input.username, body })
+    .select("*")
+    .single()
+
+  if (error) return { success: false, error: error.message }
+  return { success: true, comment: data as PostComment }
+}
+
+/** Solo el autor del comentario puede borrarlo (se chequea acá, la RLS es permisiva). */
+export async function deletePostComment(id: string, username: string) {
+  const { error } = await supabase.from("post_comments").delete().eq("id", id).eq("username", username)
+  if (error) return { success: false, error: error.message }
+  return { success: true }
+}

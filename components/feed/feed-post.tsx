@@ -6,6 +6,8 @@ import UserAvatar from "@/components/user-avatar"
 import type { FeedItem } from "@/lib/actions"
 import { timeAgo } from "@/lib/date-utils"
 import RoutineFeedCard from "@/components/feed/routine-feed-card"
+import PostInteractions from "@/components/feed/post-interactions"
+import type { PostInteractions as PostInteractionsData } from "@/lib/actions"
 
 function PostHeader({ item }: { item: FeedItem }) {
   return (
@@ -27,7 +29,7 @@ function PostHeader({ item }: { item: FeedItem }) {
   )
 }
 
-export default function FeedPost({ item }: { item: FeedItem }) {
+export default function FeedPost({ item, interactions }: { item: FeedItem; interactions?: PostInteractionsData }) {
   if (item.type === "activity") {
     return (
       <article className="bg-white rounded-2xl shadow-soft border border-black/5 overflow-hidden card-interactive">
@@ -59,6 +61,7 @@ export default function FeedPost({ item }: { item: FeedItem }) {
       <article className="bg-white rounded-2xl shadow-soft border border-black/5 overflow-hidden card-interactive">
         <PostHeader item={item} />
         <RoutineFeedCard item={item} />
+        <PostInteractions postType="routine" postId={item.id} initial={interactions} />
       </article>
     )
   }
@@ -93,6 +96,7 @@ export default function FeedPost({ item }: { item: FeedItem }) {
             </div>
           )}
         </div>
+        <PostInteractions postType="pr" postId={item.id} initial={interactions} />
       </article>
     )
   }
@@ -129,6 +133,7 @@ export default function FeedPost({ item }: { item: FeedItem }) {
           ))}
         </div>
       )}
+      <PostInteractions postType="report" postId={item.id} initial={interactions} />
     </article>
   )
 }

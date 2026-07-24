@@ -6,12 +6,20 @@ import Image from "next/image"
 import { Dumbbell, PlusCircle, User, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useApp } from "@/app/app-provider"
-import { getGroupFeed, type FeedItem } from "@/lib/actions"
+import {
+  getGroupFeed,
+  getPostsInteractions,
+  type FeedItem,
+  type PostInteractions,
+} from "@/lib/actions"
 import FeedPost from "@/components/feed/feed-post"
 import NotificationBell from "@/components/notifications/notification-bell"
 import { FeedSkeleton } from "@/components/ui/skeletons"
 
 const PAGE_SIZE = 20
+
+// Misma clave que arma `getPostsInteractions` en el server.
+const postKey = (type: string, id: string) => `${type}:${id}`
 
 export default function HomeFeed() {
   const { username } = useApp()
@@ -20,6 +28,8 @@ export default function HomeFeed() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [reachedEnd, setReachedEnd] = useState(false)
+  // Reacciones + cantidad de comentarios, precargadas en batch por página de feed.
+  const [interactions, setInteractions] = useState<Record<string, PostInteractions>>({})
   const sentinel = useRef<HTMLDivElement | null>(null)
 
   const loadInitial = useCallback(async () => {
@@ -30,6 +40,7 @@ export default function HomeFeed() {
     setCursor(res.nextCursor)
     setReachedEnd(!res.nextCursor)
     setLoading(false)
+    setInteractions(await getPostsInteractions(res.items, username))
   }, [username])
 
   const loadMore = useCallback(async () => {
@@ -40,6 +51,8 @@ export default function HomeFeed() {
     setCursor(res.nextCursor)
     setReachedEnd(!res.nextCursor)
     setLoadingMore(false)
+    const more = await getPostsInteractions(res.items, username)
+    setInteractions((prev) => ({ ...prev, ...more }))
   }, [username, cursor, loadingMore])
 
   useEffect(() => {
@@ -93,7 +106,7 @@ export default function HomeFeed() {
                 className="animate-fade-in-up"
                 style={{ animationDelay: `${Math.min(i, 6) * 0.05}s` }}
               >
-                <FeedPost item={item} />
+                <FeedPost item={item} interactions={interactions[postKey(item.type, item.id)]} />
               </div>
             ))}
             <div ref={sentinel} />
