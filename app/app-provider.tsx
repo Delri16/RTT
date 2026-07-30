@@ -7,6 +7,7 @@ import BottomNav from "@/components/bottom-nav"
 import LoadingSplash from "@/components/ui/loading-splash"
 import { ActivityTagsBadge } from "@/components/activity-tags-badge"
 import { NotificationListener } from "@/components/notification-listener"
+import { PushSubscriber } from "@/components/push-subscriber"
 import { ReportReminderDialog } from "@/components/report-reminder-dialog"
 import { supabase } from "@/lib/supabase"
 import { getProfileByAuthUserId, joinGroupByInviteCode } from "@/lib/actions"
@@ -96,6 +97,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       {username ? (
         <div className="flex flex-col h-screen">
           <NotificationListener />
+          <PushSubscriber />
           <ReportReminderDialog />
           <ActivityTagsBadge username={username} />
           <main className="flex-1 overflow-y-auto overscroll-contain pb-16">{children}</main>

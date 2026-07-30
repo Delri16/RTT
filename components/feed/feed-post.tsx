@@ -7,6 +7,8 @@ import type { FeedItem } from "@/lib/actions"
 import { timeAgo } from "@/lib/date-utils"
 import RoutineFeedCard from "@/components/feed/routine-feed-card"
 import PostInteractions from "@/components/feed/post-interactions"
+import ReportVerdictCard, { VERDICT_RING } from "@/components/feed/report-verdict-card"
+import { getReportVerdict } from "@/lib/report-verdict"
 import type { PostInteractions as PostInteractionsData } from "@/lib/actions"
 
 function PostHeader({ item }: { item: FeedItem }) {
@@ -103,8 +105,16 @@ export default function FeedPost({ item, interactions }: { item: FeedItem; inter
 
   // report
   const photos = [item.scalePhotoUrl, item.bodyPhotoUrl].filter(Boolean) as string[]
+  const verdict = getReportVerdict({
+    weight: item.weight,
+    prevWeight: item.prevWeight,
+    goal: item.goal,
+    seed: item.id,
+  })
   return (
-    <article className="bg-white rounded-2xl shadow-soft border border-black/5 overflow-hidden card-interactive">
+    <article
+      className={`bg-white rounded-2xl shadow-soft border-2 overflow-hidden card-interactive ${VERDICT_RING[verdict.level]}`}
+    >
       <PostHeader item={item} />
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="w-11 h-11 rounded-xl bg-toro-secondary/20 flex items-center justify-center shrink-0">
@@ -119,6 +129,7 @@ export default function FeedPost({ item, interactions }: { item: FeedItem; inter
           +{item.points}
         </div>
       </div>
+      <ReportVerdictCard verdict={verdict} weight={item.weight} />
       {photos.length > 0 && (
         <div className={`grid gap-0.5 ${photos.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
           {photos.map((url, i) => (

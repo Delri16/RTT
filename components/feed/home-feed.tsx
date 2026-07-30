@@ -14,6 +14,7 @@ import {
 } from "@/lib/actions"
 import FeedPost from "@/components/feed/feed-post"
 import NotificationBell from "@/components/notifications/notification-bell"
+import NotificationPrompt from "@/components/notification-prompt"
 import { FeedSkeleton } from "@/components/ui/skeletons"
 
 const PAGE_SIZE = 20
@@ -94,6 +95,7 @@ export default function HomeFeed() {
       </header>
 
       <div className="p-4 space-y-3 max-w-xl mx-auto">
+        <NotificationPrompt />
         {loading ? (
           <FeedSkeleton count={5} />
         ) : items.length === 0 ? (

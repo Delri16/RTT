@@ -57,7 +57,9 @@ Cuentas viejas (username sin email todavía): la primera vez que vuelvan a entra
 
 Sesión persistente ("nunca más se desloguea salvo manual"): es el comportamiento default de `supabase-js` (`persistSession` + `autoRefreshToken`), no hay nada custom armado para eso — `app/app-provider.tsx` solo lee `supabase.auth.getSession()` al montar y escucha `onAuthStateChange`. Logout real = `supabase.auth.signOut()` (en `app/logout/page.tsx`, sin cambios).
 
-**Falta correr en Supabase:** [scripts/33-add-email-auth.sql](scripts/33-add-email-auth.sql) (agrega `profiles.email` y `profiles.auth_user_id`). No se aplicó automáticamente — correrlo a mano contra el proyecto real antes de probar el login nuevo.
+**Ya corrido en el proyecto real:** [scripts/33-add-email-auth.sql](scripts/33-add-email-auth.sql) (agrega `profiles.email` y `profiles.auth_user_id`).
+
+> **Nota sobre migraciones:** el estado de TODOS los scripts 33-43 se verificó contra la DB real el 27/7/2026: están todos aplicados. Lo único pendiente en Supabase es habilitar la extensión `pg_cron` (ver sección Notificaciones). Las migraciones se pueden aplicar/verificar directo con la connection string `POSTGRES_URL` de `.env.local` (paquete `pg` de npm; sacarle el `?sslmode=require` a la URL y pasar `ssl: { rejectUnauthorized: false }`).
 
 ## Puntos dinámicos según objetivo de peso
 
@@ -69,9 +71,9 @@ Cada usuario tiene un objetivo (`profiles.goal`: `lose`/`gain`/`maintain`, defau
 
 UI: selector de objetivo en el perfil ([app/profile/page.tsx](app/profile/page.tsx)); slider aeróbico/fuerza al crear ([app/groups/[id]/activities/create/page.tsx](app/groups/[id]/activities/create/page.tsx)) y editar ([components/activity-manager.tsx](components/activity-manager.tsx)) actividades.
 
-**Falta correr en Supabase:** [scripts/36-add-goal-and-aerobic.sql](scripts/36-add-goal-and-aerobic.sql) (agrega `profiles.goal` y `group_activities.aerobic_pct`). Sin esto, crear/editar actividades falla al insertar `aerobic_pct`. Las ~1091 actividades existentes quedan en `aerobic_pct = 50` (neutro), así que no cambian de puntaje hasta configurarlas.
+**Ya corrido en el proyecto real:** [scripts/36-add-goal-and-aerobic.sql](scripts/36-add-goal-and-aerobic.sql) (agrega `profiles.goal` y `group_activities.aerobic_pct`). Las ~1091 actividades preexistentes quedaron en `aerobic_pct = 50` (neutro), así que no cambian de puntaje hasta configurarlas.
 
-El objetivo solo se puede cambiar 1 vez por mes: `profiles.goal_updated_at` guarda la fecha del último cambio real de `goal` (no se toca si se reenvía el mismo valor). `updateProfile` en [lib/actions.ts](lib/actions.ts) rechaza el update si no pasó un mes desde `goal_updated_at`; el selector en [app/profile/page.tsx](app/profile/page.tsx) además deshabilita visualmente las otras opciones mientras el cambio está bloqueado. **Falta correr en Supabase:** [scripts/39-add-goal-updated-at.sql](scripts/39-add-goal-updated-at.sql) (agrega la columna `profiles.goal_updated_at`).
+El objetivo solo se puede cambiar 1 vez por mes: `profiles.goal_updated_at` guarda la fecha del último cambio real de `goal` (no se toca si se reenvía el mismo valor). `updateProfile` en [lib/actions.ts](lib/actions.ts) rechaza el update si no pasó un mes desde `goal_updated_at`; el selector en [app/profile/page.tsx](app/profile/page.tsx) además deshabilita visualmente las otras opciones mientras el cambio está bloqueado. **Ya corrido en el proyecto real:** [scripts/39-add-goal-updated-at.sql](scripts/39-add-goal-updated-at.sql) (agrega la columna `profiles.goal_updated_at`).
 
 ## Mi Rutina (rutinas de gimnasio + PRs)
 
@@ -82,7 +84,7 @@ Sección personal para armar rutinas de gym, entrenar registrando series (peso/r
 - **Registro de series:** cada serie completada va a `workout_sets` vía `logWorkoutSet` (en [lib/actions.ts](lib/actions.ts)), que detecta PR (peso > máximo previo de ese ejercicio) y devuelve `isPR` + peso anterior.
 - **PRs compartibles:** al superar tu récord aparece un cartel (`pr-celebration.tsx`) que permite compartirlo al feed con `sharePR` → inserta una fila en `shared_prs` por cada grupo del usuario (agrupadas por `share_id` para no duplicar en el feed del autor). El feed (`getGroupFeed` + [components/feed/feed-post.tsx](components/feed/feed-post.tsx)) tiene un nuevo tipo `pr`.
 
-**Falta correr en Supabase:** [scripts/37-add-routines.sql](scripts/37-add-routines.sql) (crea `routines`, `workout_sets`, `shared_prs`). Sin esto, el hub de Mi Rutina carga vacío (las lecturas fallan silenciosamente y muestran estado vacío, no rompen), pero crear rutinas / registrar series / compartir PRs falla hasta correrlo. El feed sigue andando aunque falte la tabla `shared_prs` (la query devuelve vacío).
+**Ya corrido en el proyecto real:** [scripts/37-add-routines.sql](scripts/37-add-routines.sql) (crea `routines`, `workout_sets`, `shared_prs`).
 
 ### Favoritos + registro suelto (sin rutina)
 
@@ -96,6 +98,22 @@ Rutinas, favoritos y `workout_sets` son públicos para lectura: las funciones de
 
 Al crear/editar una rutina ([components/routine/routine-builder.tsx](components/routine/routine-builder.tsx)), el nombre se pasa como prop `suggestName` a [components/routine/exercise-catalog.tsx](components/routine/exercise-catalog.tsx). `detectRoutineFilters` (en [lib/exercise-catalog.ts](lib/exercise-catalog.ts), módulo puro) busca palabras clave en el nombre (ES/EN: push, pull, pecho, espalda, piernas/legs, hombros, bíceps, tríceps, etc.) usando word-boundary (`\bkeyword\b`, para que "pullover" no matchee "pull") y devuelve los músculos/fuerza "crudos" a filtrar + labels en español. Si hay match: el catálogo arranca con esos filtros aplicados y en la tab **"Comunes"** (fame ≤ 2 = populares + comunes), y muestra un cartel "Creemos que estos ejercicios son los que buscás (…)". El cartel tiene una X que desactiva la sugerencia (limpia los filtros y vuelve a fame 1). Es 100% client-side, no toca Supabase. El drawer del catálogo se remonta en cada apertura (vaul desmonta el contenido al cerrar), así que la detección siempre lee el nombre actual.
 
+## Veredicto de los reportes de peso en el feed
+
+Cada post de reporte en el feed de Inicio ([components/feed/feed-post.tsx](components/feed/feed-post.tsx)) lleva debajo un cartel grande de color con el veredicto: **verde** si cumplió su objetivo, **amarillo** si quedó a mitad de camino, **rojo** si fue para el lado contrario. Además el borde del post entero se tiñe del color del veredicto (`VERDICT_RING`) para que se note desde el scroll. El texto es a propósito exagerado: felicita fuerte al que cumplió y bardea al que no ("dejá de comer" / "ponete a comer").
+
+- **Lógica:** [lib/report-verdict.ts](lib/report-verdict.ts) → `getReportVerdict({ weight, prevWeight, goal, seed })`. Módulo PURO (como `lib/points.ts`) para poder importarlo desde cliente y server. Compara el peso reportado contra el reporte anterior de esa persona y clasifica según `profiles.goal`:
+  - `lose`: bajar ≥ 0,3 kg = verde, |dif| < 0,3 kg ("pesa lo mismo") = amarillo, subir = rojo.
+  - `gain`: al revés (subir = verde, bajar = rojo).
+  - `maintain`: |dif| < 0,5 kg = verde, 0,5–3 kg = amarillo, > 3 kg = rojo. **Ojo:** el pedido original decía "0,5 a 1 amarillo, más de 3 rojo" — el tramo 1–3 kg quedó amarillo con intensidad 2 (burla más fuerte) para no dejar un hueco sin clasificar.
+  - `intensity` 1/2/3 según la magnitud del cambio: escala el diseño (borde más grueso, delta más grande, ícono pulsante) y elige burlas/felicitaciones más extremas.
+  - Las burlas salen del diccionario `MESSAGES` (varias por combinación objetivo × nivel × intensidad) y se eligen con un **hash del id del reporte**, no con `Math.random`: el mismo post siempre muestra el mismo texto (nada de mismatch de hidratación).
+  - Sin reporte anterior el nivel es `neutral` ("PRIMER REPORTE", marca base) — hoy en la DB real los 7 reportes existentes son todos primeros, así que hasta la segunda ronda de reportes no se ven veredictos de color.
+- **Datos:** el `FeedItem` de tipo `report` que devuelve `getGroupFeed` ahora incluye `goal` (viene de la misma query de avatares en `profiles`) y `prevWeight`. `prevWeight` sale de una única query extra a `bi_weekly_reports` para toda la página: se prefiere el reporte anterior **del mismo grupo** y, si en ese grupo es el primero, cae al último de cualquier otro grupo del usuario (es el mismo peso de la misma persona).
+- **UI:** [components/feed/report-verdict-card.tsx](components/feed/report-verdict-card.tsx) (recibe el veredicto ya calculado como prop, así el post y el cartel comparten el mismo color).
+
+Recordar que `profiles.goal` default es `maintain`: quien nunca eligió objetivo se juzga con los umbrales de mantenerse.
+
 ## Reacciones y comentarios en el feed
 
 Los posts del feed de Inicio aceptan reacciones con emoji y comentarios, **solo para reportes de peso, rutinas compartidas y PRs compartidos** — las actividades sueltas quedan afuera a propósito (son demasiadas y ensuciarían el feed). Todo es público: cualquier miembro ve las reacciones y comentarios de todos.
@@ -105,7 +123,11 @@ Los posts del feed de Inicio aceptan reacciones con emoji y comentarios, **solo 
 - Funciones en [lib/actions.ts](lib/actions.ts): `getPostsInteractions` (batch — 2 queries para toda la página de feed, no una por post; devuelve conteos por emoji, la reacción propia y los últimos 2 comentarios), `setPostReaction`, `getPostReactors`, `getPostComments`, `addPostComment`, `deletePostComment` (chequea autoría a mano porque la RLS es permisiva).
 - UI en [components/feed/post-interactions.tsx](components/feed/post-interactions.tsx): dos botones — **Reaccionar** (abre un `Popover` con la paleta del array `REACTIONS`) y **comentarios** con el contador. Al lado va el resumen de cuántas reacciones tiene cada emoji (tocar un chip también reacciona). Debajo se ven hasta 2 comentarios precargados y un "Ver los N comentarios" que expande la lista completa + el campo para comentar. Todo optimista. [home-feed.tsx](components/feed/home-feed.tsx) precarga las interacciones de cada página y se las pasa a `FeedPost` como prop `interactions`.
 
-**Correr en Supabase (en orden):** [41-add-post-reactions-comments.sql](scripts/41-add-post-reactions-comments.sql) → [42-one-reaction-per-user.sql](scripts/42-one-reaction-per-user.sql). Sin ellos los botones aparecen pero todo queda en cero y nada se guarda (las queries fallan en silencio); el feed sigue funcionando igual.
+**Ya corridos en el proyecto real (en orden):** [41-add-post-reactions-comments.sql](scripts/41-add-post-reactions-comments.sql) → [42-one-reaction-per-user.sql](scripts/42-one-reaction-per-user.sql).
+
+### Notificaciones por reacciones y comentarios
+
+Cuando alguien reacciona o comenta un post ajeno, el autor recibe una notificación in-app (tipos `post_reaction` / `post_comment`) **y un Web Push al teléfono** (ver sección Web Push). Lo hace `notifyPostInteraction` en [lib/actions.ts](lib/actions.ts), llamado desde `setPostReaction` (solo en la primera reacción de la persona: reemplazar el emoji no re-notifica) y `addPostComment` (siempre, con extracto de 80 chars). Nunca se notifican interacciones con posts propios, y es best-effort: si falla, la reacción/comentario ya quedó guardado. `resolveInteractivePost` resuelve autor+grupo según el tipo (`bi_weekly_reports` por id; `shared_routines`/`shared_prs` por `share_id` con fallback a id de fila). En [app/notifications/page.tsx](app/notifications/page.tsx) estas notificaciones linkean al feed de Inicio (`/`), no al grupo. **Ya corrido en el proyecto real:** [scripts/43-post-interaction-notifications-and-push.sql](scripts/43-post-interaction-notifications-and-push.sql) (amplía los CHECK de `notifications` y crea `push_subscriptions`).
 
 ## Notificaciones
 
@@ -117,7 +139,20 @@ Tipos de notificación (`notification_type`): los originales `activity_tag` / `a
 - `rank_lead_general` / `rank_lead_weekly`: mismo trigger, pero te notifica a VOS cuando pasás a liderar el ranking (motivacional).
 - `report_available`: se dispara con `notify_pending_reports()`, pensada para correr diaria por `pg_cron` (requiere habilitar la extensión en Database → Extensions del proyecto Supabase). Mismo criterio de "falta reporte" que `getUserReportStatus` (nunca reportó, o pasaron ≥15 días desde el último), con dedupe para no re-notificar en cada corrida del cron.
 
-**Falta correr en Supabase:** [scripts/40-notification-triggers.sql](scripts/40-notification-triggers.sql) (amplía los CHECK constraints de `notification_type`/`has_related_entity`, crea el trigger de ranking y la función+cron de reportes). Sin esto, `getUserNotifications` sigue funcionando pero solo va a mostrar `activity_tag`/`activity_request`/`group_invite`; nunca aparecen los avisos de ranking ni de reporte. Si `pg_cron` no está habilitado en el proyecto, `notify_pending_reports()` queda creada pero sin programar — hay que habilitar la extensión o llamarla desde otro scheduler.
+Además, `post_reaction` / `post_comment` (script 43, ver sección Reacciones y comentarios).
+
+**Ya corrido en el proyecto real:** [scripts/40-notification-triggers.sql](scripts/40-notification-triggers.sql). **PERO `pg_cron` sigue sin habilitarse** en el proyecto (verificado 27/7/2026), así que `notify_pending_reports()` existe pero nadie la llama: los avisos `report_available` no se disparan hasta habilitar la extensión (Database → Extensions) y re-correr el bloque `DO` final del script 40, o llamarla desde otro scheduler.
+
+## Web Push (notificaciones al teléfono con la app cerrada)
+
+Web Push real con VAPID — reemplaza al viejo esquema "fake" (polling de `notification-listener.tsx` + `showNotification` local, que solo funcionaba con la app abierta y sigue existiendo para etiquetas de actividad).
+
+- **Claves VAPID:** en `.env.local` (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`). ⚠️ **Hay que cargar las tres también en Vercel** (Settings → Environment Variables) o el push no funciona en producción. Se generan con `npx web-push generate-vapid-keys`; si se regeneran, todas las suscripciones existentes mueren.
+- **Suscripción (cliente):** [lib/push-client.ts](lib/push-client.ts) → `ensurePushSubscription(username)`: registra `/sw.js`, hace `pushManager.subscribe` con la clave pública y guarda endpoint+claves en `push_subscriptions` vía `savePushSubscription` (upsert por endpoint: un usuario puede tener varios dispositivos; si otro usuario se loguea en el mismo dispositivo, se la transfiere). La llaman: [components/push-subscriber.tsx](components/push-subscriber.tsx) (montado en `app-provider.tsx`, re-sincroniza en cada apertura si el permiso ya está concedido), [components/notification-prompt.tsx](components/notification-prompt.tsx) (cartel en el feed de Inicio que pide el permiso — antes existía pero no estaba montado en ningún lado) y el toggle de [components/notification-manager.tsx](components/notification-manager.tsx) (Ajustes).
+- **Envío (server):** [lib/push-server.ts](lib/push-server.ts) → `sendPushToUser(username, {title, body, url, tag})` con el paquete `web-push`. Poda solas las suscripciones muertas (HTTP 404/410 del push service). Sin claves VAPID en el entorno es un no-op con warning (la notificación in-app igual se crea). Hoy lo usa solo `notifyPostInteraction`; para pushear otros tipos (ranking, reportes) habría que llamarlo desde los flujos correspondientes o mover el envío a un webhook de DB.
+- **Service worker:** el handler `push` de [public/sw.js](public/sw.js) entiende el formato genérico `{title, body, url, tag}` (el click abre `url`); mantiene los formatos legacy de etiquetas/motivación diaria.
+- **iOS:** el push solo llega si la PWA está instalada en la pantalla de inicio (iOS 16.4+); en Safari suelto no existe `PushManager`. En Android/desktop anda directo en el navegador.
+- Probado contra la DB real (27/7/2026): reacción/comentario → fila en `notifications` + intento de push; el cifrado/VAPID de `web-push` verificado localmente; entrega real a un dispositivo requiere probar con la app instalada.
 
 ## Convenciones existentes (no introducidas por este cambio)
 

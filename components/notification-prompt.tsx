@@ -4,8 +4,11 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Bell, X } from "lucide-react"
+import { useApp } from "@/app/app-provider"
+import { ensurePushSubscription } from "@/lib/push-client"
 
 export default function NotificationPrompt() {
+  const { username } = useApp()
   const [showPrompt, setShowPrompt] = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
@@ -38,6 +41,9 @@ export default function NotificationPrompt() {
 
       if (permission === "granted") {
         localStorage.setItem("notifications_enabled", "true")
+
+        // Suscribe el dispositivo a Web Push (para que lleguen con la app cerrada).
+        if (username) await ensurePushSubscription(username)
 
         // Show welcome notification using Service Worker
         try {
@@ -83,9 +89,9 @@ export default function NotificationPrompt() {
           <div className="flex items-start gap-3 flex-1">
             <Bell className="w-6 h-6 text-toro-primary flex-shrink-0 mt-1" />
             <div>
-              <h3 className="font-bold text-toro-foreground mb-1">¡Mantente motivado! 🔥</h3>
+              <h3 className="font-bold text-toro-foreground mb-1">¡Activá las notificaciones! 🔔</h3>
               <p className="text-sm text-toro-foreground/80 mb-3">
-                Recibe recordatorios diarios a las 19:00hs para entrenar y ver quién está ganando en tu grupo
+                Enterate al toque cuando reaccionan o comentan tus posts, te pasan en el ranking o te toca reportar
               </p>
               <div className="flex gap-2">
                 <Button

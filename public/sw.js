@@ -24,7 +24,10 @@ self.addEventListener("notificationclick", (event) => {
 
   let targetUrl = "/"
 
-  if (notificationData.type === "activity_tag") {
+  if (notificationData.url) {
+    // Push del server (reacciones, comentarios, etc.): trae la URL destino.
+    targetUrl = notificationData.url
+  } else if (notificationData.type === "activity_tag") {
     if (event.action === "accept") {
       targetUrl = "/activity-tags"
     } else if (event.action === "view") {
@@ -57,7 +60,7 @@ self.addEventListener("notificationclick", (event) => {
   )
 })
 
-// Handle push events (for future server-sent notifications)
+// Handle push events (sent from the server via web-push)
 self.addEventListener("push", (event) => {
   console.log("Push received:", event)
 
@@ -78,6 +81,20 @@ self.addEventListener("push", (event) => {
     icon: "/logo.png",
     badge: "/logo.png",
     requireInteraction: true,
+  }
+
+  if (data.title) {
+    // Formato genérico del server ({title, body, url, tag}): reacciones,
+    // comentarios y cualquier push nuevo. El click abre data.url.
+    options = {
+      ...options,
+      body: data.body || "",
+      tag: data.tag || undefined,
+      requireInteraction: false,
+      data: { url: data.url || "/", type: data.type || "generic" },
+    }
+    event.waitUntil(self.registration.showNotification(data.title, options))
+    return
   }
 
   if (notificationType === "activity_tag") {

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Bell, BellOff, Clock, Trophy } from "lucide-react"
 import { useApp } from "@/app/app-provider"
 import { getUserGroups, getGroupRankingTotal } from "@/lib/actions"
+import { ensurePushSubscription } from "@/lib/push-client"
 
 export default function NotificationManager() {
   const { username } = useApp()
@@ -96,6 +97,8 @@ export default function NotificationManager() {
       console.log("[v0] Enabling notifications...")
       setNotificationsEnabled(true)
       localStorage.setItem("notifications_enabled", "true")
+      // Suscribe el dispositivo a Web Push (para que lleguen con la app cerrada).
+      if (username) await ensurePushSubscription(username)
       scheduleDailyNotifications()
 
       // Show test notification

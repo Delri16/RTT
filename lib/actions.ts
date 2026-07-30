@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@supabase/supabase-js"
 import { supabaseAnonKey, supabaseUrl } from "./supabase"
 import { applyGoalMultiplier, REPORT_POINTS } from "./points"
+import { sendPushToUser } from "./push-server"
 
 export async function createOrGetProfile(username: string) {
   // Check if profile exists
@@ -1219,6 +1220,10 @@ export type FeedItem =
       scalePhotoUrl: string | null
       bodyPhotoUrl: string | null
       points: number
+      /** Objetivo de peso del autor (profiles.goal) — para el veredicto del feed. */
+      goal: string | null
+      /** Peso de su reporte anterior EN ESE GRUPO (null si es el primero). */
+      prevWeight: number | null
     }
   | {
       type: "pr"
@@ -1337,6 +1342,9 @@ export async function getGroupFeed(
       scalePhotoUrl: r.scale_photo_url || null,
       bodyPhotoUrl: r.body_photo_url || null,
       points: REPORT_POINTS,
+      // Se completan más abajo, una sola vez para toda la página.
+      goal: null as string | null,
+      prevWeight: null as number | null,
     }))),
     // Deduplica PRs por share_id (se insertan una fila por grupo).
     ...dedupeBy(prs ?? [], (p: any) => p.share_id ?? p.id).map((p: any) => ({
@@ -1370,12 +1378,48 @@ export async function getGroupFeed(
   const page = merged.slice(0, limit)
   const nextCursor = merged.length > limit ? page[page.length - 1]?.ts ?? null : null
 
-  // Attach author avatars in one query.
+  // Attach author avatars (y el objetivo de peso, para el veredicto de los reportes)
+  // en una sola query.
   const usernames = [...new Set(page.map((i) => i.username))]
   if (usernames.length > 0) {
-    const { data: profiles } = await supabase.from("profiles").select("username, avatar, avatar_url").in("username", usernames)
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("username, avatar, avatar_url, goal")
+      .in("username", usernames)
     const avatarMap = new Map((profiles ?? []).map((p: any) => [p.username, p.avatar || p.avatar_url || null]))
-    for (const item of page) item.avatar = avatarMap.get(item.username) ?? null
+    const goalMap = new Map((profiles ?? []).map((p: any) => [p.username, p.goal ?? null]))
+    for (const item of page) {
+      item.avatar = avatarMap.get(item.username) ?? null
+      if (item.type === "report") item.goal = goalMap.get(item.username) ?? null
+    }
+  }
+
+  // Peso del reporte anterior de cada autor EN SU MISMO GRUPO: es la base contra la
+  // que el feed decide si cumplió el objetivo. Una sola query para toda la página
+  // (los reportes son quincenales, así que el set es chico).
+  const pageReports = page.filter((i): i is Extract<FeedItem, { type: "report" }> => i.type === "report")
+  if (pageReports.length > 0) {
+    const repById = new Map((reps ?? []).map((r: any) => [r.id, r]))
+    const newestTs = pageReports.reduce((max, r) => (r.ts > max ? r.ts : max), pageReports[0].ts)
+    const { data: history } = await supabase
+      .from("bi_weekly_reports")
+      .select("username, group_id, reported_weight, created_at")
+      .in("group_id", groupIds)
+      .in("username", [...new Set(pageReports.map((r) => r.username))])
+      .lt("created_at", newestTs)
+      .order("created_at", { ascending: false })
+
+    for (const item of pageReports) {
+      const row = repById.get(item.id)
+      if (!row) continue
+      // history viene ordenado desc: el primero anterior a este reporte es el previo.
+      const earlier = (history ?? []).filter((h: any) => h.username === item.username && h.created_at < item.ts)
+      // Preferimos el reporte anterior del mismo grupo; si en ese grupo es el
+      // primero, cae al último de cualquier otro grupo (es el mismo peso de la
+      // misma persona, así que el cambio sigue siendo válido).
+      const prev = earlier.find((h: any) => h.group_id === row.group_id) ?? earlier[0]
+      item.prevWeight = prev?.reported_weight != null ? Number(prev.reported_weight) : null
+    }
   }
 
   return { success: true, items: page, nextCursor }
@@ -3124,6 +3168,8 @@ export type NotificationType =
   | "rank_lead_weekly"
   | "rank_lead_general"
   | "report_available"
+  | "post_reaction"
+  | "post_comment"
 
 export type AppNotification = {
   id: string
@@ -3949,6 +3995,81 @@ async function attachCommentAvatars(comments: PostComment[]) {
   for (const c of comments) c.avatar = avatarMap.get(c.username) ?? null
 }
 
+/** Cómo se nombra cada tipo de post en las notificaciones de interacción. */
+const POST_TYPE_LABEL: Record<InteractivePostType, string> = {
+  report: "tu reporte de peso",
+  routine: "tu rutina",
+  pr: "tu PR",
+}
+
+/**
+ * Resuelve autor + grupo de un post interactivo del feed. `postId` es el id de
+ * fila para reportes y el `share_id` para rutinas/PRs (una fila por grupo; se
+ * toma la primera, alcanza para linkear la notificación a un grupo válido).
+ */
+async function resolveInteractivePost(
+  postType: InteractivePostType,
+  postId: string,
+): Promise<{ username: string; group_id: string } | null> {
+  if (postType === "report") {
+    const { data } = await supabase
+      .from("bi_weekly_reports")
+      .select("username, group_id")
+      .eq("id", postId)
+      .maybeSingle()
+    return (data as any) ?? null
+  }
+
+  const table = postType === "pr" ? "shared_prs" : "shared_routines"
+  const { data } = await supabase
+    .from(table)
+    .select("username, group_id")
+    .eq("share_id", postId)
+    .limit(1)
+  if (data && data.length > 0) return data[0] as any
+
+  // Fallback para filas viejas sin share_id, donde el feed expone el id de fila.
+  const { data: byId } = await supabase.from(table).select("username, group_id").eq("id", postId).limit(1)
+  return byId && byId.length > 0 ? (byId[0] as any) : null
+}
+
+/**
+ * Notifica al autor del post que alguien reaccionó/comentó: fila en
+ * `notifications` (campanita) + Web Push a sus dispositivos suscriptos.
+ * Nunca notifica interacciones con posts propios. Best-effort: si falla,
+ * la reacción/comentario ya se guardó y no se revierte nada.
+ */
+async function notifyPostInteraction(params: {
+  postType: InteractivePostType
+  postId: string
+  actor: string
+  type: "post_reaction" | "post_comment"
+  title: string
+  message: string
+}) {
+  try {
+    const post = await resolveInteractivePost(params.postType, params.postId)
+    if (!post || post.username === params.actor) return
+
+    await supabase.from("notifications").insert({
+      user_username: post.username,
+      group_id: post.group_id,
+      notification_type: params.type,
+      title: params.title,
+      message: params.message,
+    })
+
+    await sendPushToUser(post.username, {
+      title: params.title,
+      body: params.message,
+      url: "/",
+      tag: `${params.type}-${params.postType}-${params.postId}`,
+    })
+  } catch (err) {
+    console.error("[v0] Error notificando interacción de post:", err)
+  }
+}
+
 /**
  * Setea la reacción del usuario en un post. Una sola por persona: tocar el mismo
  * emoji la saca, tocar otro la reemplaza. Devuelve el emoji final (o null).
@@ -3987,6 +4108,17 @@ export async function setPostReaction(input: {
     .from("post_reactions")
     .insert({ post_type: postType, post_id: postId, username, emoji })
   if (error) return { success: false, error: error.message, emoji: null as string | null }
+
+  // Solo la primera reacción de la persona notifica (reemplazar emoji no re-notifica).
+  await notifyPostInteraction({
+    postType,
+    postId,
+    actor: username,
+    type: "post_reaction",
+    title: "Nueva reacción",
+    message: `${username} reaccionó ${emoji} a ${POST_TYPE_LABEL[postType]}`,
+  })
+
   return { success: true, emoji: emoji as string | null }
 }
 
@@ -4038,12 +4170,60 @@ export async function addPostComment(input: {
 
   const comment = data as PostComment
   await attachCommentAvatars([comment])
+
+  const excerpt = body.length > 80 ? `${body.slice(0, 80)}…` : body
+  await notifyPostInteraction({
+    postType: input.postType,
+    postId: input.postId,
+    actor: input.username,
+    type: "post_comment",
+    title: "Nuevo comentario",
+    message: `${input.username} comentó ${POST_TYPE_LABEL[input.postType]}: "${excerpt}"`,
+  })
+
   return { success: true, comment }
 }
 
 /** Solo el autor del comentario puede borrarlo (se chequea acá, la RLS es permisiva). */
 export async function deletePostComment(id: string, username: string) {
   const { error } = await supabase.from("post_comments").delete().eq("id", id).eq("username", username)
+  if (error) return { success: false, error: error.message }
+  return { success: true }
+}
+
+// ===========================================================================
+// Web Push: suscripciones por dispositivo (tabla push_subscriptions, script 43)
+// ===========================================================================
+
+/**
+ * Guarda (o refresca) la suscripción push de un dispositivo. El endpoint es
+ * único: si otro usuario se loguea en el mismo dispositivo, el upsert le
+ * transfiere la suscripción.
+ */
+export async function savePushSubscription(
+  username: string,
+  sub: { endpoint: string; keys: { p256dh: string; auth: string } },
+) {
+  const { error } = await supabase.from("push_subscriptions").upsert(
+    {
+      username,
+      endpoint: sub.endpoint,
+      p256dh: sub.keys.p256dh,
+      auth: sub.keys.auth,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "endpoint" },
+  )
+  if (error) {
+    console.error("[v0] Error guardando suscripción push:", error)
+    return { success: false, error: error.message }
+  }
+  return { success: true }
+}
+
+/** Da de baja la suscripción push de un dispositivo (logout / desactivar avisos). */
+export async function deletePushSubscription(endpoint: string) {
+  const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint)
   if (error) return { success: false, error: error.message }
   return { success: true }
 }

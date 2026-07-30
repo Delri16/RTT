@@ -79,7 +79,12 @@ export default function NotificationsPage() {
           notifications.map((n) => (
             <Link
               key={n.id}
-              href={`/groups/${n.group_id}`}
+              // Reacciones/comentarios pasan en el feed de Inicio; el resto, en el grupo.
+              href={
+                n.notification_type === "post_reaction" || n.notification_type === "post_comment"
+                  ? "/"
+                  : `/groups/${n.group_id}`
+              }
               onClick={() => markAsRead(n.id)}
               className="block active:scale-[0.99] transition"
             >
