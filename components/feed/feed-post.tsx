@@ -1,13 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { Dumbbell, Scale, Clock, Trophy, ArrowUp } from "lucide-react"
+import { Dumbbell, Scale, Clock, Trophy, ArrowUp, LineChart } from "lucide-react"
 import UserAvatar from "@/components/user-avatar"
 import type { FeedItem } from "@/lib/actions"
 import { timeAgo } from "@/lib/date-utils"
 import RoutineFeedCard from "@/components/feed/routine-feed-card"
 import PostInteractions from "@/components/feed/post-interactions"
 import ReportVerdictCard, { VERDICT_RING } from "@/components/feed/report-verdict-card"
+import ReportHistoryDrawer from "@/components/feed/report-history-drawer"
 import { getReportVerdict } from "@/lib/report-verdict"
 import type { PostInteractions as PostInteractionsData } from "@/lib/actions"
 
@@ -32,6 +34,8 @@ function PostHeader({ item }: { item: FeedItem }) {
 }
 
 export default function FeedPost({ item, interactions }: { item: FeedItem; interactions?: PostInteractionsData }) {
+  const [historyOpen, setHistoryOpen] = useState(false)
+
   if (item.type === "activity") {
     return (
       <article className="bg-white rounded-2xl shadow-soft border border-black/5 overflow-hidden card-interactive">
@@ -116,7 +120,11 @@ export default function FeedPost({ item, interactions }: { item: FeedItem; inter
       className={`bg-white rounded-2xl shadow-soft border-2 overflow-hidden card-interactive ${VERDICT_RING[verdict.level]}`}
     >
       <PostHeader item={item} />
-      <div className="flex items-center gap-3 px-4 py-3">
+      <button
+        type="button"
+        onClick={() => setHistoryOpen(true)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-black/[0.02]"
+      >
         <div className="w-11 h-11 rounded-xl bg-toro-secondary/20 flex items-center justify-center shrink-0">
           <Scale className="w-6 h-6 text-toro-foreground/70" />
         </div>
@@ -124,11 +132,14 @@ export default function FeedPost({ item, interactions }: { item: FeedItem; inter
           <p className="text-toro-foreground">
             Subió su reporte de peso: <span className="font-semibold">{item.weight} kg</span>
           </p>
+          <p className="flex items-center gap-1 text-xs text-toro-foreground/40">
+            <LineChart className="w-3 h-3" /> Ver evolución
+          </p>
         </div>
         <div className="shrink-0 rounded-full bg-toro-accent/15 text-toro-accent font-bold text-sm px-3 py-1">
           +{item.points}
         </div>
-      </div>
+      </button>
       <ReportVerdictCard verdict={verdict} weight={item.weight} />
       {photos.length > 0 && (
         <div className={`grid gap-0.5 ${photos.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
@@ -145,6 +156,12 @@ export default function FeedPost({ item, interactions }: { item: FeedItem; inter
         </div>
       )}
       <PostInteractions postType="report" postId={item.id} initial={interactions} />
+      <ReportHistoryDrawer
+        username={item.username}
+        goal={item.goal}
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+      />
     </article>
   )
 }
