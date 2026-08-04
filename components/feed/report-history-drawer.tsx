@@ -11,7 +11,43 @@ type ReportRow = {
   id: string
   reported_weight: number
   report_date: string
+  scale_photo_url: string | null
+  body_photo_url: string | null
   groups?: { name: string } | null
+}
+
+function BeforeAfter({
+  label,
+  first,
+  last,
+}: {
+  label: string
+  first: { url: string; date: string; weight: number }
+  last: { url: string; date: string; weight: number }
+}) {
+  return (
+    <div>
+      <h3 className="text-sm font-bold text-toro-foreground mb-1">{label}</h3>
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          { tag: "Antes", ...first },
+          { tag: "Ahora", ...last },
+        ].map((p, i) => (
+          <div key={i} className="rounded-xl overflow-hidden bg-toro-background relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={p.url || "/placeholder.svg"} alt={p.tag} className="w-full aspect-square object-cover" />
+            <div className="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[11px] px-2 py-1 flex items-center justify-between">
+              <span className="font-bold uppercase tracking-wide">{p.tag}</span>
+              <span>
+                {p.weight} kg ·{" "}
+                {new Date(p.date).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 const LEVEL_DOT: Record<VerdictLevel, string> = {
@@ -69,6 +105,21 @@ export default function ReportHistoryDrawer({
     [ascending],
   )
 
+  function firstAndLast(key: "scale_photo_url" | "body_photo_url") {
+    const withPhoto = ascending.filter((r) => r[key])
+    if (withPhoto.length < 2) return null
+    const first = withPhoto[0]
+    const last = withPhoto[withPhoto.length - 1]
+    if (first.id === last.id) return null
+    return {
+      first: { url: first[key] as string, date: first.report_date, weight: first.reported_weight },
+      last: { url: last[key] as string, date: last.report_date, weight: last.reported_weight },
+    }
+  }
+
+  const scaleComparison = useMemo(() => firstAndLast("scale_photo_url"), [ascending])
+  const bodyComparison = useMemo(() => firstAndLast("body_photo_url"), [ascending])
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[92vh]">
@@ -92,6 +143,9 @@ export default function ReportHistoryDrawer({
             <p className="text-sm text-toro-foreground/40 py-2">Todavía no hay reportes.</p>
           ) : (
             <>
+              {bodyComparison && <BeforeAfter label="Antes / Ahora (cuerpo)" {...bodyComparison} />}
+              {scaleComparison && <BeforeAfter label="Antes / Ahora (balanza)" {...scaleComparison} />}
+
               {chartData.length >= 2 && (
                 <div>
                   <h3 className="text-sm font-bold text-toro-foreground mb-1">Peso a lo largo del tiempo</h3>
@@ -120,7 +174,16 @@ export default function ReportHistoryDrawer({
                       className="flex items-center justify-between bg-white rounded-xl border border-black/5 px-3 py-2"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${LEVEL_DOT[r.verdict.level]}`} />
+                        {r.scale_photo_url || r.body_photo_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={r.body_photo_url || r.scale_photo_url || "/placeholder.svg"}
+                            alt=""
+                            className="w-9 h-9 rounded-lg object-cover shrink-0 bg-toro-background"
+                          />
+                        ) : (
+                          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${LEVEL_DOT[r.verdict.level]}`} />
+                        )}
                         <div className="min-w-0">
                           <div className="text-sm">
                             <span className="font-bold text-toro-foreground">{r.reported_weight} kg</span>
