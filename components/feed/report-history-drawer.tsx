@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
-import { Scale, Loader2 } from "lucide-react"
+import { Scale, Loader2, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { getUserReports } from "@/lib/actions"
 import { getReportVerdict, VerdictLevel } from "@/lib/report-verdict"
@@ -16,14 +16,18 @@ type ReportRow = {
   groups?: { name: string } | null
 }
 
+type Photo = { url: string; date: string; weight: number; label: string }
+
 function BeforeAfter({
   label,
   first,
   last,
+  onOpen,
 }: {
   label: string
-  first: { url: string; date: string; weight: number }
-  last: { url: string; date: string; weight: number }
+  first: Photo
+  last: Photo
+  onOpen: (url: string) => void
 }) {
   return (
     <div>
@@ -33,7 +37,12 @@ function BeforeAfter({
           { tag: "Antes", ...first },
           { tag: "Ahora", ...last },
         ].map((p, i) => (
-          <div key={i} className="rounded-xl overflow-hidden bg-toro-background relative">
+          <button
+            key={i}
+            type="button"
+            onClick={() => onOpen(p.url)}
+            className="rounded-xl overflow-hidden bg-toro-background relative text-left"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.url || "/placeholder.svg"} alt={p.tag} className="w-full aspect-square object-cover" />
             <div className="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[11px] px-2 py-1 flex items-center justify-between">
@@ -43,9 +52,87 @@ function BeforeAfter({
                 {new Date(p.date).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
               </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+/** Visor a pantalla completa con carousel: swipe/flechas entre todas las fotos del historial. */
+function PhotoLightbox({
+  photos,
+  index,
+  onIndexChange,
+  onClose,
+}: {
+  photos: Photo[]
+  index: number
+  onIndexChange: (i: number) => void
+  onClose: () => void
+}) {
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const photo = photos[index]
+  if (!photo) return null
+
+  const go = (delta: number) => onIndexChange((index + delta + photos.length) % photos.length)
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] bg-black/95 flex flex-col"
+      onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
+      onTouchEnd={(e) => {
+        if (touchStartX == null) return
+        const dx = e.changedTouches[0].clientX - touchStartX
+        if (Math.abs(dx) > 40) go(dx > 0 ? -1 : 1)
+        setTouchStartX(null)
+      }}
+    >
+      <div className="flex items-center justify-between px-4 py-3 text-white shrink-0">
+        <span className="text-sm font-semibold">
+          {photo.label} · {photo.weight} kg ·{" "}
+          {new Date(photo.date).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+        </span>
+        <button type="button" onClick={onClose} aria-label="Cerrar" className="p-1">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+        {photos.length > 1 && (
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Foto anterior"
+            className="absolute left-1 z-10 p-2 text-white/80 hover:text-white"
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </button>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={photo.url || "/placeholder.svg"} alt="" className="max-w-full max-h-full object-contain" />
+        {photos.length > 1 && (
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Foto siguiente"
+            className="absolute right-1 z-10 p-2 text-white/80 hover:text-white"
+          >
+            <ChevronRight className="w-8 h-8" />
+          </button>
+        )}
+      </div>
+
+      {photos.length > 1 && (
+        <div className="flex items-center justify-center gap-1.5 py-3 shrink-0">
+          {photos.map((_, i) => (
+            <span
+              key={i}
+              className={`w-1.5 h-1.5 rounded-full ${i === index ? "bg-white" : "bg-white/30"}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -105,20 +192,39 @@ export default function ReportHistoryDrawer({
     [ascending],
   )
 
-  function firstAndLast(key: "scale_photo_url" | "body_photo_url") {
+  function firstAndLast(key: "scale_photo_url" | "body_photo_url", label: string) {
     const withPhoto = ascending.filter((r) => r[key])
     if (withPhoto.length < 2) return null
     const first = withPhoto[0]
     const last = withPhoto[withPhoto.length - 1]
     if (first.id === last.id) return null
     return {
-      first: { url: first[key] as string, date: first.report_date, weight: first.reported_weight },
-      last: { url: last[key] as string, date: last.report_date, weight: last.reported_weight },
+      first: { url: first[key] as string, date: first.report_date, weight: first.reported_weight, label },
+      last: { url: last[key] as string, date: last.report_date, weight: last.reported_weight, label },
     }
   }
 
-  const scaleComparison = useMemo(() => firstAndLast("scale_photo_url"), [ascending])
-  const bodyComparison = useMemo(() => firstAndLast("body_photo_url"), [ascending])
+  const scaleComparison = useMemo(() => firstAndLast("scale_photo_url", "Balanza"), [ascending])
+  const bodyComparison = useMemo(() => firstAndLast("body_photo_url", "Cuerpo"), [ascending])
+
+  // Todas las fotos en orden cronológico, para el carousel del visor a pantalla completa.
+  const allPhotos = useMemo<Photo[]>(
+    () =>
+      ascending.flatMap((r) => {
+        const out: Photo[] = []
+        if (r.body_photo_url) out.push({ url: r.body_photo_url, date: r.report_date, weight: r.reported_weight, label: "Cuerpo" })
+        if (r.scale_photo_url) out.push({ url: r.scale_photo_url, date: r.report_date, weight: r.reported_weight, label: "Balanza" })
+        return out
+      }),
+    [ascending],
+  )
+
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
+  function openPhoto(url: string) {
+    const i = allPhotos.findIndex((p) => p.url === url)
+    if (i >= 0) setLightboxIndex(i)
+  }
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -143,8 +249,8 @@ export default function ReportHistoryDrawer({
             <p className="text-sm text-toro-foreground/40 py-2">Todavía no hay reportes.</p>
           ) : (
             <>
-              {bodyComparison && <BeforeAfter label="Antes / Ahora (cuerpo)" {...bodyComparison} />}
-              {scaleComparison && <BeforeAfter label="Antes / Ahora (balanza)" {...scaleComparison} />}
+              {bodyComparison && <BeforeAfter label="Antes / Ahora (cuerpo)" onOpen={openPhoto} {...bodyComparison} />}
+              {scaleComparison && <BeforeAfter label="Antes / Ahora (balanza)" onOpen={openPhoto} {...scaleComparison} />}
 
               {chartData.length >= 2 && (
                 <div>
@@ -175,12 +281,18 @@ export default function ReportHistoryDrawer({
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         {r.scale_photo_url || r.body_photo_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={r.body_photo_url || r.scale_photo_url || "/placeholder.svg"}
-                            alt=""
-                            className="w-9 h-9 rounded-lg object-cover shrink-0 bg-toro-background"
-                          />
+                          <button
+                            type="button"
+                            onClick={() => openPhoto((r.body_photo_url || r.scale_photo_url) as string)}
+                            className="shrink-0"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={r.body_photo_url || r.scale_photo_url || "/placeholder.svg"}
+                              alt=""
+                              className="w-9 h-9 rounded-lg object-cover bg-toro-background"
+                            />
+                          </button>
                         ) : (
                           <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${LEVEL_DOT[r.verdict.level]}`} />
                         )}
@@ -207,6 +319,15 @@ export default function ReportHistoryDrawer({
           )}
         </div>
       </DrawerContent>
+
+      {lightboxIndex != null && (
+        <PhotoLightbox
+          photos={allPhotos}
+          index={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </Drawer>
   )
 }
