@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { ArrowLeft, Users, Plus, Settings, Copy, Check, LogOut, Trophy, Share2 } from 'lucide-react'
+import { ArrowLeft, Users, Plus, Settings, Copy, Check, LogOut, Trophy, Share2, CalendarDays } from 'lucide-react'
 import { useApp } from "@/app/app-provider"
 import { getGroupDetails, leaveGroup, getWeeklyWinners, getGroupWeeklyRecords } from "@/lib/actions"
 import ActivityManager from "@/components/activity-manager"
@@ -26,6 +26,7 @@ import RankingSelector from "@/components/ranking-selector"
 import DownloadApp from "@/components/download-app"
 import GroupActivityHistory from "@/components/group-activity-history"
 import RodeosTab from "@/components/rodeos-tab"
+import GroupCalendar from "@/components/group-calendar"
 
 export default function GroupDetailPage() {
   const { username } = useApp()
@@ -229,13 +230,17 @@ export default function GroupDetailPage() {
       )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="general" className="flex items-center gap-1.5 px-1">
+            <Users className="w-4 h-4 shrink-0" />
             General
           </TabsTrigger>
-          <TabsTrigger value="rodeos" className="flex items-center gap-2">
-            <Trophy className="w-4 h-4" />
+          <TabsTrigger value="calendario" className="flex items-center gap-1.5 px-1">
+            <CalendarDays className="w-4 h-4 shrink-0" />
+            Calendario
+          </TabsTrigger>
+          <TabsTrigger value="rodeos" className="flex items-center gap-1.5 px-1">
+            <Trophy className="w-4 h-4 shrink-0" />
             Rodeos
           </TabsTrigger>
         </TabsList>
@@ -317,6 +322,10 @@ export default function GroupDetailPage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="calendario">
+          <GroupCalendar groupId={groupId} members={members} currentUsername={username!} />
         </TabsContent>
 
         <TabsContent value="rodeos">

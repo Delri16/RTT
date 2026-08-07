@@ -1,3 +1,31 @@
+export const AR_TIME_ZONE = "America/Argentina/Buenos_Aires"
+
+// Clave "YYYY-MM-DD" del día EN HORA ARGENTINA de un timestamp de la DB.
+// Es lo que usa el calendario de grupo para agrupar actividades por día sin
+// depender de la zona horaria del navegador.
+export function argDayKey(date: string | Date): string {
+  const d = typeof date === "string" ? new Date(date) : date
+  return d.toLocaleDateString("en-CA", { timeZone: AR_TIME_ZONE })
+}
+
+// Misma clave pero a partir de los componentes de un Date "de calendario"
+// (año/mes/día tal cual se dibujan en la grilla), sin conversión de zona.
+export function toDayKey(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
+// "2026-08-04" -> instante ISO del arranque/fin de ese día en Argentina (UTC-3).
+export function argDayStartISO(dayKey: string): string {
+  return new Date(`${dayKey}T00:00:00-03:00`).toISOString()
+}
+
+export function argDayEndISO(dayKey: string): string {
+  return new Date(`${dayKey}T23:59:59.999-03:00`).toISOString()
+}
+
 export function formatActivityDate(dateString: string): string {
   const date = new Date(dateString)
 

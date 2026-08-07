@@ -31,6 +31,12 @@ const AVATARS = {
   phoenix: "🔥",
 }
 
+// Expuesto para lugares donde el avatar se dibuja a mano en tamaño mini
+// (celdas del calendario de grupo, por ejemplo) y el componente no sirve.
+export function avatarEmoji(avatarId?: string | null): string {
+  return AVATARS[(avatarId || "default") as keyof typeof AVATARS] || AVATARS.default
+}
+
 const SIZE_CLASSES = {
   sm: "w-8 h-8 text-lg",
   md: "w-10 h-10 text-xl",

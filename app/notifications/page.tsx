@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Bell, CheckCheck } from "lucide-react"
+import { ArrowLeft, Bell, CheckCheck, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import NotificationIcon from "@/components/notifications/notification-icon"
 import { useApp } from "@/app/app-provider"
@@ -79,11 +79,14 @@ export default function NotificationsPage() {
           notifications.map((n) => (
             <Link
               key={n.id}
-              // Reacciones/comentarios pasan en el feed de Inicio; el resto, en el grupo.
+              // Reacciones/comentarios pasan en el feed de Inicio; las etiquetas hay
+              // que aceptarlas/rechazarlas en Actividades Compartidas; el resto, en el grupo.
               href={
                 n.notification_type === "post_reaction" || n.notification_type === "post_comment"
                   ? "/"
-                  : `/groups/${n.group_id}`
+                  : n.notification_type === "activity_tag"
+                    ? "/activity-tags"
+                    : `/groups/${n.group_id}`
               }
               onClick={() => markAsRead(n.id)}
               className="block active:scale-[0.99] transition"
@@ -106,7 +109,16 @@ export default function NotificationsPage() {
                     {!n.is_read && <span className="w-2 h-2 rounded-full bg-toro-primary shrink-0" />}
                   </div>
                   <p className="text-sm text-toro-foreground/60 mt-0.5">{n.message}</p>
-                  <p className="text-xs text-toro-foreground/40 mt-1">{timeAgo(n.created_at)}</p>
+                  <p className="text-xs text-toro-foreground/40 mt-1 flex items-center gap-1 flex-wrap">
+                    {n.group_name && (
+                      <>
+                        <Users className="w-3 h-3 shrink-0" />
+                        <span className="truncate max-w-[10rem]">{n.group_name}</span>
+                        <span>·</span>
+                      </>
+                    )}
+                    {timeAgo(n.created_at)}
+                  </p>
                 </div>
               </div>
             </Link>

@@ -457,6 +457,21 @@ async function getUserGoal(username: string): Promise<string> {
   return data?.goal ?? "maintain"
 }
 
+// Puntos "base" de una actividad (sin el ajuste por objetivo), a partir de la
+// definición en group_activities. Mismo criterio que logActivity. Devuelve null
+// si no se puede calcular (definición faltante o per_minute sin minutos) para
+// que quien llama caiga al valor ya guardado.
+function computeBaseActivityPoints(definition: any, minutesPerformed: number | null | undefined): number | null {
+  if (!definition) return null
+
+  if (definition.activity_type === "per_minute") {
+    if (!minutesPerformed || !definition.points_per_minute) return null
+    return Math.floor(minutesPerformed * definition.points_per_minute)
+  }
+
+  return typeof definition.points === "number" ? definition.points : null
+}
+
 export async function createGroupActivity(formData: FormData) {
   const group_id = formData.get("group_id") as string
   const name = formData.get("name") as string
@@ -1769,6 +1784,32 @@ export async function getAllGroupActivities(groupId: string) {
   }
 
   return { success: true, activities: allActivities }
+}
+
+// Actividades de un grupo dentro de un rango de fechas. La usa el calendario
+// del grupo (solo lectura): trae la ventana visible en vez de todo el historial.
+export async function getGroupActivitiesInRange(groupId: string, fromISO: string, toISO: string) {
+  const { data, error } = await supabase
+    .from("user_activities")
+    .select(`
+      id,
+      username,
+      points_earned,
+      minutes_performed,
+      completed_at,
+      group_activities (name, activity_type)
+    `)
+    .eq("group_id", groupId)
+    .gte("completed_at", fromISO)
+    .lte("completed_at", toISO)
+    .order("completed_at", { ascending: true })
+
+  if (error) {
+    console.log("[v0] Error fetching group activities in range:", error.message)
+    return { success: false, error: error.message, activities: [] as any[] }
+  }
+
+  return { success: true, activities: data || [] }
 }
 
 export async function getUserActivities(username: string, limit = 10) {
@@ -3183,10 +3224,26 @@ export type AppNotification = {
   is_read: boolean
   read_at: string | null
   created_at: string
+  // Resuelto acá (la tabla solo guarda group_id) para poder mostrar en qué grupo
+  // pasó cada cosa sin meterlo en el texto de cada trigger.
+  group_name?: string | null
+}
+
+// La RLS de `notifications` filtra por un claim de JWT ("username") que el anon key
+// nunca lleva, así que leer/actualizar con el cliente normal devuelve vacío en
+// silencio. Todo lo de notificaciones va por el service role (siempre acotado a
+// mano por user_username); si la key no está, se degrada al cliente anon.
+function notificationsClient() {
+  try {
+    return getSupabaseAdmin()
+  } catch (err) {
+    console.warn("[v0] SUPABASE_SERVICE_ROLE_KEY no disponible, usando anon para notificaciones")
+    return supabase
+  }
 }
 
 export async function getUserNotifications(username: string) {
-  const { data: notifications, error } = await supabase
+  const { data: notifications, error } = await notificationsClient()
     .from("notifications")
     .select("*")
     .eq("user_username", username)
@@ -3198,11 +3255,22 @@ export async function getUserNotifications(username: string) {
     return { success: false, error: error.message, notifications: [] as AppNotification[] }
   }
 
-  return { success: true, notifications: (notifications || []) as AppNotification[] }
+  const rows = notifications || []
+  const groupIds = [...new Set(rows.map((n: any) => n.group_id).filter(Boolean))]
+
+  let groupNames = new Map<string, string>()
+  if (groupIds.length > 0) {
+    const { data: groups } = await supabase.from("groups").select("id, name").in("id", groupIds)
+    groupNames = new Map((groups || []).map((g: any) => [g.id, g.name]))
+  }
+
+  const enriched = rows.map((n: any) => ({ ...n, group_name: groupNames.get(n.group_id) ?? null }))
+
+  return { success: true, notifications: enriched as AppNotification[] }
 }
 
 export async function getUnreadNotificationsCount(username: string) {
-  const { count, error } = await supabase
+  const { count, error } = await notificationsClient()
     .from("notifications")
     .select("*", { count: "exact", head: true })
     .eq("user_username", username)
@@ -3217,7 +3285,7 @@ export async function getUnreadNotificationsCount(username: string) {
 }
 
 export async function markNotificationAsRead(notificationId: string, username: string) {
-  const { error } = await supabase
+  const { error } = await notificationsClient()
     .from("notifications")
     .update({
       is_read: true,
@@ -3236,7 +3304,7 @@ export async function markNotificationAsRead(notificationId: string, username: s
 }
 
 export async function markAllNotificationsAsRead(username: string) {
-  const { error } = await supabase
+  const { error } = await notificationsClient()
     .from("notifications")
     .update({
       is_read: true,
@@ -3302,25 +3370,96 @@ export async function getPendingActivityTags(username: string) {
 
     console.log("[v0] Found", notifications.length, "pending notifications, enriching with details...")
 
-    const enrichedTags = []
+    const tagIds = notifications.map((n: any) => n.activity_tag_id).filter(Boolean)
 
-    for (const notif of notifications) {
-      enrichedTags.push({
-        id: notif.activity_tag_id,
+    if (tagIds.length === 0) {
+      return { success: true, tags: [] }
+    }
+
+    // activity_tags tiene RLS por claim de JWT y las server actions usan el anon key
+    // sin ese claim -> hay que pasar por el RPC SECURITY DEFINER (script 23).
+    const { data: rawTags, error: tagsError } = await supabase.rpc("get_activity_tags_by_ids", {
+      p_tag_ids: tagIds,
+    })
+
+    if (tagsError) {
+      console.error("[v0] Error fetching activity tags:", tagsError.message)
+      return { success: true, tags: [], error: tagsError.message }
+    }
+
+    const pendingTags = (rawTags || []).filter((t: any) => t.status === "pending")
+
+    if (pendingTags.length === 0) {
+      return { success: true, tags: [] }
+    }
+
+    // Enriquecer con la actividad original, el grupo, el avatar de quien etiquetó
+    // y los puntos que le corresponderían a ESTE usuario según su objetivo.
+    const activityIds = [...new Set(pendingTags.map((t: any) => t.activity_id).filter(Boolean))]
+    const groupIds = [...new Set(pendingTags.map((t: any) => t.group_id).filter(Boolean))]
+    const taggerNames = [...new Set(pendingTags.map((t: any) => t.tagged_by).filter(Boolean))]
+
+    const [userActivitiesRes, groupsRes, taggersRes, goal] = await Promise.all([
+      supabase
+        .from("user_activities")
+        .select(`
+          id,
+          points_earned,
+          minutes_performed,
+          completed_at,
+          group_activities (name, activity_type, points, points_per_minute, aerobic_pct)
+        `)
+        .in("id", activityIds),
+      supabase.from("groups").select("id, name").in("id", groupIds),
+      supabase.from("profiles").select("username, avatar, avatar_url").in("username", taggerNames),
+      getUserGoal(username),
+    ])
+
+    const activityById = new Map((userActivitiesRes.data || []).map((a: any) => [a.id, a]))
+    const groupById = new Map((groupsRes.data || []).map((g: any) => [g.id, g]))
+    const taggerByName = new Map((taggersRes.data || []).map((p: any) => [p.username, p]))
+    const notifByTagId = new Map(notifications.map((n: any) => [n.activity_tag_id, n]))
+
+    const enrichedTags = pendingTags.map((tag: any) => {
+      const userActivity: any = activityById.get(tag.activity_id)
+      const definition = userActivity?.group_activities
+      const group: any = groupById.get(tag.group_id)
+      const tagger: any = taggerByName.get(tag.tagged_by)
+
+      const basePoints = computeBaseActivityPoints(definition, userActivity?.minutes_performed)
+      const pointsForYou =
+        basePoints != null
+          ? applyGoalMultiplier(basePoints, definition?.aerobic_pct, goal)
+          : (userActivity?.points_earned ?? 0)
+
+      return {
+        id: tag.id,
+        activity_id: tag.activity_id,
+        group_id: tag.group_id,
+        tagged_by: tag.tagged_by,
+        tagged_user: tag.tagged_user,
+        status: tag.status,
+        created_at: tag.created_at,
         activity: {
-          id: notif.activity_tag_id,
-          points: 0,
+          id: tag.activity_id,
+          name: definition?.name || "Actividad",
+          points: pointsForYou,
+          minutes: userActivity?.minutes_performed ?? null,
+          completed_at: userActivity?.completed_at ?? tag.created_at,
+          aerobic_pct: definition?.aerobic_pct ?? 50,
         },
         group: {
-          id: notif.group_id,
-          name: "",
+          id: tag.group_id,
+          name: group?.name || "",
         },
         taggedBy: {
-          username: notif.title?.split(" ")[0] || "Unknown",
+          username: tag.tagged_by,
+          avatar: tagger?.avatar_url || tagger?.avatar || "default",
         },
-        notification: notif,
-      })
-    }
+        goal,
+        notification: notifByTagId.get(tag.id) ?? null,
+      }
+    })
 
     console.log("[v0] Returning", enrichedTags.length, "enriched tags")
     return { success: true, tags: enrichedTags }
@@ -3349,6 +3488,24 @@ export async function acceptActivityTag(tagId: string, username: string) {
 
     console.log("[v0] Tag and activity found, creating new activity for user")
 
+    // Los puntos NO se copian de quien etiquetó: se recalculan desde la definición
+    // de la actividad y se ajustan por el objetivo de quien acepta (mismo criterio
+    // que logActivity). Si no se puede recalcular, se cae a los puntos originales.
+    const { data: definition } = await supabase
+      .from("group_activities")
+      .select("points, points_per_minute, activity_type, aerobic_pct")
+      .eq("id", originalActivity.activity_id)
+      .single()
+
+    const basePoints = computeBaseActivityPoints(definition, originalActivity.minutes_performed)
+    const goal = await getUserGoal(username)
+    const points_earned =
+      basePoints != null
+        ? applyGoalMultiplier(basePoints, definition?.aerobic_pct, goal)
+        : originalActivity.points_earned
+
+    console.log("[v0] Points for tagged user:", { basePoints, goal, points_earned })
+
     // Create a new activity for the tagged user with the same details
     const { data: newActivity, error: insertError } = await supabase
       .from("user_activities")
@@ -3356,7 +3513,7 @@ export async function acceptActivityTag(tagId: string, username: string) {
         username: username,
         group_id: tag.group_id,
         activity_id: originalActivity.activity_id,
-        points_earned: originalActivity.points_earned,
+        points_earned,
         minutes_performed: originalActivity.minutes_performed,
         completed_at: originalActivity.completed_at,
       })

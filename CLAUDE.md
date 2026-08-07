@@ -143,6 +143,30 @@ Además, `post_reaction` / `post_comment` (script 43, ver sección Reacciones y 
 
 **Ya corrido en el proyecto real:** [scripts/40-notification-triggers.sql](scripts/40-notification-triggers.sql). **PERO `pg_cron` sigue sin habilitarse** en el proyecto (verificado 27/7/2026), así que `notify_pending_reports()` existe pero nadie la llama: los avisos `report_available` no se disparan hasta habilitar la extensión (Database → Extensions) y re-correr el bloque `DO` final del script 40, o llamarla desde otro scheduler.
 
+### `notifications` va SIEMPRE por el service role
+
+La RLS de `notifications` (script 19) filtra por `current_setting('request.jwt.claims')->>'username'`, un claim que el anon key **nunca** lleva. Resultado: leer o actualizar la tabla con el cliente normal devolvía vacío / no hacía nada, en silencio — la página de notificaciones estaba muerta y el badge siempre en 0. Por eso `getUserNotifications`, `getUnreadNotificationsCount`, `markNotificationAsRead` y `markAllNotificationsAsRead` pasan por el helper `notificationsClient()` de [lib/actions.ts](lib/actions.ts), que devuelve `getSupabaseAdmin()` (service role) y cae al anon si falta `SUPABASE_SERVICE_ROLE_KEY`. Cada query igual filtra por `user_username` a mano. Si se agregan más lecturas de `notifications`, usar ese helper y no `supabase` directo.
+
+`getUserNotifications` además resuelve el nombre del grupo (`group_name`) con una query extra, porque la tabla solo guarda `group_id` y los textos de los triggers no lo incluyen. La página de notificaciones lo muestra debajo de cada mensaje y manda las de tipo `activity_tag` a `/activity-tags` (donde se aceptan/rechazan), no al grupo.
+
+## Etiquetas de actividad (Actividades Compartidas)
+
+Flujo: `logActivity` crea filas en `activity_tags` (RPC `create_activity_tags`) → trigger crea la notificación → el etiquetado responde en [/activity-tags](app/activity-tags/page.tsx) ([components/activity-tags-panel.tsx](components/activity-tags-panel.tsx)).
+
+- **`getPendingActivityTags` devuelve datos reales.** Antes fabricaba el objeto (`points: 0`, `group.name: ""`, el que etiquetó salía de partir el título de la notificación) y por eso la pantalla mostraba "te ha etiquetado en una actividad" sin nombre, "Grupo desconocido" y "0 pts". Ahora: notificaciones no leídas → RPC `get_activity_tags_by_ids` (SECURITY DEFINER, script 23, necesario porque `activity_tags` también tiene RLS por claim de JWT) → filtra `status = 'pending'` → enriquece con `user_activities` + `group_activities`, `groups` y el avatar de quien etiquetó.
+- **Los puntos NO se copian de quien etiquetó.** `acceptActivityTag` recalcula el puntaje base desde `group_activities` (helper `computeBaseActivityPoints`, mismo criterio que `logActivity`: fijo o `minutos * points_per_minute`) y le aplica `applyGoalMultiplier` con el objetivo de **quien acepta**. Antes insertaba `originalActivity.points_earned` tal cual, así que una actividad 100% aeróbica de 45 pts le daba 45 a alguien con objetivo `gain` en vez de 38. El panel muestra ese mismo número como "X pts para vos" antes de aceptar.
+
+## Calendario del grupo
+
+Tercera pestaña de [app/groups/[id]/page.tsx](app/groups/[id]/page.tsx) (`General / Calendario / Rodeos`), en [components/group-calendar.tsx](components/group-calendar.tsx). Es **solo lectura**: no registra, no edita ni borra nada.
+
+- **Vista Mes:** grilla de 6×7 arrancando lunes. Cada celda se tiñe con `bg-toro-accent` según qué proporción del grupo se movió ese día (4 niveles + leyenda) y muestra hasta 3 emojis de avatar + "+N". Hoy lleva borde `toro-primary`.
+- **Vista Semana:** matriz miembros × 7 días con los puntos de cada uno por día ("–" si no hizo nada), ordenada por puntos de la semana. Entra justo en 375px; si el contenedor es más angosto scrollea sola dentro de su `overflow-x-auto`.
+- Tocar un día (en cualquiera de las dos vistas) abre el detalle debajo: cada persona con su total y los chips de sus actividades (nombre, minutos, puntos).
+- **Datos:** `getGroupActivitiesInRange(groupId, fromISO, toISO)` en [lib/actions.ts](lib/actions.ts) — trae solo la ventana visible, no todo el historial. Los días se agrupan en **hora Argentina** con los helpers nuevos de [lib/date-utils.ts](lib/date-utils.ts) (`argDayKey`, `toDayKey`, `argDayStartISO`, `argDayEndISO`), no con la zona del navegador. `avatarEmoji()` se exporta desde [components/user-avatar.tsx](components/user-avatar.tsx) para dibujar avatares mini en las celdas (el componente `UserAvatar` no sirve en ese tamaño).
+
+No requiere ninguna migración: usa `user_activities`, que ya tiene policy `Public access`.
+
 ## Web Push (notificaciones al teléfono con la app cerrada)
 
 Web Push real con VAPID — reemplaza al viejo esquema "fake" (polling de `notification-listener.tsx` + `showNotification` local, que solo funcionaba con la app abierta y sigue existiendo para etiquetas de actividad).

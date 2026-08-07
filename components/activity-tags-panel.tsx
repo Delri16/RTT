@@ -1,13 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { UserCheck, Clock, Dumbbell, CheckCircle, XCircle, Users } from "lucide-react"
+import UserAvatar from "@/components/user-avatar"
+import { UserCheck, Clock, Dumbbell, CheckCircle, XCircle, Users, Trophy, Timer, CalendarDays } from "lucide-react"
 import { getPendingActivityTags, acceptActivityTag, rejectActivityTag } from "@/lib/actions"
 import { useApp } from "@/app/app-provider"
 import { formatDistanceToNow } from "date-fns"
@@ -21,9 +23,16 @@ interface ActivityTag {
   tagged_user: string
   status: string
   created_at: string
-  activity?: any
-  group?: any
-  tagger_profile?: any
+  activity?: {
+    name?: string
+    points?: number
+    minutes?: number | null
+    completed_at?: string
+    aerobic_pct?: number
+  }
+  group?: { id?: string; name?: string }
+  taggedBy?: { username?: string; avatar?: string }
+  goal?: string
 }
 
 export default function ActivityTagsPanel() {
@@ -48,7 +57,7 @@ export default function ActivityTagsPanel() {
     const result = await getPendingActivityTags(username)
 
     if (result.success) {
-      setTags(result.tags)
+      setTags(result.tags as ActivityTag[])
     }
     setLoading(false)
   }
@@ -89,20 +98,6 @@ export default function ActivityTagsPanel() {
     setProcessingTag(null)
   }
 
-  const formatActivityDetails = (tag: ActivityTag) => {
-    const activity = tag.activity
-    if (!activity) return "Actividad desconocida"
-
-    const activityName = activity.name || activity.activity_name || "Actividad"
-    const points = activity.points_earned || activity.points || 0
-    const minutes = activity.minutes_performed || activity.minutes || 0
-
-    if (minutes > 0) {
-      return `${activityName} (${minutes} min, ${points} pts)`
-    }
-    return `${activityName} (${points} pts)`
-  }
-
   const formatDate = (dateString: string) => {
     try {
       return formatDistanceToNow(new Date(dateString), {
@@ -111,6 +106,20 @@ export default function ActivityTagsPanel() {
       })
     } catch {
       return dateString
+    }
+  }
+
+  const formatCompletedAt = (dateString?: string) => {
+    if (!dateString) return null
+    try {
+      return new Date(dateString).toLocaleDateString("es-AR", {
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    } catch {
+      return null
     }
   }
 
@@ -129,16 +138,16 @@ export default function ActivityTagsPanel() {
   if (tags.length === 0) {
     return (
       <Card className="bg-white shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-toro-primary" />
-            Solicitudes de Actividades Compartidas
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="w-5 h-5 text-toro-primary shrink-0" />
+            Solicitudes pendientes
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <UserCheck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No tienes solicitudes pendientes</p>
+            <p className="text-gray-500">No tenés solicitudes pendientes</p>
           </div>
         </CardContent>
       </Card>
@@ -148,86 +157,119 @@ export default function ActivityTagsPanel() {
   return (
     <>
       <Card className="bg-white shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-toro-primary" />
-            Solicitudes de Actividades Compartidas
-            <Badge variant="secondary" className="ml-auto">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="w-5 h-5 text-toro-primary shrink-0" />
+            <span className="flex-1">Solicitudes pendientes</span>
+            <Badge variant="secondary" className="shrink-0">
               {tags.length}
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-3 sm:px-6">
           <div className="space-y-4">
-            {tags.map((tag) => (
-              <Card key={tag.id} className="border-2 border-blue-100 bg-blue-50/50">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-toro-primary/10 rounded-full flex items-center justify-center">
-                        <Dumbbell className="w-6 h-6 text-toro-primary" />
-                      </div>
-                    </div>
+            {tags.map((tag) => {
+              const completedAt = formatCompletedAt(tag.activity?.completed_at)
+              const minutes = tag.activity?.minutes
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div>
-                          <p className="font-semibold text-toro-foreground">
-                            {tag.tagged_by} te ha etiquetado en una actividad
-                          </p>
-                          <p className="text-sm text-gray-600">{tag.group?.name || "Grupo desconocido"}</p>
-                        </div>
-                        <Badge variant="outline" className="flex-shrink-0">
-                          <Clock className="w-3 h-3 mr-1" />
+              return (
+                <Card key={tag.id} className="border-2 border-toro-primary/20 bg-toro-background/60 overflow-hidden">
+                  <CardContent className="p-3 space-y-3">
+                    {/* Quién te etiquetó */}
+                    <div className="flex items-center gap-3">
+                      <UserAvatar
+                        avatarId={tag.taggedBy?.avatar}
+                        username={tag.tagged_by}
+                        size="md"
+                        className="shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-toro-foreground leading-snug">
+                          <Link
+                            href={`/profile/${encodeURIComponent(tag.tagged_by)}`}
+                            className="font-bold text-toro-primary hover:underline break-words"
+                          >
+                            {tag.tagged_by}
+                          </Link>{" "}
+                          te etiquetó en una actividad
+                        </p>
+                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3 shrink-0" />
                           {formatDate(tag.created_at)}
-                        </Badge>
-                      </div>
-
-                      <div className="bg-white rounded-lg p-3 mb-3">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Dumbbell className="w-4 h-4 text-toro-primary" />
-                          <span className="font-medium">{formatActivityDetails(tag)}</span>
-                        </div>
-                        {tag.activity?.completed_at && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Realizada:{" "}
-                            {new Date(tag.activity.completed_at).toLocaleDateString("es-ES", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => handleAccept(tag)}
-                          disabled={processingTag === tag.id}
-                        >
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          {processingTag === tag.id ? "Aceptando..." : "Aceptar"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
-                          onClick={() => handleRejectClick(tag)}
-                          disabled={processingTag === tag.id}
-                        >
-                          <XCircle className="w-4 h-4 mr-2" />
-                          Rechazar
-                        </Button>
+                        </p>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                    {/* En qué grupo */}
+                    {tag.group?.name && (
+                      <Link href={`/groups/${tag.group_id}`}>
+                        <Badge
+                          variant="outline"
+                          className="bg-white border-toro-accent/40 text-toro-foreground max-w-full"
+                        >
+                          <Users className="w-3 h-3 mr-1 shrink-0" />
+                          <span className="truncate">{tag.group.name}</span>
+                        </Badge>
+                      </Link>
+                    )}
+
+                    {/* Qué actividad */}
+                    <div className="bg-white rounded-lg p-3 space-y-2 border border-gray-100">
+                      <div className="flex items-start gap-2">
+                        <Dumbbell className="w-4 h-4 text-toro-primary shrink-0 mt-0.5" />
+                        <span className="font-semibold text-sm break-words">{tag.activity?.name || "Actividad"}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        <span className="inline-flex items-center gap-1 bg-toro-accent/10 text-toro-accent font-bold rounded-full px-2 py-1">
+                          <Trophy className="w-3 h-3" />
+                          {tag.activity?.points ?? 0} pts para vos
+                        </span>
+                        {minutes ? (
+                          <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 rounded-full px-2 py-1">
+                            <Timer className="w-3 h-3" />
+                            {minutes} min
+                          </span>
+                        ) : null}
+                      </div>
+                      {completedAt && (
+                        <p className="text-xs text-gray-500 flex items-center gap-1">
+                          <CalendarDays className="w-3 h-3 shrink-0" />
+                          Realizada el {completedAt}
+                        </p>
+                      )}
+                      {tag.goal && tag.goal !== "maintain" && (
+                        <p className="text-[11px] text-gray-400 leading-snug">
+                          Puntos ya ajustados a tu objetivo de {tag.goal === "lose" ? "bajar" : "subir"} de peso.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white w-full"
+                        onClick={() => handleAccept(tag)}
+                        disabled={processingTag === tag.id}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-1 shrink-0" />
+                        <span className="truncate">{processingTag === tag.id ? "Aceptando..." : "Aceptar"}</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-200 text-red-600 hover:bg-red-50 bg-transparent w-full"
+                        onClick={() => handleRejectClick(tag)}
+                        disabled={processingTag === tag.id}
+                      >
+                        <XCircle className="w-4 h-4 mr-1 shrink-0" />
+                        <span className="truncate">Rechazar</span>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </CardContent>
       </Card>
@@ -239,13 +281,13 @@ export default function ActivityTagsPanel() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">
-              ¿Estás seguro de que quieres rechazar esta solicitud de actividad compartida?
+              ¿Estás seguro de que querés rechazar esta solicitud de actividad compartida?
             </p>
             <div>
               <Label htmlFor="reason">Motivo (opcional)</Label>
               <Textarea
                 id="reason"
-                placeholder="Explica por qué rechazas esta solicitud..."
+                placeholder="Explicá por qué rechazás esta solicitud..."
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 className="mt-2"
