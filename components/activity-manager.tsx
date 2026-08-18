@@ -1,5 +1,6 @@
 "use client"
 
+import type React from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +10,8 @@ import { Slider } from "@/components/ui/slider"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Edit, Trash2, Save, X, Dumbbell, Clock, Heart, Zap } from "lucide-react"
 import { updateGroupActivity, deleteGroupActivity } from "@/lib/actions"
+import SportIconPicker from "@/components/sport-icon-picker"
+import { isOtherActivityName, sportEmoji, sportLabel } from "@/lib/sport-icons"
 
 interface Activity {
   id: string
@@ -19,6 +22,7 @@ interface Activity {
   min_minutes?: number
   max_minutes?: number
   aerobic_pct?: number
+  icon?: string | null
 }
 
 interface ActivityManagerProps {
@@ -44,6 +48,7 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
       min_minutes: activity.min_minutes?.toString() || "",
       max_minutes: activity.max_minutes?.toString() || "",
       aerobic_pct: typeof activity.aerobic_pct === "number" ? activity.aerobic_pct : 50,
+      icon: activity.icon ?? null,
     })
   }
 
@@ -60,6 +65,8 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
     formData.append("name", editData.name.trim())
     formData.append("activity_type", editData.activity_type)
     formData.append("aerobic_pct", (editData.aerobic_pct ?? 50).toString())
+    // Las actividades genéricas ("Otros") no llevan ícono fijo: se elige al registrar.
+    formData.append("icon", isOtherActivityName(editData.name) ? "" : editData.icon ?? "")
 
     if (editData.activity_type === "fixed") {
       formData.append("points", editData.points)
@@ -113,11 +120,18 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
     )
   }
 
+  // Emoji del deporte si la actividad tiene uno; si no, el ícono genérico de siempre.
+  const activityLeadIcon = (activity: Activity, fallback: React.ReactNode) => {
+    const emoji = sportEmoji(activity.icon)
+    if (emoji) return <span className="text-base leading-none">{emoji}</span>
+    return fallback
+  }
+
   const getActivityDisplay = (activity: Activity) => {
     if (activity.activity_type === "per_minute") {
       return (
         <div className="flex items-center gap-2 flex-wrap">
-          <Clock className="w-4 h-4 text-blue-600" />
+          {activityLeadIcon(activity, <Clock className="w-4 h-4 text-blue-600" />)}
           <span className="font-medium">{activity.name}</span>
           <Badge variant="outline" className="text-xs">
             {activity.points_per_minute} pts/min
@@ -132,7 +146,7 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
 
     return (
       <div className="flex items-center gap-2 flex-wrap">
-        <Dumbbell className="w-4 h-4 text-toro-primary" />
+        {activityLeadIcon(activity, <Dumbbell className="w-4 h-4 text-toro-primary" />)}
         <span className="font-medium">{activity.name}</span>
         <Badge className="bg-toro-accent text-white">+{activity.points} pts</Badge>
         {aerobicBadge(activity)}
@@ -222,6 +236,30 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
                       max={100}
                       step={5}
                     />
+                  </div>
+
+                  <div className="pt-1 border-t">
+                    {isOtherActivityName(editData.name) ? (
+                      <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+                        Actividad genérica: el ícono del deporte se elige cada vez que se registra.
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-[11px] text-gray-500 mb-1.5">
+                          Ícono del deporte (opcional, solo informativo)
+                          {editData.icon && (
+                            <span className="ml-1 font-medium text-toro-foreground">
+                              — {sportEmoji(editData.icon)} {sportLabel(editData.icon)}
+                            </span>
+                          )}
+                        </p>
+                        <SportIconPicker
+                          value={editData.icon ?? null}
+                          onChange={(icon) => setEditData({ ...editData, icon })}
+                          compact
+                        />
+                      </>
+                    )}
                   </div>
                 </div>
 

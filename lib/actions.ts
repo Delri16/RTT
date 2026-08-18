@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js"
 import { supabaseAnonKey, supabaseUrl } from "./supabase"
 import { applyGoalMultiplier, REPORT_POINTS } from "./points"
 import { sendPushToUser } from "./push-server"
+import { getSportIcon, isOtherActivityName, resolveActivityEmoji } from "./sport-icons"
 
 export async function createOrGetProfile(username: string) {
   // Check if profile exists
@@ -472,6 +473,14 @@ function computeBaseActivityPoints(definition: any, minutesPerformed: number | n
   return typeof definition.points === "number" ? definition.points : null
 }
 
+// Ícono de deporte (id del catálogo de lib/sport-icons.ts). Devuelve null si el id
+// no existe o si la actividad es genérica ("Otros"), donde el ícono se elige recién
+// al registrar cada vez. Es 100% informativo: no toca puntos ni ranking.
+function normalizeActivityIcon(raw: FormDataEntryValue | null, activityName?: string | null): string | null {
+  if (activityName && isOtherActivityName(activityName)) return null
+  return getSportIcon(typeof raw === "string" ? raw : null)?.id ?? null
+}
+
 export async function createGroupActivity(formData: FormData) {
   const group_id = formData.get("group_id") as string
   const name = formData.get("name") as string
@@ -486,6 +495,7 @@ export async function createGroupActivity(formData: FormData) {
     activity_type: activity_type || "fixed",
     relation_id: relation_id ? Number.parseInt(relation_id) : null,
     aerobic_pct: Math.min(100, Math.max(0, aerobic_pct)),
+    icon: normalizeActivityIcon(formData.get("icon"), name),
   }
 
   if (activity_type === "per_minute") {
@@ -541,6 +551,7 @@ export async function updateGroupActivity(activityId: string, formData: FormData
     activity_type: activity_type || "fixed",
     relation_id: relation_id ? Number.parseInt(relation_id) : null,
     aerobic_pct: Math.min(100, Math.max(0, aerobic_pct)),
+    icon: normalizeActivityIcon(formData.get("icon"), name),
   }
 
   if (activity_type === "per_minute") {
@@ -638,6 +649,9 @@ export async function logActivity(formData: FormData) {
     : null
   const taggedMembersJson = formData.get("tagged_members") as string | null
   const taggedMembers = taggedMembersJson ? JSON.parse(taggedMembersJson) : []
+  // Deporte elegido al registrar (solo aplica a las actividades genéricas "Otros").
+  const sportIconRaw = formData.get("sport_icon")
+  const sport_icon = getSportIcon(typeof sportIconRaw === "string" ? sportIconRaw : null)?.id ?? null
 
   console.log("[v0] ===== LOG ACTIVITY START =====")
   console.log("[v0] Username:", username)
@@ -655,6 +669,12 @@ export async function logActivity(formData: FormData) {
 
   if (!activity) {
     return { success: false, error: "Activity not found" }
+  }
+
+  // En las actividades genéricas ("Otros") hay que decir de qué deporte se trató:
+  // es lo único que después distingue un registro de otro en el feed y el calendario.
+  if (isOtherActivityName(activity.name) && !sport_icon) {
+    return { success: false, error: "Elegí de qué deporte se trata" }
   }
 
   let points_earned = activity.points
@@ -681,7 +701,15 @@ export async function logActivity(formData: FormData) {
 
   // If activity has a relation, log it in all user's groups with the same relation
   if (activity.relation_id) {
-    const result = await logRelatedActivity(username, activity, points_earned, minutes_performed, taggedMembers, goal)
+    const result = await logRelatedActivity(
+      username,
+      activity,
+      points_earned,
+      minutes_performed,
+      taggedMembers,
+      goal,
+      sport_icon,
+    )
 
     revalidatePath("/")
     revalidatePath("/log")
@@ -703,6 +731,7 @@ export async function logActivity(formData: FormData) {
         activity_id,
         points_earned,
         minutes_performed,
+        sport_icon,
       },
     ])
     .select()
@@ -768,6 +797,7 @@ async function logRelatedActivity(
   minutes_performed: number | null,
   taggedMembers: string[], // Added taggedMembers parameter
   goal: string = "maintain",
+  sport_icon: string | null = null,
 ) {
   // Get all user's groups that have activities with the same relation
   const { data: userGroups, error: userGroupsError } = await supabase
@@ -818,6 +848,7 @@ async function logRelatedActivity(
           group_id: relatedActivity.group_id,
           activity_id: relatedActivity.id,
           points_earned: activityPoints,
+          sport_icon,
           minutes_performed,
         },
       ])
@@ -1223,6 +1254,8 @@ export type FeedItem =
       activityName: string | null
       points: number
       minutes: number | null
+      /** Emoji del deporte, ya resuelto (el elegido al registrar o el fijo de la actividad). */
+      sportEmoji: string | null
     }
   | {
       type: "report"
@@ -1299,7 +1332,9 @@ export async function getGroupFeed(
   // Over-fetch by one from each source so we can tell if there's a next page.
   let actQ = supabase
     .from("user_activities")
-    .select("id, username, group_id, points_earned, minutes_performed, completed_at, group_activities (name), groups (name)")
+    .select(
+      "id, username, group_id, points_earned, minutes_performed, completed_at, sport_icon, group_activities (name, icon), groups (name)",
+    )
     .in("group_id", groupIds)
     .order("completed_at", { ascending: false })
     .limit(limit + 1)
@@ -1345,6 +1380,7 @@ export async function getGroupFeed(
       activityName: a.group_activities?.name ?? null,
       points: a.points_earned,
       minutes: a.minutes_performed ?? null,
+      sportEmoji: resolveActivityEmoji(a.sport_icon, a.group_activities?.icon),
     }))),
     ...((reps ?? []).map((r: any) => ({
       type: "report" as const,
@@ -1445,7 +1481,7 @@ export async function getAllUserActivities(username: string) {
     .from("user_activities")
     .select(`
       *,
-      group_activities (name, activity_type, relation_id, activity_relations (name)),
+      group_activities (name, activity_type, relation_id, icon, activity_relations (name)),
       groups (name)
     `)
     .eq("username", username)
@@ -1762,7 +1798,7 @@ export async function getAllGroupActivities(groupId: string) {
       .from("user_activities")
       .select(`
         *,
-        group_activities (name, activity_type, relation_id, activity_relations (name)),
+        group_activities (name, activity_type, relation_id, icon, activity_relations (name)),
         profiles (username, avatar, avatar_url)
       `)
       .eq("group_id", groupId)
@@ -1797,7 +1833,8 @@ export async function getGroupActivitiesInRange(groupId: string, fromISO: string
       points_earned,
       minutes_performed,
       completed_at,
-      group_activities (name, activity_type)
+      sport_icon,
+      group_activities (name, activity_type, icon)
     `)
     .eq("group_id", groupId)
     .gte("completed_at", fromISO)
@@ -1817,7 +1854,7 @@ export async function getUserActivities(username: string, limit = 10) {
     .from("user_activities")
     .select(`
       *,
-      group_activities(name),
+      group_activities(name, icon),
       groups(name)
     `)
     .eq("username", username)
@@ -3516,6 +3553,8 @@ export async function acceptActivityTag(tagId: string, username: string) {
         points_earned,
         minutes_performed: originalActivity.minutes_performed,
         completed_at: originalActivity.completed_at,
+        // El deporte elegido por quien etiquetó se copia tal cual: es la misma salida.
+        sport_icon: originalActivity.sport_icon ?? null,
       })
       .select()
       .single()

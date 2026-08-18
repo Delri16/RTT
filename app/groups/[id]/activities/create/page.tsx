@@ -12,6 +12,8 @@ import { ArrowLeft, Dumbbell, Clock, Link2, Heart, Zap } from "lucide-react"
 import { createGroupActivity } from "@/lib/actions"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
+import SportIconPicker from "@/components/sport-icon-picker"
+import { isOtherActivityName, sportEmoji, sportLabel } from "@/lib/sport-icons"
 
 export default function CreateActivityPage() {
   const params = useParams()
@@ -24,6 +26,12 @@ export default function CreateActivityPage() {
   const [relations, setRelations] = useState<any[]>([])
   const [selectedRelation, setSelectedRelation] = useState("none")
   const [aerobicPct, setAerobicPct] = useState(50)
+  const [name, setName] = useState("")
+  const [icon, setIcon] = useState<string | null>(null)
+
+  // Las actividades genéricas ("Otros", "Otra actividad"...) no llevan ícono fijo:
+  // el deporte se elige al registrar cada vez.
+  const isGeneric = isOtherActivityName(name)
 
   useEffect(() => {
     loadActivityRelations()
@@ -44,6 +52,7 @@ export default function CreateActivityPage() {
     formData.append("group_id", groupId)
     formData.append("activity_type", activityType)
     formData.append("aerobic_pct", aerobicPct.toString())
+    formData.append("icon", isGeneric ? "" : icon ?? "")
 
     if (selectedRelation !== "none") {
       formData.append("relation_id", selectedRelation)
@@ -82,7 +91,15 @@ export default function CreateActivityPage() {
           <form action={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="name">Nombre de la Actividad</Label>
-              <Input id="name" name="name" placeholder="Ej: Gym, Cardio, Running..." required className="mt-1" />
+              <Input
+                id="name"
+                name="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ej: Gym, Cardio, Running..."
+                required
+                className="mt-1"
+              />
             </div>
 
             <div>
@@ -218,6 +235,36 @@ export default function CreateActivityPage() {
                 Cuánto de la actividad es cardio vs fuerza. Ej: correr ≈ 90% aeróbico, gym ≈ 10%. Ajusta los puntos
                 según el objetivo de cada usuario (bajar/subir/mantener). 50/50 = neutro para todos.
               </p>
+            </div>
+
+            <div className="pt-2 border-t">
+              <Label>
+                Ícono del deporte {!isGeneric && <span className="text-toro-foreground/50">(opcional)</span>}
+              </Label>
+              {isGeneric ? (
+                <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-900 font-medium">
+                    Esta actividad es genérica: el ícono se elige al registrarla
+                  </p>
+                  <p className="text-xs text-amber-700 mt-1">
+                    Como se llama "{name.trim()}", cada vez que alguien la registre va a tener que elegir de qué
+                    deporte se trató (fútbol, tenis, surf...). Ese ícono se ve después en Inicio y en el calendario.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600 mt-1 mb-2">
+                    Solo informativo: se muestra en el feed de Inicio y en el calendario del grupo. No cambia los
+                    puntos.
+                    {icon && (
+                      <span className="ml-1 font-medium text-toro-foreground">
+                        Elegido: {sportEmoji(icon)} {sportLabel(icon)}
+                      </span>
+                    )}
+                  </p>
+                  <SportIconPicker value={icon} onChange={setIcon} />
+                </>
+              )}
             </div>
 
             {selectedRelation !== "none" && (

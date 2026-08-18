@@ -23,6 +23,7 @@ import { ArrowLeft, Dumbbell, Filter, Calendar, TrendingUp, MoreVertical, Trash2
 import { useApp } from "@/app/app-provider"
 import { getAllUserActivities, getUserGroups, createActivityRequest } from "@/lib/actions"
 import { formatTime, getRelativeDate, formatFullDate } from "@/lib/date-utils"
+import { resolveActivityEmoji } from "@/lib/sport-icons"
 import { useToast } from "@/hooks/use-toast"
 
 export default function ActivityHistoryPage() {
@@ -316,7 +317,13 @@ export default function ActivityHistoryPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
                           <div className="w-12 h-12 bg-toro-primary/20 rounded-full flex items-center justify-center">
-                            <Dumbbell className="w-6 h-6 text-toro-primary" />
+                            {resolveActivityEmoji(activity.sport_icon, activity.group_activities?.icon) ? (
+                              <span className="text-2xl leading-none">
+                                {resolveActivityEmoji(activity.sport_icon, activity.group_activities?.icon)}
+                              </span>
+                            ) : (
+                              <Dumbbell className="w-6 h-6 text-toro-primary" />
+                            )}
                           </div>
                           <div className="flex-1">
                             <span className="font-bold text-toro-foreground block">

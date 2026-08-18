@@ -37,6 +37,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
+import { resolveActivityEmoji } from "@/lib/sport-icons"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
@@ -425,7 +426,14 @@ export default function GroupActivityHistory({
                       >
                         {activity.username}
                       </Link>
-                      <div className="text-sm text-gray-600">{activity.group_activities?.name}</div>
+                      <div className="text-sm text-gray-600 flex items-center gap-1">
+                        {resolveActivityEmoji(activity.sport_icon, activity.group_activities?.icon) && (
+                          <span className="leading-none">
+                            {resolveActivityEmoji(activity.sport_icon, activity.group_activities?.icon)}
+                          </span>
+                        )}
+                        {activity.group_activities?.name}
+                      </div>
                       <div className="text-xs text-gray-500">
                         {formatDistanceToNow(new Date(activity.completed_at), {
                           addSuffix: true,

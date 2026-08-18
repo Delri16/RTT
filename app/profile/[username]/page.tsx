@@ -13,6 +13,7 @@ import { useApp } from "@/app/app-provider"
 import { getUserProfile, getUserGroups, getUserActivities, getUserWeightReports } from "@/lib/actions"
 import UserAvatar from "@/components/user-avatar"
 import PublicRoutineTab from "@/components/routine/public-routine-tab"
+import { resolveActivityEmoji } from "@/lib/sport-icons"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 
@@ -212,7 +213,14 @@ export default function UserProfilePage() {
               {activities.map((activity) => (
                 <div key={activity.id} className="flex items-center justify-between p-3 bg-toro-background rounded-lg">
                   <div>
-                    <div className="font-medium text-toro-foreground">{activity.group_activities?.name}</div>
+                    <div className="font-medium text-toro-foreground flex items-center gap-1.5">
+                      {resolveActivityEmoji(activity.sport_icon, activity.group_activities?.icon) && (
+                        <span className="leading-none">
+                          {resolveActivityEmoji(activity.sport_icon, activity.group_activities?.icon)}
+                        </span>
+                      )}
+                      {activity.group_activities?.name}
+                    </div>
                     <div className="text-sm text-toro-foreground/70">
                       {activity.groups?.name} •{" "}
                       {formatDistanceToNow(new Date(activity.completed_at), {

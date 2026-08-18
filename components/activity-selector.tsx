@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dumbbell, Clock, Zap, Link2, Heart } from "lucide-react"
 import { applyGoalMultiplier } from "@/lib/points"
+import SportIconPicker from "@/components/sport-icon-picker"
+import { isOtherActivityName, sportEmoji, sportLabel } from "@/lib/sport-icons"
 
 interface Activity {
   id: string
@@ -19,6 +21,7 @@ interface Activity {
   max_minutes?: number
   aerobic_pct?: number
   relation_id?: number
+  icon?: string | null
   activity_relations?: {
     name: string
     icon: string
@@ -32,6 +35,9 @@ interface ActivitySelectorProps {
   selectedMinutes?: number
   onMinutesChange?: (minutes: number) => void
   goal?: string
+  /** Deporte elegido para las actividades genéricas ("Otros"). */
+  sportIcon?: string | null
+  onSportIconChange?: (id: string | null) => void
 }
 
 const GOAL_LABEL: Record<string, string> = {
@@ -47,8 +53,20 @@ export default function ActivitySelector({
   selectedMinutes,
   onMinutesChange,
   goal = "maintain",
+  sportIcon = null,
+  onSportIconChange,
 }: ActivitySelectorProps) {
   const [minutesInput, setMinutesInput] = useState<{ [key: string]: number }>({})
+  const sportPickerRef = useRef<HTMLDivElement | null>(null)
+
+  const selectedIsGeneric = isOtherActivityName(activities.find((a) => a.id === selectedActivity)?.name)
+
+  // El selector de deporte aparece dentro de la card, debajo de todo: en pantallas
+  // chicas puede quedar fuera de la vista y parecer que "no aparece nada".
+  useEffect(() => {
+    if (!selectedIsGeneric) return
+    sportPickerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+  }, [selectedActivity, selectedIsGeneric])
 
   const handleActivityClick = (activity: Activity) => {
     if (activity.activity_type === "per_minute") {
@@ -84,6 +102,13 @@ export default function ActivitySelector({
   const goalDelta = (activity: Activity, minutes: number) => finalPoints(activity, minutes) - calculatePoints(activity, minutes)
 
   const getActivityIcon = (activity: Activity) => {
+    // Genéricas ("Otros"): mostramos el deporte que se está eligiendo ahora.
+    const emoji = isOtherActivityName(activity.name)
+      ? selectedActivity === activity.id
+        ? sportEmoji(sportIcon)
+        : null
+      : sportEmoji(activity.icon)
+    if (emoji) return <span className="text-xl leading-none">{emoji}</span>
     return activity.activity_type === "per_minute" ? <Clock className="w-5 h-5" /> : <Dumbbell className="w-5 h-5" />
   }
 
@@ -153,8 +178,13 @@ export default function ActivitySelector({
                     {getActivityIcon(activity)}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-toro-foreground">{activity.name}</span>
+                      {isOtherActivityName(activity.name) && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-toro-primary bg-toro-primary/10 px-2 py-0.5 rounded-full">
+                          {isSelected ? "Elegí el deporte 👇" : "Tocá para elegir deporte"}
+                        </span>
+                      )}
                       {hasRelation && (
                         <div className="flex items-center gap-1">
                           <Link2 className="w-3 h-3 text-blue-500" />
@@ -179,6 +209,35 @@ export default function ActivitySelector({
               </div>
 
               {compositionInfo(activity, activity.activity_type === "per_minute" ? currentMinutes : 0)}
+
+              {/* Actividad genérica ("Otros"): hay que decir de qué deporte se trató.
+                  Es solo informativo — se ve en Inicio y en el calendario, no cambia los puntos. */}
+              {isSelected && isOtherActivityName(activity.name) && (
+                <div
+                  ref={sportPickerRef}
+                  className="mt-4 rounded-xl border-2 border-toro-primary/40 bg-white p-3"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <Label className="text-sm font-bold text-toro-foreground">
+                      ¿Qué deporte fue? <span className="text-toro-primary">*</span>
+                    </Label>
+                    {sportIcon ? (
+                      <span className="text-xs font-semibold text-toro-accent">
+                        {sportEmoji(sportIcon)} {sportLabel(sportIcon)}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-semibold text-toro-primary">Elegí uno</span>
+                    )}
+                  </div>
+                  <SportIconPicker
+                    value={sportIcon}
+                    onChange={(id) => onSportIconChange?.(id)}
+                    allowNone={false}
+                    compact
+                  />
+                </div>
+              )}
 
               {hasRelation && (
                 <div className="mt-2 p-2 bg-blue-50 rounded-lg">

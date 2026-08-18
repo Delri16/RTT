@@ -156,6 +156,26 @@ Flujo: `logActivity` crea filas en `activity_tags` (RPC `create_activity_tags`) 
 - **`getPendingActivityTags` devuelve datos reales.** Antes fabricaba el objeto (`points: 0`, `group.name: ""`, el que etiquetó salía de partir el título de la notificación) y por eso la pantalla mostraba "te ha etiquetado en una actividad" sin nombre, "Grupo desconocido" y "0 pts". Ahora: notificaciones no leídas → RPC `get_activity_tags_by_ids` (SECURITY DEFINER, script 23, necesario porque `activity_tags` también tiene RLS por claim de JWT) → filtra `status = 'pending'` → enriquece con `user_activities` + `group_activities`, `groups` y el avatar de quien etiquetó.
 - **Los puntos NO se copian de quien etiquetó.** `acceptActivityTag` recalcula el puntaje base desde `group_activities` (helper `computeBaseActivityPoints`, mismo criterio que `logActivity`: fijo o `minutos * points_per_minute`) y le aplica `applyGoalMultiplier` con el objetivo de **quien acepta**. Antes insertaba `originalActivity.points_earned` tal cual, así que una actividad 100% aeróbica de 45 pts le daba 45 a alguien con objetivo `gain` en vez de 38. El panel muestra ese mismo número como "X pts para vos" antes de aceptar.
 
+## Íconos de deporte en las actividades
+
+Cada actividad puede llevar un ícono de deporte. Es **100% informativo**: no toca puntos, ranking, multiplicador por objetivo ni nada del cálculo.
+
+- **Catálogo:** [lib/sport-icons.ts](lib/sport-icons.ts) — módulo PURO (como `lib/points.ts`), importable desde cliente y desde `actions.ts`. ~50 deportes agrupados en 8 categorías, cada uno con `id` estable (lo que se guarda en la DB), label en español, emoji y keywords para la búsqueda.
+  - **Son emoji, no una librería de íconos SVG, a propósito:** `lucide-react` (la única librería de íconos del proyecto) no tiene fútbol, tenis, pádel, boxeo ni surf — solo `dumbbell`, `bike`, `volleyball` y poco más. Los emoji cubren todos los deportes, pesan 0 en el bundle y se ven bien en los tamaños chicos del calendario (mismo criterio que los avatares).
+  - Donde Unicode no tiene emoji propio (squash) se reusa el más parecido; el label distingue.
+- **Selector:** [components/sport-icon-picker.tsx](components/sport-icon-picker.tsx) — grilla por categoría + buscador (sin acentos ni mayúsculas). Prop `compact` para los formularios embebidos y `allowNone` para permitir "Sin ícono".
+
+Dos usos distintos:
+
+1. **Ícono fijo de la actividad del grupo** (`group_activities.icon`): se elige abajo de todo al crear ([app/groups/[id]/activities/create/page.tsx](app/groups/[id]/activities/create/page.tsx)) o editar ([components/activity-manager.tsx](components/activity-manager.tsx)) una actividad. Ej: la actividad "Running" queda con 🏃 para siempre.
+2. **Ícono por registro** (`user_activities.sport_icon`): solo para las actividades **genéricas**, o sea aquellas cuyo nombre matchea `isOtherActivityName()` — alguna palabra del nombre es `otro`/`otra`/`otros`/`otras`, sin distinguir mayúsculas ni acentos (matchea "Otros", "OTROS DEPORTES", "Otra actividad"; NO matchea "Pullover", porque compara palabras enteras). En esas, el selector aparece **al registrar** ([components/activity-selector.tsx](components/activity-selector.tsx), dentro de la card seleccionada) y elegir es **obligatorio**: lo valida el submit de [app/log/page.tsx](app/log/page.tsx) (botón deshabilitado + mensaje) y de nuevo `logActivity` en el server. Esas actividades no tienen ícono fijo — el formulario de creación/edición reemplaza el selector por un cartel explicándolo.
+
+Resolución al mostrar: `resolveActivityEmoji(sport_icon, group_activities.icon)` — manda el elegido al registrar, y si no hay, el fijo de la actividad; si no hay ninguno, la UI cae al ícono genérico de siempre (mancuerna/reloj). Se ve en el feed de Inicio ([feed-post.tsx](components/feed/feed-post.tsx), el `FeedItem` de tipo `activity` trae el emoji ya resuelto en `sportEmoji`), el detalle del día del calendario ([group-calendar.tsx](components/group-calendar.tsx)), el historial del grupo, el historial propio y las actividades recientes del perfil.
+
+Al aceptar una etiqueta, `acceptActivityTag` copia el `sport_icon` del registro original (es la misma salida). `logRelatedActivity` lo replica en todos los grupos relacionados.
+
+**Ya corrido en el proyecto real:** [scripts/44-add-sport-icons.sql](scripts/44-add-sport-icons.sql) (agrega `group_activities.icon` y `user_activities.sport_icon`, ambas nullable). Los registros históricos quedan sin ícono y se ven igual que antes. No hacen falta policies nuevas: las policies existentes son por fila, no por columna.
+
 ## Calendario del grupo
 
 Tercera pestaña de [app/groups/[id]/page.tsx](app/groups/[id]/page.tsx) (`General / Calendario / Rodeos`), en [components/group-calendar.tsx](components/group-calendar.tsx). Es **solo lectura**: no registra, no edita ni borra nada.

@@ -7,6 +7,7 @@ import UserAvatar, { avatarEmoji } from "@/components/user-avatar"
 import { ChevronLeft, ChevronRight, CalendarDays, Trophy, Timer, Info } from "lucide-react"
 import { getGroupActivitiesInRange } from "@/lib/actions"
 import { argDayKey, toDayKey, argDayStartISO, argDayEndISO } from "@/lib/date-utils"
+import { resolveActivityEmoji } from "@/lib/sport-icons"
 
 interface GroupCalendarProps {
   groupId: string
@@ -20,7 +21,8 @@ type CalendarActivity = {
   points_earned: number
   minutes_performed: number | null
   completed_at: string
-  group_activities?: { name?: string } | null
+  sport_icon?: string | null
+  group_activities?: { name?: string; icon?: string | null } | null
 }
 
 type DayEntry = {
@@ -399,12 +401,18 @@ export default function GroupCalendar({ groupId, members, currentUsername }: Gro
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {m.items.map((item) => (
+                      {m.items.map((item) => {
+                        const emoji = resolveActivityEmoji(item.sport_icon, item.group_activities?.icon)
+                        return (
                         <span
                           key={item.id}
                           className="inline-flex items-center gap-1 bg-toro-background rounded-full px-2 py-0.5 text-[11px] text-toro-foreground/80"
                         >
-                          <CalendarDays className="w-3 h-3 shrink-0 text-toro-primary" />
+                          {emoji ? (
+                            <span className="text-xs leading-none shrink-0">{emoji}</span>
+                          ) : (
+                            <CalendarDays className="w-3 h-3 shrink-0 text-toro-primary" />
+                          )}
                           {item.group_activities?.name || "Actividad"}
                           {item.minutes_performed ? (
                             <span className="inline-flex items-center gap-0.5 text-toro-foreground/50">
@@ -414,7 +422,8 @@ export default function GroupCalendar({ groupId, members, currentUsername }: Gro
                           ) : null}
                           <span className="font-bold text-toro-accent">{item.points_earned}</span>
                         </span>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 ))}

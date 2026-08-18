@@ -16,6 +16,7 @@ import AchievementToast from "@/components/achievement-toast"
 import { checkAndAwardAchievements } from "@/lib/achievements"
 import type { Achievement } from "@/lib/achievements"
 import MemberTagSelector from "@/components/member-tag-selector"
+import { isOtherActivityName } from "@/lib/sport-icons"
 
 type GroupRankingUser = {
   username: string
@@ -29,6 +30,8 @@ export default function LogActivityPage() {
   const [activities, setActivities] = useState<any[]>([])
   const [selectedActivity, setSelectedActivity] = useState("")
   const [selectedMinutes, setSelectedMinutes] = useState<number>(0)
+  // Deporte elegido cuando la actividad es la genérica ("Otros").
+  const [sportIcon, setSportIcon] = useState<string | null>(null)
   const [taggedMembers, setTaggedMembers] = useState<string[]>([])
   const [showMemberSelector, setShowMemberSelector] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -107,6 +110,7 @@ export default function LogActivityPage() {
       setActivities([])
       setSelectedActivity("")
       setSelectedMinutes(0)
+      setSportIcon(null)
       setGroupRanking([])
     }
   }, [selectedGroup])
@@ -154,17 +158,21 @@ export default function LogActivityPage() {
 
     setSelectedActivity("")
     setSelectedMinutes(0)
+    setSportIcon(null)
   }
 
   const handleGroupChange = (groupId: string) => {
     setSelectedGroup(groupId)
     setSelectedActivity("")
     setSelectedMinutes(0)
+    setSportIcon(null)
     setTaggedMembers([])
     setShowMemberSelector(false)
   }
 
   const handleActivitySelect = (activityId: string, minutes?: number) => {
+    // Al cambiar de actividad se descarta el deporte elegido para la anterior.
+    if (activityId !== selectedActivity) setSportIcon(null)
     setSelectedActivity(activityId)
     setSelectedMinutes(minutes || 0)
   }
@@ -212,6 +220,14 @@ export default function LogActivityPage() {
     }
 
     const selectedActivityData = activities.find((a) => a.id === selectedActivity)
+
+    // En las genéricas ("Otros") el deporte es obligatorio: es lo único que después
+    // distingue el registro en el feed y en el calendario.
+    if (isOtherActivityName(selectedActivityData?.name) && !sportIcon) {
+      setError("Elegí de qué deporte se trata")
+      return
+    }
+
     if (selectedActivityData?.activity_type === "per_minute") {
       if (!selectedMinutes || selectedMinutes < (selectedActivityData.min_minutes || 1)) {
         setError(`Debes completar al menos ${selectedActivityData.min_minutes} minutos`)
@@ -257,8 +273,10 @@ export default function LogActivityPage() {
 
     console.log("[v0] Showing instant success message:", successMessage)
     setSuccess(successMessage)
+    setError("")
     setSelectedActivity("")
     setSelectedMinutes(0)
+    setSportIcon(null)
     setTaggedMembers([])
     setShowMemberSelector(false)
 
@@ -269,6 +287,10 @@ export default function LogActivityPage() {
 
     if (selectedActivityData?.activity_type === "per_minute") {
       formData.append("minutes_performed", selectedMinutes.toString())
+    }
+
+    if (sportIcon) {
+      formData.append("sport_icon", sportIcon)
     }
 
     if (taggedMembers.length > 0) {
@@ -304,6 +326,10 @@ export default function LogActivityPage() {
 
     setTimeout(() => setSuccess(""), 5000)
   }
+
+  const currentActivity = activities.find((a) => a.id === selectedActivity)
+  // Falta elegir el deporte de una actividad genérica ("Otros").
+  const missingSportIcon = isOtherActivityName(currentActivity?.name) && !sportIcon
 
   if (loadingGroups) {
     return (
@@ -365,6 +391,8 @@ export default function LogActivityPage() {
                       selectedMinutes={selectedMinutes}
                       onMinutesChange={setSelectedMinutes}
                       goal={goal}
+                      sportIcon={sportIcon}
+                      onSportIconChange={setSportIcon}
                     />
                   ) : (
                     <div className="text-center py-8">
@@ -421,7 +449,7 @@ export default function LogActivityPage() {
             <Button
               type="submit"
               className="w-full bg-toro-primary hover:bg-toro-primary/90 text-white"
-              disabled={loading || !selectedGroup || !selectedActivity}
+              disabled={loading || !selectedGroup || !selectedActivity || missingSportIcon}
             >
               {loading ? (
                 <>

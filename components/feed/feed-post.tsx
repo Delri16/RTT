@@ -42,7 +42,11 @@ export default function FeedPost({ item, interactions }: { item: FeedItem; inter
         <PostHeader item={item} />
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="w-11 h-11 rounded-xl bg-toro-primary/10 flex items-center justify-center shrink-0">
-            <Dumbbell className="w-6 h-6 text-toro-primary" />
+            {item.sportEmoji ? (
+              <span className="text-2xl leading-none">{item.sportEmoji}</span>
+            ) : (
+              <Dumbbell className="w-6 h-6 text-toro-primary" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-toro-foreground">
