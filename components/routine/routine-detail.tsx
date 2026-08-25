@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Play, Share2, Pencil, Trash2, Dumbbell, Check, Loader2, Users } from "lucide-react"
+import { Play, Share2, Pencil, Trash2, Dumbbell, Check, Loader2, Users, ChevronRight } from "lucide-react"
 import RoutineHeader from "@/components/routine/routine-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -137,13 +137,17 @@ export default function RoutineDetail({ routine, username }: { routine: Routine;
         <div className="max-w-md mx-auto space-y-2">
           {/* El juego del descanso solo aparece al marcar una serie, asi que sin
               este aviso es invisible hasta que pasa de casualidad. */}
-          <div className="flex items-center gap-2 rounded-xl bg-white/80 border border-black/5 px-3 py-2 shadow-sm">
+          <Link
+            href="/descanso"
+            className="flex items-center gap-2 rounded-xl bg-white/80 border border-black/5 px-3 py-2 shadow-sm active:scale-[0.99] transition"
+          >
             <span className="text-lg leading-none shrink-0">{todaysGame.emoji}</span>
             <p className="text-[11px] text-toro-foreground/60 leading-tight min-w-0 flex-1">
-              Hoy en los descansos: <strong className="text-toro-foreground">{todaysGame.name}</strong>. Aparece al
-              marcar una serie.
+              Hoy en los descansos: <strong className="text-toro-foreground">{todaysGame.name}</strong>. Tocá para
+              jugarlo ahora.
             </p>
-          </div>
+            <ChevronRight className="w-4 h-4 text-toro-foreground/30 shrink-0" />
+          </Link>
           <Link href={`/mi-rutina/${routine.id}/entrenar`}>
             <Button className="w-full py-6 bg-toro-primary hover:bg-toro-primary/90 text-white text-lg font-bold rounded-2xl shadow-lg">
               <Play className="w-6 h-6 mr-2 fill-white" /> Entrenar ahora

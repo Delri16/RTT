@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Plus, Dumbbell, Trophy, ChevronRight, Search, Flame, Layers, Star } from "lucide-react"
+import { Plus, Dumbbell, Trophy, ChevronRight, Search, Flame, Layers, Star, Gamepad2 } from "lucide-react"
 import RoutineHeader from "@/components/routine/routine-header"
 import FavoritesTab from "@/components/routine/favorites-tab"
 import { Button } from "@/components/ui/button"
@@ -41,9 +41,14 @@ export default function RoutineHub({ username }: { username: string }) {
       <RoutineHeader
         title="Mi Rutina"
         right={
-          <Link href="/mi-rutina/ejercicios" aria-label="Explorar ejercicios" className="p-2 rounded-xl text-toro-foreground/60 hover:bg-black/5">
-            <Search className="w-5 h-5" />
-          </Link>
+          <div className="flex items-center">
+            <Link href="/descanso" aria-label="Juego del día" className="p-2 rounded-xl text-toro-foreground/60 hover:bg-black/5">
+              <Gamepad2 className="w-5 h-5" />
+            </Link>
+            <Link href="/mi-rutina/ejercicios" aria-label="Explorar ejercicios" className="p-2 rounded-xl text-toro-foreground/60 hover:bg-black/5">
+              <Search className="w-5 h-5" />
+            </Link>
+          </div>
         }
       />
 

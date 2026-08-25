@@ -135,6 +135,15 @@ export function triviaForDay(dayKey: string, count = 8): TriviaQuestion[] {
 // Descanso
 // ---------------------------------------------------------------------------
 
+/**
+ * Duración de la ronda del "juego del día" en su pantalla propia (`/descanso`).
+ *
+ * Es fija a propósito: en los descansos entre series el juego dura lo que dure
+ * el descanso, que cambia según el ejercicio, y así los puntajes no se pueden
+ * comparar. La ronda de 60s es la vara común de la tabla semanal.
+ */
+export const DAILY_ROUND_SECONDS = 60
+
 /** Descanso por defecto cuando el ejercicio no tiene uno configurado. */
 export const DEFAULT_REST_SECONDS = 90
 

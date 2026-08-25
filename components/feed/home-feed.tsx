@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Dumbbell, PlusCircle, Trophy, User, Users } from "lucide-react"
+import { Dumbbell, Gamepad2, PlusCircle, Trophy, User, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useApp } from "@/app/app-provider"
 import {
@@ -85,6 +85,11 @@ export default function HomeFeed() {
             <h1 className="text-xl font-display text-toro-foreground">Inicio</h1>
           </Link>
           <div className="flex items-center gap-1">
+            <Link href="/descanso">
+              <Button variant="ghost" size="icon" aria-label="Juego del día">
+                <Gamepad2 className="w-5 h-5" />
+              </Button>
+            </Link>
             <Link href="/ranking">
               <Button variant="ghost" size="icon" aria-label="Ranking global">
                 <Trophy className="w-5 h-5" />
