@@ -42,6 +42,15 @@ export type SportBreakdownRow = {
   totalPoints: number
 }
 
+/** Fila de la tabla semanal de los juegos de descanso (ver lib/rest-games.ts). */
+export type RestGameLeaderRow = {
+  username: string
+  totalScore: number
+  daysPlayed: number
+  bestDay: number
+  position: number
+}
+
 export type GlobalPeriod = "week" | "month" | "year" | "all"
 
 export const GLOBAL_PERIOD_LABEL: Record<GlobalPeriod, string> = {

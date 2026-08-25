@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { GripVertical, Trash2, Plus, ChevronUp, ChevronDown, Dumbbell, Loader2 } from "lucide-react"
+import { GripVertical, Trash2, Plus, ChevronUp, ChevronDown, Dumbbell, Loader2, Timer } from "lucide-react"
 import RoutineHeader from "@/components/routine/routine-header"
 import ExerciseCatalog from "@/components/routine/exercise-catalog"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
 import { type Exercise, exerciseThumb } from "@/lib/exercise-catalog"
 import { createRoutine, updateRoutine, type Routine, type RoutineExercise } from "@/lib/actions"
+import { DEFAULT_REST_SECONDS, formatRest, REST_OPTIONS } from "@/lib/rest-games"
 
 const EMOJIS = ["💪", "🔥", "🏋️", "🦵", "🏃", "🧘", "⚡", "🐂", "🎯", "🥵", "🫀", "🦍"]
 
@@ -47,6 +48,7 @@ export default function RoutineBuilder({
           target_sets: 3,
           target_reps: 10,
           notes: null,
+          rest_seconds: null,
           thumb: exerciseThumb(ex),
         },
       ]
@@ -213,6 +215,10 @@ export default function RoutineBuilder({
                       maxLength={40}
                     />
                   </div>
+                  <RestPicker
+                    value={it.rest_seconds ?? null}
+                    onChange={(v) => patch(it.exercise_id, { rest_seconds: v })}
+                  />
                 </div>
               ))}
             </div>
@@ -279,6 +285,39 @@ function NumField({
         onChange={(e) => onChange(e.target.value === "" ? null : Math.max(0, Number(e.target.value)))}
         className="h-9 w-14 bg-toro-background/60 border-black/10 text-sm text-center px-1"
       />
+    </div>
+  )
+}
+
+/**
+ * Descanso entre series de un ejercicio. Sin elegir nada queda el valor por
+ * defecto (DEFAULT_REST_SECONDS), que es lo que hacia la app antes.
+ */
+function RestPicker({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
+  return (
+    <div className="flex items-center gap-1.5 mt-2">
+      <Timer className="w-3.5 h-3.5 text-toro-foreground/40 shrink-0" />
+      <div className="flex gap-1 overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => onChange(null)}
+          className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-bold transition ${
+            value === null ? "bg-toro-primary text-white" : "bg-black/5 text-toro-foreground/50"
+          }`}
+        >
+          {formatRest(DEFAULT_REST_SECONDS)}
+        </button>
+        {REST_OPTIONS.filter((o) => o !== DEFAULT_REST_SECONDS).map((o) => (
+          <button
+            key={o}
+            onClick={() => onChange(o)}
+            className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-bold transition ${
+              value === o ? "bg-toro-primary text-white" : "bg-black/5 text-toro-foreground/50"
+            }`}
+          >
+            {formatRest(o)}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

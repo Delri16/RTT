@@ -19,20 +19,13 @@ npm run dev
 
 Variables de entorno (Supabase) — ver la lista completa en `PROYECTO_CONTEXTO.md`. Sin ellas, todo lo que dependa de `lib/supabase.ts` falla; la landing en `/` no las necesita.
 
-## Estado actual: modo landing (temporal)
+## Estado actual: la app, no la landing
 
-Hoy la ruta raíz `/` **no** muestra el dashboard/login de la app real: muestra una landing de espera (cuenta regresiva al regreso + encuesta de features para "RTT2"). Esto es intencional y temporal, mientras se decide cuándo volver a exponer la app.
+⚠️ **Esta sección decía que `/` mostraba una landing de espera. Ya no es así** (verificado 25/8/2026): [app/page.tsx](app/page.tsx) renderiza `HomeFeed` bajo `useApp()`, y [components/app-shell.tsx](components/app-shell.tsx) monta `AppProvider` en **todas** las rutas, sin rama especial por pathname. O sea: toda la app está detrás del login gate, incluida `/`.
 
-Cómo está armado, sin borrar ni romper nada de la app original:
+Los componentes de la landing siguen en el repo (`components/landing/`) pero no los usa ninguna ruta. Si alguna vez hay que volver a exponerla, se apunta `app/page.tsx` a `LandingPage` y se le agrega a `AppShell` la rama que saltee `AppProvider` para ese pathname.
 
-- [components/app-shell.tsx](components/app-shell.tsx): client component que decide, según el pathname, si monta `AppProvider` (login gate + BottomNav + listeners de Supabase) o no. En `/` no lo monta — así la landing no dispara ninguna llamada a Supabase ni depende de sesión.
-- [app/layout.tsx](app/layout.tsx): quedó minimal, delega todo el shell condicional a `AppShell`.
-- [app/page.tsx](app/page.tsx): ahora renderiza `LandingPage` en vez de `DashboardPage`.
-- Todas las demás rutas (`/dashboard`, `/groups`, `/log`, etc.) siguen intactas y funcionando exactamente igual que antes — `AppShell` les sigue aplicando `AppProvider` normalmente.
-
-**Para volver a la app real en `/`:** restaurar `app/page.tsx` a que renderice `DashboardPage` bajo `useApp()` (ver historial de git) y opcionalmente eliminar la rama especial de `AppShell` si ya no hace falta la landing.
-
-### Landing (`components/landing/`)
+### Landing sin usar (`components/landing/`)
 
 - `landing-page.tsx`: composición general (logo, título, countdown, sección de encuesta).
 - `countdown.tsx`: cuenta regresiva client-side hasta **lunes 20 de julio 2026, 00:01 (hora Argentina, UTC-3)**. La fecha está hardcodeada en `TARGET_DATE`.
@@ -205,6 +198,54 @@ Web Push real con VAPID — reemplaza al viejo esquema "fake" (polling de `notif
 - **Service worker:** el handler `push` de [public/sw.js](public/sw.js) entiende el formato genérico `{title, body, url, tag}` (el click abre `url`); mantiene los formatos legacy de etiquetas/motivación diaria.
 - **iOS:** el push solo llega si la PWA está instalada en la pantalla de inicio (iOS 16.4+); en Safari suelto no existe `PushManager`. En Android/desktop anda directo en el navegador.
 - Probado contra la DB real (27/7/2026): reacción/comentario → fila en `notifications` + intento de push; el cifrado/VAPID de `web-push` verificado localmente; entrega real a un dispositivo requiere probar con la app instalada.
+
+## Ranking global entre grupos
+
+Tabla única que compara a todo el mundo, sin importar de qué grupo venga. **No toca nada del flujo actual:** `logActivity`, los puntos que define cada admin en `group_activities.points` / `points_per_minute`, el ranking de cada grupo y los rodeos siguen exactamente igual.
+
+El problema que resuelve: los puntos de grupo no son comparables entre grupos (la misma actividad vale 50 en uno y 100 en otro), así que hace falta una **segunda escala, paralela**.
+
+- **`activity_relations.global_points`**: cuánto suma UNA sesión de ese deporte en el ranking global, igual para todos. **Gimnasio = 100 es el techo** y nada lo supera; el resto baja según cuánto exige una sesión típica (Crossfit/Natación/Boxeo/Rugby/Funcional/Remo 90, Running/Ciclismo/Escalada 85, Fútbol 11/Básquet/Trekking 80, Tenis/Vóley/Surf 70, Padel/Pilates/Baile 60, Yoga/Caminata 50, Golf/Bowling 40, Pesca/Automovilismo 30).
+- **El catálogo pasó de 16 a 55 relaciones**, alineadas con `SPORT_ICONS` de [lib/sport-icons.ts](lib/sport-icons.ts) vía la columna nueva `activity_relations.sport_key`. Ese puente es lo que hace que el deporte elegido al registrar una actividad **genérica** ("Otros", que guarda `user_activities.sport_icon`) también puntúe en el global.
+- **Resolución del puntaje de cada registro**, en orden: `user_activities.sport_icon` → `activity_relations.sport_key`; si no, `group_activities.relation_id`; si no hay ninguno, **0** (no suma). Los reportes de peso insertan filas con `activity_id` NULL: quedan afuera, el global es solo actividad física.
+- Por eso **es importante que cada actividad de grupo tenga su relación**. El backfill del script 46 dejó 11 de 13 resueltas por nombre y alias ("Gym"→Gimnasio, "Bici"→Ciclismo, "Correr"→Running…). Las dos que quedaron sin relación son `Otros` (a propósito: la elige quien registra) y `test`.
+
+Cálculo en los RPC del script 46 (`get_global_ranking`, `get_global_sport_breakdown`, `get_user_active_days`) para no traerse todo `user_activities` al server en cada request. Server actions: `getGlobalRanking`, `getGlobalSportBreakdown`, `getActivityRelations` en [lib/actions.ts](lib/actions.ts).
+
+**Rangos** (Ternero / Novillo / Toro / Toro de Oro): función PURA de los puntos del período que se está mirando ([lib/global-points.ts](lib/global-points.ts)), **sin ascenso/descenso persistido** en la DB. En "Semana" todos arrancan de cero.
+
+UI en `/ranking` ([components/ranking/](components/ranking/)): podio del top 3, tarjeta propia con progreso al próximo rango, tabla y drawer con el desglose por deporte. Se entra por el trofeo del header de Inicio y por la tira de racha — **la barra de abajo quedó igual a propósito**.
+
+**Ya corrido en el proyecto real:** [scripts/46-global-ranking.sql](scripts/46-global-ranking.sql).
+
+## Rachas
+
+Días consecutivos con al menos una actividad, agrupados en **hora Argentina** (el RPC `get_user_active_days` ya devuelve las fechas convertidas). La lógica es un módulo PURO: [lib/streaks.ts](lib/streaks.ts) → `computeStreak(activeDays, todayKey)`.
+
+- La racha es **estricta**: no hay "perdón" automático. Lo que sí hay es el estado `atRisk` — sigue viva pero hoy todavía no registraste nada, que es el momento en que la UI empuja.
+- Si hoy no registraste pero ayer sí, la racha **se cuenta desde ayer** y sigue viva hasta que termine el día.
+- Devuelve además `weekDays` (un booleano por día, lunes a domingo) para dibujar la semana.
+
+Se ve en la tira de arriba del feed ([components/feed/streak-strip.tsx](components/feed/streak-strip.tsx)), que muestra racha + semana + posición global y es el acceso a `/ranking`. También en la tarjeta propia del ranking y en el drawer de cada persona. `getGroupStreaks(groupId)` está disponible para un panel por grupo (hoy no montado).
+
+## Juegos de descanso (entre serie y serie)
+
+El descanso de [components/routine/rest-timer.tsx](components/routine/rest-timer.tsx) reemplaza a la pastillita muda de antes. **Tres cosas que se notan más que cualquier juego:**
+
+1. **La pantalla no se apaga** (Wake Lock API, se re-pide en `visibilitychange`). Antes se bloqueaba a los 30s con las manos ocupadas.
+2. **Avisa**: `navigator.vibrate` + un beep sintetizado con Web Audio — sin archivos de audio, 0 KB de bundle.
+3. **Cuenta contra un timestamp absoluto**, no restando de a un segundo, así no se atrasa cuando el navegador frena los timers en segundo plano.
+
+Encima de eso va **el juego del día**: uno solo por día e **igual para todo el grupo** (estilo Wordle), elegido determinísticamente con un hash de la fecha en `gameOfTheDay()` de [lib/rest-games.ts](lib/rest-games.ts) — nada de `Math.random`, si no cada uno vería otro. Dura exactamente lo que dura el descanso y termina empujándote a la próxima serie.
+
+Cuatro juegos en [components/routine/rest-games/](components/routine/rest-games/), todos con el mismo contrato (`RestGameProps`: reciben `addScore`, no manejan su propio tiempo): **Reacción** (500 − ms), **Memoria** (Simón, 40 × ronda), **Trivia fierrera** (100 por acierto, preguntas del día iguales para todos vía `triviaForDay`) y **Precisión** (hasta 240 por tiro, la zona se achica).
+
+- Se pueden **apagar** (`REST_GAMES_ENABLED_KEY` en localStorage) y el timer vuelve al modo compacto.
+- El puntaje va a `rest_game_scores`, tabla aparte: **no toca puntos de actividad ni el ranking global**. La tabla semanal (`get_rest_game_leaderboard`) suma el **mejor puntaje de cada día**, no todas las partidas, así gana quien juega bien varios días y no quien repite veinte veces seguidas.
+- **Descanso configurable por ejercicio**: `RoutineExercise.rest_seconds` (la columna `routines.exercises` es `jsonb`, así que **no hizo falta migración**; las rutinas viejas lo traen ausente y caen en `DEFAULT_REST_SECONDS` = 90). Se elige en el armador de rutinas y se puede ajustar en el momento con los +/- del timer.
+- El timer **se remonta con `key` en cada serie** (`rest.id`) en vez de reiniciarse con un efecto que dependa de la duración: si no, tocar +/- reiniciaría la cuenta.
+
+**Ya corrido en el proyecto real:** [scripts/47-rest-games.sql](scripts/47-rest-games.sql) (crea `rest_game_scores` **con policy `Public access`** — sin eso el insert falla en silencio, como toda tabla nueva de este proyecto).
 
 ## Convenciones existentes (no introducidas por este cambio)
 

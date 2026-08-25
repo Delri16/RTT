@@ -8,7 +8,7 @@ import { applyGoalMultiplier, REPORT_POINTS } from "./points"
 import { sendPushToUser } from "./push-server"
 import { getSportIcon, isOtherActivityName, resolveActivityEmoji } from "./sport-icons"
 import { REPORT_INTERVAL_DAYS, argDayKey, argPeriodStartISO, type RankingPeriod } from "./date-utils"
-import type { GlobalRankingRow, SportBreakdownRow } from "./global-points"
+import type { GlobalRankingRow, RestGameLeaderRow, SportBreakdownRow } from "./global-points"
 import { computeStreak, EMPTY_STREAK, type StreakInfo } from "./streaks"
 
 export async function createOrGetProfile(username: string) {
@@ -3769,6 +3769,12 @@ export type RoutineExercise = {
   target_sets: number | null
   target_reps: number | null
   notes: string | null
+  /**
+   * Descanso entre series, en segundos. Null = usar DEFAULT_REST_SECONDS.
+   * Vive en la columna jsonb `exercises`, así que no necesitó migración; las
+   * rutinas viejas simplemente lo traen ausente.
+   */
+  rest_seconds?: number | null
 }
 
 export type Routine = {
@@ -4566,4 +4572,60 @@ export async function getGroupStreaks(groupId: string) {
 
   streaks.sort((a, b) => b.streak.current - a.streak.current)
   return { success: true, streaks }
+}
+
+// ===========================================================================
+// Juegos de descanso
+//
+// Tabla propia (scripts/47-rest-games.sql). No tocan puntos de actividad ni el
+// ranking global: es un marcador aparte, para picarse entre serie y serie.
+// ===========================================================================
+
+export async function saveRestGameScore(input: {
+  username: string
+  /** Clave del día en hora Argentina ("YYYY-MM-DD"). */
+  day: string
+  gameKey: string
+  score: number
+}) {
+  const { error } = await supabase.from("rest_game_scores").insert([
+    {
+      username: input.username,
+      day: input.day,
+      game_key: input.gameKey,
+      score: Math.max(0, Math.round(input.score)),
+    },
+  ])
+
+  if (error) {
+    console.error("[rest-games] no se pudo guardar el puntaje:", error.message)
+    return { success: false, error: error.message }
+  }
+  return { success: true }
+}
+
+/**
+ * Tabla de la semana. Suma el mejor puntaje de cada día (no todas las partidas),
+ * así gana quien juega bien varios días y no quien repite veinte veces seguidas.
+ */
+export async function getRestGameLeaderboard(sinceDay?: string | null, limit = 20) {
+  const { data, error } = await supabase.rpc("get_rest_game_leaderboard", {
+    since: sinceDay ?? null,
+    limit_rows: limit,
+  })
+
+  if (error) {
+    console.error("[rest-games] leaderboard error:", error.message)
+    return { success: false, error: error.message, rows: [] as RestGameLeaderRow[] }
+  }
+
+  const rows: RestGameLeaderRow[] = ((data ?? []) as any[]).map((r, i) => ({
+    username: r.username,
+    totalScore: Number(r.total_score),
+    daysPlayed: Number(r.days_played),
+    bestDay: Number(r.best_day),
+    position: i + 1,
+  }))
+
+  return { success: true, rows }
 }

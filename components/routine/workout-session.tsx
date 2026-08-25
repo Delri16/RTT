@@ -2,14 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Check, Plus, Dumbbell, Loader2, Trophy, X, Timer, History } from "lucide-react"
+import { Check, Plus, Dumbbell, Loader2, Trophy, X, History } from "lucide-react"
 import RoutineHeader from "@/components/routine/routine-header"
 import PRCelebration, { type PRData } from "@/components/routine/pr-celebration"
+import RestTimer from "@/components/routine/rest-timer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { loadExercises, exerciseThumb, type Exercise } from "@/lib/exercise-catalog"
 import { logWorkoutSet, deleteWorkoutSet, getExerciseHistory, type Routine } from "@/lib/actions"
+import { DEFAULT_REST_SECONDS } from "@/lib/rest-games"
 
 type SetRow = { weight: string; reps: string; done: boolean; setId?: string; pending?: boolean }
 
@@ -19,7 +21,14 @@ export default function WorkoutSession({ routine, username }: { routine: Routine
   const [sets, setSets] = useState<Record<string, SetRow[]>>({})
   const [last, setLast] = useState<Record<string, { weight: number; reps: number } | null>>({})
   const [pr, setPr] = useState<PRData | null>(null)
-  const [rest, setRest] = useState<number | null>(null)
+  // Descanso en curso: null = no hay. `id` sube en cada serie para remontar el
+  // timer (y con eso reiniciar la cuenta) sin efectos que dependan de la duracion.
+  const [rest, setRest] = useState<{ seconds: number; id: number } | null>(null)
+  // Ajustes de descanso hechos a mano durante la sesion, por ejercicio.
+  const [restOverride, setRestOverride] = useState<Record<string, number>>({})
+  // A que ejercicio pertenece el descanso en curso, para que el ajuste +/- del
+  // timer se guarde contra el ejercicio correcto.
+  const lastExerciseRef = useRef<string | null>(null)
   const [finishing, setFinishing] = useState(false)
 
   // Estado inicial: N filas por ejercicio (según target_sets).
@@ -118,7 +127,11 @@ export default function WorkoutSession({ routine, username }: { routine: Routine
     }
     updateRow(exId, idx, { done: true, pending: false, setId: (res as any).set?.id })
     setLast((prev) => ({ ...prev, [exId]: { weight: isNaN(weight) ? 0 : weight, reps } }))
-    setRest(90) // arranca descanso
+    // Descanso del ejercicio: lo ajustado a mano manda sobre lo configurado en la rutina.
+    lastExerciseRef.current = exId
+    const exercise = routine.exercises.find((e) => e.exercise_id === exId)
+    const restSeconds = restOverride[exId] ?? exercise?.rest_seconds ?? DEFAULT_REST_SECONDS
+    setRest((prev) => ({ seconds: restSeconds, id: (prev?.id ?? 0) + 1 }))
 
     if (res.isPR && weight > 0) {
       setPr({ exerciseId: exId, exerciseName: exName, weight, reps, prevWeight: (res as any).prevWeight ?? null })
@@ -273,7 +286,18 @@ export default function WorkoutSession({ routine, username }: { routine: Routine
         </div>
       </div>
 
-      {rest !== null && <RestTimer seconds={rest} onClose={() => setRest(null)} />}
+      {rest !== null && (
+        <RestTimer
+          key={rest.id}
+          seconds={rest.seconds}
+          username={username}
+          onClose={() => setRest(null)}
+          onAdjustDefault={(next) => {
+            const exId = lastExerciseRef.current
+            if (exId) setRestOverride((prev) => ({ ...prev, [exId]: next }))
+          }}
+        />
+      )}
 
       <PRCelebration pr={pr} username={username} onClose={() => setPr(null)} />
 
@@ -314,53 +338,6 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl bg-toro-background p-3 text-center">
       <div className="text-2xl font-display text-toro-foreground">{value}</div>
       <div className="text-xs text-toro-foreground/50">{label}</div>
-    </div>
-  )
-}
-
-function RestTimer({ seconds, onClose }: { seconds: number; onClose: () => void }) {
-  const [left, setLeft] = useState(seconds)
-  const startRef = useRef(seconds)
-
-  useEffect(() => {
-    setLeft(seconds)
-    startRef.current = seconds
-  }, [seconds])
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setLeft((l) => {
-        if (l <= 1) {
-          clearInterval(t)
-          return 0
-        }
-        return l - 1
-      })
-    }, 1000)
-    return () => clearInterval(t)
-  }, [seconds])
-
-  const mm = Math.floor(left / 60)
-  const ss = String(left % 60).padStart(2, "0")
-
-  return (
-    <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40">
-      <div
-        className={`flex items-center gap-2 rounded-full px-4 py-2 shadow-lg text-white ${
-          left === 0 ? "bg-toro-accent" : "bg-toro-foreground"
-        }`}
-      >
-        <Timer className="w-4 h-4" />
-        <span className="font-bold tabular-nums">
-          {left === 0 ? "¡Dale!" : `${mm}:${ss}`}
-        </span>
-        <button onClick={() => setLeft((l) => l + 30)} className="text-xs bg-white/20 rounded-full px-2 py-0.5">
-          +30s
-        </button>
-        <button onClick={onClose} aria-label="Cerrar" className="ml-1">
-          <X className="w-4 h-4" />
-        </button>
-      </div>
     </div>
   )
 }
