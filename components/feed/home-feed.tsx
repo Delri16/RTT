@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Dumbbell, PlusCircle, User, Users } from "lucide-react"
+import { Dumbbell, PlusCircle, Trophy, User, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useApp } from "@/app/app-provider"
 import {
@@ -15,6 +15,7 @@ import {
 import FeedPost from "@/components/feed/feed-post"
 import NotificationBell from "@/components/notifications/notification-bell"
 import NotificationPrompt from "@/components/notification-prompt"
+import StreakStrip from "@/components/feed/streak-strip"
 import { FeedSkeleton } from "@/components/ui/skeletons"
 
 const PAGE_SIZE = 20
@@ -84,6 +85,11 @@ export default function HomeFeed() {
             <h1 className="text-xl font-display text-toro-foreground">Inicio</h1>
           </Link>
           <div className="flex items-center gap-1">
+            <Link href="/ranking">
+              <Button variant="ghost" size="icon" aria-label="Ranking global">
+                <Trophy className="w-5 h-5" />
+              </Button>
+            </Link>
             <NotificationBell />
             <Link href="/profile">
               <Button variant="ghost" size="icon" aria-label="Perfil">
@@ -96,6 +102,7 @@ export default function HomeFeed() {
 
       <div className="p-4 space-y-3 max-w-xl mx-auto">
         <NotificationPrompt />
+        {username && <StreakStrip username={username} />}
         {loading ? (
           <FeedSkeleton count={5} />
         ) : items.length === 0 ? (

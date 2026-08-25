@@ -7,7 +7,9 @@ import { supabaseAnonKey, supabaseUrl } from "./supabase"
 import { applyGoalMultiplier, REPORT_POINTS } from "./points"
 import { sendPushToUser } from "./push-server"
 import { getSportIcon, isOtherActivityName, resolveActivityEmoji } from "./sport-icons"
-import { REPORT_INTERVAL_DAYS } from "./date-utils"
+import { REPORT_INTERVAL_DAYS, argDayKey, argPeriodStartISO, type RankingPeriod } from "./date-utils"
+import type { GlobalRankingRow, SportBreakdownRow } from "./global-points"
+import { computeStreak, EMPTY_STREAK, type StreakInfo } from "./streaks"
 
 export async function createOrGetProfile(username: string) {
   // Check if profile exists
@@ -4424,4 +4426,144 @@ export async function deletePushSubscription(endpoint: string) {
   const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint)
   if (error) return { success: false, error: error.message }
   return { success: true }
+}
+
+// ===========================================================================
+// Ranking global (entre grupos)
+//
+// Escala PARALELA a los puntos de cada grupo: no toca logActivity ni
+// group_activities.points. Ver el comentario largo en lib/global-points.ts.
+//
+// El cálculo vive en los RPC del script 46 (get_global_ranking,
+// get_global_sport_breakdown, get_user_active_days) para no traerse todas las
+// filas de user_activities al server en cada request.
+// ===========================================================================
+
+export async function getGlobalRanking(period: RankingPeriod = "month", viewer?: string) {
+  const since = argPeriodStartISO(period)
+
+  const { data, error } = await supabase.rpc("get_global_ranking", {
+    since,
+    until: null,
+  })
+
+  if (error) {
+    console.error("[global-ranking] rpc error:", error.message)
+    return { success: false, error: error.message, rows: [] as GlobalRankingRow[], viewerRow: null }
+  }
+
+  const raw = (data ?? []) as {
+    username: string
+    global_points: number | string
+    activities: number | string
+    sports: number | string
+    last_activity: string | null
+  }[]
+
+  // Avatares en una sola query para toda la tabla.
+  const usernames = raw.map((r) => r.username)
+  const avatars = new Map<string, string | null>()
+  if (usernames.length > 0) {
+    const { data: profiles } = await supabase.from("profiles").select("username, avatar").in("username", usernames)
+    for (const p of profiles ?? []) avatars.set(p.username, p.avatar ?? null)
+  }
+
+  const rows: GlobalRankingRow[] = raw.map((r, i) => ({
+    username: r.username,
+    globalPoints: Number(r.global_points),
+    activities: Number(r.activities),
+    sports: Number(r.sports),
+    lastActivity: r.last_activity,
+    position: i + 1,
+    avatar: avatars.get(r.username) ?? null,
+  }))
+
+  // Fila de quien mira, aunque esté fuera del top que se muestre en pantalla.
+  const viewerRow = viewer ? rows.find((r) => r.username === viewer) ?? null : null
+
+  return { success: true, rows, viewerRow }
+}
+
+export async function getGlobalSportBreakdown(username: string, period: RankingPeriod = "month") {
+  const { data, error } = await supabase.rpc("get_global_sport_breakdown", {
+    target_username: username,
+    since: argPeriodStartISO(period),
+  })
+
+  if (error) {
+    console.error("[global-ranking] breakdown error:", error.message)
+    return { success: false, error: error.message, rows: [] as SportBreakdownRow[] }
+  }
+
+  const rows: SportBreakdownRow[] = ((data ?? []) as any[]).map((r) => ({
+    relationId: r.relation_id,
+    name: r.relation_name,
+    icon: r.icon,
+    unitPoints: Number(r.unit_points),
+    activities: Number(r.activities),
+    totalPoints: Number(r.total_points),
+  }))
+
+  return { success: true, rows }
+}
+
+/**
+ * Catálogo de actividades relacionadas, para el selector al crear/editar una
+ * actividad de grupo. Ordenado por puntaje global descendente dentro de cada
+ * categoría, que es como conviene leerlo al elegir.
+ */
+export async function getActivityRelations() {
+  const { data, error } = await supabase
+    .from("activity_relations")
+    .select("id, name, description, icon, sport_key, category, global_points")
+    .order("global_points", { ascending: false })
+    .order("name", { ascending: true })
+
+  if (error) return { success: false, error: error.message, relations: [] as any[] }
+  return { success: true, relations: data ?? [] }
+}
+
+// ===========================================================================
+// Rachas
+// ===========================================================================
+
+export async function getUserStreak(username: string) {
+  const { data, error } = await supabase.rpc("get_user_active_days", {
+    target_username: username,
+    since: null,
+  })
+
+  if (error) {
+    console.error("[streak] rpc error:", error.message)
+    return { success: false, error: error.message, streak: EMPTY_STREAK }
+  }
+
+  // El RPC devuelve `day` como date; Postgres lo serializa "YYYY-MM-DD" o como
+  // timestamp según el driver, así que se recorta a los primeros 10 caracteres.
+  const days = ((data ?? []) as { day: string }[]).map((r) => String(r.day).slice(0, 10))
+
+  return { success: true, streak: computeStreak(days, argDayKey(new Date())) }
+}
+
+/**
+ * Rachas de todos los miembros de un grupo, para el panel del grupo.
+ * Una query por persona: los grupos son de pocas personas (máximo 7 hoy).
+ */
+export async function getGroupStreaks(groupId: string) {
+  const { data: members, error } = await supabase
+    .from("group_members")
+    .select("username")
+    .eq("group_id", groupId)
+
+  if (error) return { success: false, error: error.message, streaks: [] as { username: string; streak: StreakInfo }[] }
+
+  const streaks = await Promise.all(
+    (members ?? []).map(async (m: any) => {
+      const res = await getUserStreak(m.username)
+      return { username: m.username, streak: res.streak }
+    }),
+  )
+
+  streaks.sort((a, b) => b.streak.current - a.streak.current)
+  return { success: true, streaks }
 }

@@ -119,3 +119,34 @@ export function getRelativeDate(dateString: string): string {
 // Lo usa getUserReportStatus en lib/actions.ts; el equivalente en la DB está
 // en notify_pending_reports() (scripts/45-report-interval-14-days.sql).
 export const REPORT_INTERVAL_DAYS = 14
+
+// Períodos del ranking global. La semana arranca LUNES 00:00 hora Argentina,
+// mismo criterio que getGroupRankingByWeek y que el calendario del grupo.
+export type RankingPeriod = "week" | "month" | "year" | "all"
+
+/**
+ * Instante ISO en que arranca el período, en hora Argentina.
+ * Devuelve null para "all" (sin límite inferior).
+ *
+ * Se calcula sobre la clave de día argentina (argDayKey) y no sobre el Date del
+ * navegador/servidor, para que el corte sea el mismo lo corra quien lo corra.
+ */
+export function argPeriodStartISO(period: RankingPeriod, now: Date = new Date()): string | null {
+  if (period === "all") return null
+
+  const todayKey = argDayKey(now) // "YYYY-MM-DD" en hora Argentina
+  const [year, month, day] = todayKey.split("-").map(Number)
+
+  if (period === "year") return argDayStartISO(`${year}-01-01`)
+  if (period === "month") return argDayStartISO(`${todayKey.slice(0, 7)}-01`)
+
+  // week: retroceder hasta el lunes. getUTCDay sobre un Date UTC construido con
+  // los componentes del día argentino da el día de la semana correcto.
+  const utc = Date.UTC(year, month - 1, day)
+  const offsetToMonday = (new Date(utc).getUTCDay() + 6) % 7
+  const monday = new Date(utc - offsetToMonday * 24 * 60 * 60 * 1000)
+  const mondayKey = `${monday.getUTCFullYear()}-${String(monday.getUTCMonth() + 1).padStart(2, "0")}-${String(
+    monday.getUTCDate(),
+  ).padStart(2, "0")}`
+  return argDayStartISO(mondayKey)
+}

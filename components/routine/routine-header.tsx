@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 import type { ReactNode } from "react"
 
-/** Header estándar de la sección Mi Rutina. */
+/**
+ * Header estándar de las pantallas "full screen" de la app (Mi Rutina, Ranking
+ * global). Sin `back` muestra el logo, que lleva a Inicio.
+ */
 export default function RoutineHeader({
   title,
   subtitle,
