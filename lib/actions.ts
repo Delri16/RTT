@@ -3617,7 +3617,7 @@ export async function acceptActivityTag(tagId: string, username: string) {
     // que logActivity). Si no se puede recalcular, se cae a los puntos originales.
     const { data: definition } = await supabase
       .from("group_activities")
-      .select("points, points_per_minute, activity_type, aerobic_pct")
+      .select("points, points_per_minute, activity_type, aerobic_pct, icon")
       .eq("id", originalActivity.activity_id)
       .single()
 
@@ -3641,7 +3641,9 @@ export async function acceptActivityTag(tagId: string, username: string) {
         minutes_performed: originalActivity.minutes_performed,
         completed_at: originalActivity.completed_at,
         // El deporte elegido por quien etiquetó se copia tal cual: es la misma salida.
-        sport_icon: originalActivity.sport_icon ?? null,
+        // Si el registro original es anterior a que el deporte fuera obligatorio,
+        // se hereda el fijo de la actividad — mismo criterio que logActivity.
+        sport_icon: originalActivity.sport_icon ?? getSportIcon(definition?.icon)?.id ?? null,
       })
       .select()
       .single()
