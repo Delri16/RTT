@@ -7,6 +7,7 @@ import { supabaseAnonKey, supabaseUrl } from "./supabase"
 import { applyGoalMultiplier, REPORT_POINTS } from "./points"
 import { sendPushToUser } from "./push-server"
 import { getSportIcon, isOtherActivityName, resolveActivityEmoji } from "./sport-icons"
+import { REPORT_INTERVAL_DAYS } from "./date-utils"
 
 export async function createOrGetProfile(username: string) {
   // Check if profile exists
@@ -1127,8 +1128,9 @@ export async function getUserReportStatus(username: string) {
         ? Math.floor((new Date().getTime() - new Date(lastReport.report_date).getTime()) / (1000 * 60 * 60 * 24))
         : null
 
-      const needsReport = !lastReport || daysSinceReport >= 15
-      const daysUntilNext = lastReport && daysSinceReport < 15 ? 15 - daysSinceReport : 0
+      const needsReport = !lastReport || daysSinceReport >= REPORT_INTERVAL_DAYS
+      const daysUntilNext =
+        lastReport && daysSinceReport < REPORT_INTERVAL_DAYS ? REPORT_INTERVAL_DAYS - daysSinceReport : 0
 
       return {
         group_id: groupMember.group_id,

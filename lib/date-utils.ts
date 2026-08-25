@@ -113,3 +113,9 @@ export function getRelativeDate(dateString: string): string {
   }
   return formatActivityDate(dateString)
 }
+
+// Cada cuántos días toca subir el reporte de peso. 14 (dos semanas exactas) y
+// no 15, para que siempre caiga el mismo día de la semana que el anterior.
+// Lo usa getUserReportStatus en lib/actions.ts; el equivalente en la DB está
+// en notify_pending_reports() (scripts/45-report-interval-14-days.sql).
+export const REPORT_INTERVAL_DAYS = 14

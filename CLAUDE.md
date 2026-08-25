@@ -137,7 +137,7 @@ Tipos de notificación (`notification_type`): los originales `activity_tag` / `a
 
 - `rank_overtake_general` / `rank_overtake_weekly`: se disparan solas via un trigger `AFTER INSERT ON user_activities` (`notify_rank_changes()`) — cubre tanto `logActivity` como `logRelatedActivity`, que insertan ahí sea cual sea el flujo. Comparan el total de cada rival del grupo antes/después de sumar la actividad; si algún rival quedó justo en el medio, lo acabás de pasar y se le notifica a él/ella. "Semana" = lunes 00:00 a domingo 23:59:59 en hora Argentina, mismo criterio que `getGroupRankingByWeek`.
 - `rank_lead_general` / `rank_lead_weekly`: mismo trigger, pero te notifica a VOS cuando pasás a liderar el ranking (motivacional).
-- `report_available`: se dispara con `notify_pending_reports()`, pensada para correr diaria por `pg_cron` (requiere habilitar la extensión en Database → Extensions del proyecto Supabase). Mismo criterio de "falta reporte" que `getUserReportStatus` (nunca reportó, o pasaron ≥15 días desde el último), con dedupe para no re-notificar en cada corrida del cron.
+- `report_available`: se dispara con `notify_pending_reports()`, pensada para correr diaria por `pg_cron` (requiere habilitar la extensión en Database → Extensions del proyecto Supabase). Mismo criterio de "falta reporte" que `getUserReportStatus` (nunca reportó, o pasaron ≥14 días desde el último), con dedupe para no re-notificar en cada corrida del cron.
 
 Además, `post_reaction` / `post_comment` (script 43, ver sección Reacciones y comentarios).
 
@@ -175,6 +175,14 @@ Resolución al mostrar: `resolveActivityEmoji(sport_icon, group_activities.icon)
 Al aceptar una etiqueta, `acceptActivityTag` copia el `sport_icon` del registro original (es la misma salida). `logRelatedActivity` lo replica en todos los grupos relacionados.
 
 **Ya corrido en el proyecto real:** [scripts/44-add-sport-icons.sql](scripts/44-add-sport-icons.sql) (agrega `group_activities.icon` y `user_activities.sport_icon`, ambas nullable). Los registros históricos quedan sin ícono y se ven igual que antes. No hacen falta policies nuevas: las policies existentes son por fila, no por columna.
+
+## Cadencia del reporte de peso: 14 días
+
+El reporte es cada **14 días** (dos semanas exactas) y no cada 15, así siempre cae el mismo día de la semana que el anterior. La constante única es `REPORT_INTERVAL_DAYS` en [lib/date-utils.ts](lib/date-utils.ts), que usa `getUserReportStatus` en [lib/actions.ts](lib/actions.ts) (`needs_report` / `days_until_next`, lo que ven la página de Seguimiento, el recordatorio al entrar y el toggle de notificaciones). No hay validación en `createReport`: el intervalo solo controla cuándo se avisa/marca como pendiente, no bloquea reportar antes.
+
+Del lado de la DB el mismo número vive en `notify_pending_reports()` (la del cron) y en las funciones sueltas `user_needs_report()` / `days_until_next_report()` del script 04 (que la app no llama, pero se dejaron en sync). Si se vuelve a cambiar la cadencia hay que tocar los dos lados.
+
+**Ya corrido en el proyecto real (20/8/2026):** [scripts/45-report-interval-14-days.sql](scripts/45-report-interval-14-days.sql) (redefine esas tres funciones con 14 días).
 
 ## Calendario del grupo
 
