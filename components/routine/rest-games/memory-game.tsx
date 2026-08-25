@@ -14,9 +14,13 @@ type Phase = "mostrando" | "repitiendo" | "error"
 
 /**
  * Memoria estilo Simón: se muestra una secuencia y hay que repetirla.
- * Cada ronda agrega un paso. Puntaje: 40 × la ronda alcanzada.
+ * Cada ronda agrega un paso.
+ *
+ * Puntaje: 40 × N al COMPLETAR la ronda N, acumulativo (llegar a la ronda 5 da
+ * 40+80+120+160+200 = 600). Se acredita ronda por ronda y no al fallar: si se
+ * sumara solo en el fallo, quien no pierde nunca termina la partida en 0.
  */
-export default function MemoryGame({ addScore }: RestGameProps) {
+export default function MemoryGame({ addScore, score }: RestGameProps) {
   const [sequence, setSequence] = useState<number[]>([])
   const [step, setStep] = useState(0)
   const [phase, setPhase] = useState<Phase>("mostrando")
@@ -60,9 +64,9 @@ export default function MemoryGame({ addScore }: RestGameProps) {
     setTimeout(() => setActive(null), 140)
 
     if (sequence[step] !== pad) {
-      // Falló: suma lo conseguido y arranca de nuevo desde una secuencia corta.
+      // Falló: los puntos de las rondas que sí completó ya están acreditados,
+      // así que acá no se suma nada. Arranca de nuevo con una secuencia corta.
       setPhase("error")
-      addScore(40 * (round - 1))
       clearTimers()
       timers.current.push(
         setTimeout(() => {
@@ -76,7 +80,10 @@ export default function MemoryGame({ addScore }: RestGameProps) {
     }
 
     if (step === sequence.length - 1) {
-      // Ronda completa: se agrega un paso.
+      // Ronda completa: se acreditan los puntos AHORA, no al fallar. Antes se
+      // sumaban solo en el fallo, así que quien no perdía nunca terminaba la
+      // partida con 0 puntos por más lejos que hubiera llegado.
+      addScore(40 * round)
       const next = [...sequence, Math.floor(Math.random() * 4)]
       setRound((r) => r + 1)
       timers.current.push(
@@ -96,6 +103,7 @@ export default function MemoryGame({ addScore }: RestGameProps) {
       <div className="flex items-center justify-between px-1">
         <span className="text-xs font-bold text-toro-foreground/60">
           Ronda <span className="tabular-nums">{round}</span>
+          <span className="ml-2 text-toro-accent tabular-nums">{score} pts</span>
         </span>
         <span className="text-xs font-semibold text-toro-foreground/50">
           {phase === "mostrando" ? "Mirá…" : phase === "error" ? "¡Uh! De nuevo" : "Repetí"}
