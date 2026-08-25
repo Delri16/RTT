@@ -18,8 +18,13 @@ import {
 } from "@/components/ui/alert-dialog"
 import { loadExercises, exerciseThumb, type Exercise } from "@/lib/exercise-catalog"
 import { deleteRoutine, shareRoutine, type Routine } from "@/lib/actions"
+import { gameOfTheDay } from "@/lib/rest-games"
+import { argDayKey } from "@/lib/date-utils"
 
 export default function RoutineDetail({ routine, username }: { routine: Routine; username: string }) {
+  // Mismo juego para todo el grupo, elegido por la fecha (ver lib/rest-games.ts).
+  const todaysGame = gameOfTheDay(argDayKey(new Date()))
+
   const router = useRouter()
   const [catalog, setCatalog] = useState<Map<string, Exercise>>(new Map())
   const [confirmDel, setConfirmDel] = useState(false)
@@ -129,7 +134,16 @@ export default function RoutineDetail({ routine, username }: { routine: Routine;
 
       {/* CTA fijo: Entrenar */}
       <div className="fixed bottom-16 left-0 right-0 z-30 px-3 pb-3 bg-gradient-to-t from-toro-background via-toro-background to-transparent pt-6">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto space-y-2">
+          {/* El juego del descanso solo aparece al marcar una serie, asi que sin
+              este aviso es invisible hasta que pasa de casualidad. */}
+          <div className="flex items-center gap-2 rounded-xl bg-white/80 border border-black/5 px-3 py-2 shadow-sm">
+            <span className="text-lg leading-none shrink-0">{todaysGame.emoji}</span>
+            <p className="text-[11px] text-toro-foreground/60 leading-tight min-w-0 flex-1">
+              Hoy en los descansos: <strong className="text-toro-foreground">{todaysGame.name}</strong>. Aparece al
+              marcar una serie.
+            </p>
+          </div>
           <Link href={`/mi-rutina/${routine.id}/entrenar`}>
             <Button className="w-full py-6 bg-toro-primary hover:bg-toro-primary/90 text-white text-lg font-bold rounded-2xl shadow-lg">
               <Play className="w-6 h-6 mr-2 fill-white" /> Entrenar ahora
