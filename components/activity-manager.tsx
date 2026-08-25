@@ -34,6 +34,8 @@ interface ActivityManagerProps {
 export default function ActivityManager({ activities, isAdmin, onActivityUpdate }: ActivityManagerProps) {
   const [editingActivity, setEditingActivity] = useState<string | null>(null)
   const [editData, setEditData] = useState<any>({})
+  // Error de validación del formulario de edición (deporte obligatorio).
+  const [editError, setEditError] = useState("")
   const [loading, setLoading] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [activityToDelete, setActivityToDelete] = useState<Activity | null>(null)
@@ -53,12 +55,22 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
   }
 
   const cancelEdit = () => {
+    setEditError("")
     setEditingActivity(null)
     setEditData({})
   }
 
   const saveEdit = async (activityId: string) => {
     if (!editData.name?.trim()) return
+
+    // El deporte define la relación de la actividad y con ella su puntaje en la
+    // tabla general. Antes este formulario no mandaba nada de eso y cada edición
+    // dejaba la actividad sin relación, sacándola del ranking global en silencio.
+    if (!isOtherActivityName(editData.name) && !editData.icon) {
+      setEditError("Elegí el deporte: define cuánto suma en la tabla general")
+      return
+    }
+    setEditError("")
 
     setLoading(true)
     const formData = new FormData()
@@ -246,20 +258,24 @@ export default function ActivityManager({ activities, isAdmin, onActivityUpdate 
                     ) : (
                       <>
                         <p className="text-[11px] text-gray-500 mb-1.5">
-                          Ícono del deporte (opcional, solo informativo)
-                          {editData.icon && (
+                          Deporte <span className="text-toro-primary">*</span> — define los puntos de la tabla general
+                          {editData.icon ? (
                             <span className="ml-1 font-medium text-toro-foreground">
                               — {sportEmoji(editData.icon)} {sportLabel(editData.icon)}
                             </span>
+                          ) : (
+                            <span className="ml-1 font-medium text-toro-primary">— elegí uno</span>
                           )}
                         </p>
                         <SportIconPicker
                           value={editData.icon ?? null}
                           onChange={(icon) => setEditData({ ...editData, icon })}
+                          allowNone={false}
                           compact
                         />
                       </>
                     )}
+                    {editError && <p className="text-[11px] text-toro-primary mt-1.5 font-medium">{editError}</p>}
                   </div>
                 </div>
 

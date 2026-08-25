@@ -59,14 +59,30 @@ export default function ActivitySelector({
   const [minutesInput, setMinutesInput] = useState<{ [key: string]: number }>({})
   const sportPickerRef = useRef<HTMLDivElement | null>(null)
 
-  const selectedIsGeneric = isOtherActivityName(activities.find((a) => a.id === selectedActivity)?.name)
+  const selected = activities.find((a) => a.id === selectedActivity)
+  const selectedIsGeneric = isOtherActivityName(selected?.name)
 
-  // El selector de deporte aparece dentro de la card, debajo de todo: en pantallas
-  // chicas puede quedar fuera de la vista y parecer que "no aparece nada".
+  // Al elegir una actividad que ya tiene deporte fijo, se precarga: así elegirlo
+  // es obligatorio pero no agrega un paso. Las genéricas ("Otros") arrancan
+  // vacías porque cada registro puede ser un deporte distinto.
   useEffect(() => {
-    if (!selectedIsGeneric) return
+    if (!selected) return
+    if (selectedIsGeneric) {
+      onSportIconChange?.(null)
+      return
+    }
+    onSportIconChange?.(sportEmoji(selected.icon) ? selected.icon ?? null : null)
+    // onSportIconChange viene del padre sin memoizar: se omite a propósito para
+    // no re-disparar la precarga en cada render y pisar lo que la persona eligió.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedActivity])
+
+  // El selector aparece dentro de la card, debajo de todo: en pantallas chicas
+  // puede quedar fuera de la vista y parecer que "no aparece nada".
+  useEffect(() => {
+    if (!selectedActivity) return
     sportPickerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
-  }, [selectedActivity, selectedIsGeneric])
+  }, [selectedActivity])
 
   const handleActivityClick = (activity: Activity) => {
     if (activity.activity_type === "per_minute") {
@@ -210,17 +226,19 @@ export default function ActivitySelector({
 
               {compositionInfo(activity, activity.activity_type === "per_minute" ? currentMinutes : 0)}
 
-              {/* Actividad genérica ("Otros"): hay que decir de qué deporte se trató.
-                  Es solo informativo — se ve en Inicio y en el calendario, no cambia los puntos. */}
-              {isSelected && isOtherActivityName(activity.name) && (
+              {/* Deporte del registro. Obligatorio en TODAS las actividades: es lo que
+                  define cuánto suma en la tabla general y en qué otros grupos se
+                  replica. En las que ya tienen deporte fijo viene precargado. */}
+              {isSelected && (
                 <div
                   ref={sportPickerRef}
                   className="mt-4 rounded-xl border-2 border-toro-primary/40 bg-white p-3"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center justify-between gap-2 mb-1">
                     <Label className="text-sm font-bold text-toro-foreground">
-                      ¿Qué deporte fue? <span className="text-toro-primary">*</span>
+                      {isOtherActivityName(activity.name) ? "¿Qué deporte fue?" : "Deporte"}{" "}
+                      <span className="text-toro-primary">*</span>
                     </Label>
                     {sportIcon ? (
                       <span className="text-xs font-semibold text-toro-accent">
@@ -230,6 +248,9 @@ export default function ActivitySelector({
                       <span className="text-xs font-semibold text-toro-primary">Elegí uno</span>
                     )}
                   </div>
+                  <p className="text-[11px] text-toro-foreground/50 mb-2">
+                    Define los puntos de la tabla general. Los puntos del grupo no cambian.
+                  </p>
                   <SportIconPicker
                     value={sportIcon}
                     onChange={(id) => onSportIconChange?.(id)}
@@ -243,7 +264,7 @@ export default function ActivitySelector({
                 <div className="mt-2 p-2 bg-blue-50 rounded-lg">
                   <div className="flex items-center gap-2 text-xs text-blue-700">
                     <Link2 className="w-3 h-3" />
-                    <span>Se registrará en todos tus grupos con "{activity.activity_relations.name}"</span>
+                    <span>Se registra en todos tus grupos que tengan este deporte (en la general cuenta una vez)</span>
                   </div>
                 </div>
               )}

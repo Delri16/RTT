@@ -221,10 +221,14 @@ export default function LogActivityPage() {
 
     const selectedActivityData = activities.find((a) => a.id === selectedActivity)
 
-    // En las genéricas ("Otros") el deporte es obligatorio: es lo único que después
-    // distingue el registro en el feed y en el calendario.
-    if (isOtherActivityName(selectedActivityData?.name) && !sportIcon) {
-      setError("Elegí de qué deporte se trata")
+    // El deporte es obligatorio en TODAS las actividades: define cuánto suma en
+    // la tabla general y en qué otros grupos se replica el registro.
+    if (!sportIcon) {
+      setError(
+        isOtherActivityName(selectedActivityData?.name)
+          ? "Elegí de qué deporte se trata"
+          : "Elegí el deporte de la actividad",
+      )
       return
     }
 
@@ -328,8 +332,10 @@ export default function LogActivityPage() {
   }
 
   const currentActivity = activities.find((a) => a.id === selectedActivity)
-  // Falta elegir el deporte de una actividad genérica ("Otros").
-  const missingSportIcon = isOtherActivityName(currentActivity?.name) && !sportIcon
+  // El deporte es obligatorio siempre. En las actividades que ya tienen uno fijo
+  // viene precargado, así que esto solo se prende en las genéricas ("Otros") o si
+  // la actividad todavía no tiene deporte asignado por el admin.
+  const missingSportIcon = !!currentActivity && !sportIcon
 
   if (loadingGroups) {
     return (

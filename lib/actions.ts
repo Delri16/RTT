@@ -478,27 +478,74 @@ function computeBaseActivityPoints(definition: any, minutesPerformed: number | n
 
 // Ícono de deporte (id del catálogo de lib/sport-icons.ts). Devuelve null si el id
 // no existe o si la actividad es genérica ("Otros"), donde el ícono se elige recién
-// al registrar cada vez. Es 100% informativo: no toca puntos ni ranking.
+// al registrar cada vez.
+//
+// Ya NO es solo informativo: desde el ranking global, el deporte elegido acá es
+// lo que define la relación de la actividad (y con ella su puntaje global).
 function normalizeActivityIcon(raw: FormDataEntryValue | null, activityName?: string | null): string | null {
   if (activityName && isOtherActivityName(activityName)) return null
   return getSportIcon(typeof raw === "string" ? raw : null)?.id ?? null
+}
+
+/**
+ * Relación (y por lo tanto puntaje global) que le corresponde a un deporte del
+ * catálogo. `activity_relations.sport_key` es el puente con SPORT_ICONS.
+ */
+async function relationIdForSport(sportId: string | null): Promise<number | null> {
+  if (!sportId) return null
+  const { data } = await supabase
+    .from("activity_relations")
+    .select("id")
+    .eq("sport_key", sportId)
+    .maybeSingle()
+  return data?.id ?? null
+}
+
+/**
+ * Con qué `relation_id` guardar una actividad de grupo.
+ *
+ * Orden: lo que mande el form explícito > lo que se deduzca del deporte elegido
+ * > lo que ya tenía (en updates).
+ *
+ * El último escalón es importante: `activity-manager.tsx` no mandaba
+ * `relation_id`, así que cada vez que un admin editaba una actividad la relación
+ * se borraba en silencio y esa actividad dejaba de sumar en el ranking global.
+ * Le pasó a "Gimnasio" de Road To Rio 2027, la actividad más usada de la app.
+ */
+async function resolveRelationId(
+  formData: FormData,
+  icon: string | null,
+  previous?: number | null,
+): Promise<number | null> {
+  const raw = formData.get("relation_id")
+  if (typeof raw === "string" && raw !== "" && raw !== "none") {
+    const parsed = Number.parseInt(raw)
+    if (!Number.isNaN(parsed)) return parsed
+  }
+
+  const fromIcon = await relationIdForSport(icon)
+  if (fromIcon != null) return fromIcon
+
+  return previous ?? null
 }
 
 export async function createGroupActivity(formData: FormData) {
   const group_id = formData.get("group_id") as string
   const name = formData.get("name") as string
   const activity_type = formData.get("activity_type") as string
-  const relation_id = formData.get("relation_id") as string
   const aerobicRaw = formData.get("aerobic_pct")
   const aerobic_pct = aerobicRaw != null && aerobicRaw !== "" ? Number.parseInt(aerobicRaw as string) : 50
+
+  const icon = normalizeActivityIcon(formData.get("icon"), name)
 
   let activityData: any = {
     group_id,
     name,
     activity_type: activity_type || "fixed",
-    relation_id: relation_id ? Number.parseInt(relation_id) : null,
+    // La relacion sale del deporte elegido; el form puede mandarla explicita.
+    relation_id: await resolveRelationId(formData, icon),
     aerobic_pct: Math.min(100, Math.max(0, aerobic_pct)),
-    icon: normalizeActivityIcon(formData.get("icon"), name),
+    icon,
   }
 
   if (activity_type === "per_minute") {
@@ -545,16 +592,24 @@ export async function createGroupActivity(formData: FormData) {
 export async function updateGroupActivity(activityId: string, formData: FormData) {
   const name = formData.get("name") as string
   const activity_type = formData.get("activity_type") as string
-  const relation_id = formData.get("relation_id") as string
   const aerobicRaw = formData.get("aerobic_pct")
   const aerobic_pct = aerobicRaw != null && aerobicRaw !== "" ? Number.parseInt(aerobicRaw as string) : 50
+
+  // Lo que ya tenia, para no perder la relacion si el form no manda nada.
+  const { data: current } = await supabase
+    .from("group_activities")
+    .select("relation_id")
+    .eq("id", activityId)
+    .maybeSingle()
+
+  const icon = normalizeActivityIcon(formData.get("icon"), name)
 
   let updateData: any = {
     name,
     activity_type: activity_type || "fixed",
-    relation_id: relation_id ? Number.parseInt(relation_id) : null,
+    relation_id: await resolveRelationId(formData, icon, current?.relation_id ?? null),
     aerobic_pct: Math.min(100, Math.max(0, aerobic_pct)),
-    icon: normalizeActivityIcon(formData.get("icon"), name),
+    icon,
   }
 
   if (activity_type === "per_minute") {
@@ -652,9 +707,11 @@ export async function logActivity(formData: FormData) {
     : null
   const taggedMembersJson = formData.get("tagged_members") as string | null
   const taggedMembers = taggedMembersJson ? JSON.parse(taggedMembersJson) : []
-  // Deporte elegido al registrar (solo aplica a las actividades genéricas "Otros").
+  // Deporte de ESTE registro. Ya no es solo para las genéricas ("Otros"): es
+  // obligatorio siempre, porque es lo que define cuánto suma en el ranking
+  // global y en qué otros grupos se replica el registro.
   const sportIconRaw = formData.get("sport_icon")
-  const sport_icon = getSportIcon(typeof sportIconRaw === "string" ? sportIconRaw : null)?.id ?? null
+  const chosenSport = getSportIcon(typeof sportIconRaw === "string" ? sportIconRaw : null)?.id ?? null
 
   console.log("[v0] ===== LOG ACTIVITY START =====")
   console.log("[v0] Username:", username)
@@ -674,10 +731,17 @@ export async function logActivity(formData: FormData) {
     return { success: false, error: "Activity not found" }
   }
 
-  // En las actividades genéricas ("Otros") hay que decir de qué deporte se trató:
-  // es lo único que después distingue un registro de otro en el feed y el calendario.
-  if (isOtherActivityName(activity.name) && !sport_icon) {
-    return { success: false, error: "Elegí de qué deporte se trata" }
+  // Si no eligió nada, se hereda el deporte fijo de la actividad del grupo. En
+  // las genéricas ("Otros") no hay herencia posible: hay que elegir sí o sí.
+  const sport_icon = chosenSport ?? getSportIcon(activity.icon)?.id ?? null
+
+  if (!sport_icon) {
+    return {
+      success: false,
+      error: isOtherActivityName(activity.name)
+        ? "Elegí de qué deporte se trata"
+        : "Esta actividad todavía no tiene deporte asignado. Pedile a un admin que la edite.",
+    }
   }
 
   let points_earned = activity.points
@@ -702,11 +766,16 @@ export async function logActivity(formData: FormData) {
   const rankingData = await getOptimisticRankingPosition(username, group_id, points_earned)
   console.log("[v0] Optimistic ranking calculated:", rankingData)
 
-  // If activity has a relation, log it in all user's groups with the same relation
-  if (activity.relation_id) {
+  // Se replica en todos los grupos del usuario que tengan una actividad del mismo
+  // deporte. La relación sale primero del deporte elegido (que puede diferir del
+  // fijo de la actividad, p. ej. en las genéricas "Otros") y si no, de la relación
+  // de la actividad de origen.
+  const targetRelationId = (await relationIdForSport(sport_icon)) ?? activity.relation_id ?? null
+
+  if (targetRelationId) {
     const result = await logRelatedActivity(
       username,
-      activity,
+      { ...activity, relation_id: targetRelationId },
       points_earned,
       minutes_performed,
       taggedMembers,
@@ -815,14 +884,28 @@ async function logRelatedActivity(
   const groupIds = userGroups.map((g) => g.group_id)
 
   // Find all activities in user's groups with the same relation
-  const { data: relatedActivities, error: relatedActivitiesError } = await supabase
+  const { data: matches, error: relatedActivitiesError } = await supabase
     .from("group_activities")
     .select("*")
     .eq("relation_id", sourceActivity.relation_id)
     .in("group_id", groupIds)
 
-  if (relatedActivitiesError || !relatedActivities || relatedActivities.length === 0) {
-    return { success: false, error: relatedActivitiesError?.message || "No related activities found" }
+  if (relatedActivitiesError) {
+    return { success: false, error: relatedActivitiesError.message }
+  }
+
+  // La actividad de origen SIEMPRE entra, aunque no matchee la relación buscada.
+  // Pasa cuando se registra una genérica ("Otros", sin relación propia) y se
+  // elige un deporte: la relación es la del deporte, y el grupo donde la persona
+  // está registrando puede no tener ninguna actividad de ese deporte. Sin esto,
+  // el registro se guardaría en los otros grupos y no en el que eligió.
+  const relatedActivities = [...(matches ?? [])]
+  if (!relatedActivities.some((a) => a.id === sourceActivity.id)) {
+    relatedActivities.unshift(sourceActivity)
+  }
+
+  if (relatedActivities.length === 0) {
+    return { success: false, error: "No related activities found" }
   }
 
   // Log activity in each group with related activities

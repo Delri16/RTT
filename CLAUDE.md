@@ -151,7 +151,9 @@ Flujo: `logActivity` crea filas en `activity_tags` (RPC `create_activity_tags`) 
 
 ## Íconos de deporte en las actividades
 
-Cada actividad puede llevar un ícono de deporte. Es **100% informativo**: no toca puntos, ranking, multiplicador por objetivo ni nada del cálculo.
+Cada actividad lleva un ícono de deporte, y **es obligatorio**.
+
+⚠️ **Ya NO es informativo.** Antes lo era; desde el ranking global, el deporte elegido es lo que define (a) cuánto suma la actividad en la tabla general y (b) en qué otros grupos se replica el registro. Lo que **sigue sin tocar** son los puntos del grupo: esos los define el admin en `group_activities.points` / `points_per_minute` y los calcula `logActivity` igual que siempre.
 
 - **Catálogo:** [lib/sport-icons.ts](lib/sport-icons.ts) — módulo PURO (como `lib/points.ts`), importable desde cliente y desde `actions.ts`. ~50 deportes agrupados en 8 categorías, cada uno con `id` estable (lo que se guarda en la DB), label en español, emoji y keywords para la búsqueda.
   - **Son emoji, no una librería de íconos SVG, a propósito:** `lucide-react` (la única librería de íconos del proyecto) no tiene fútbol, tenis, pádel, boxeo ni surf — solo `dumbbell`, `bike`, `volleyball` y poco más. Los emoji cubren todos los deportes, pesan 0 en el bundle y se ven bien en los tamaños chicos del calendario (mismo criterio que los avatares).
@@ -160,8 +162,14 @@ Cada actividad puede llevar un ícono de deporte. Es **100% informativo**: no to
 
 Dos usos distintos:
 
-1. **Ícono fijo de la actividad del grupo** (`group_activities.icon`): se elige abajo de todo al crear ([app/groups/[id]/activities/create/page.tsx](app/groups/[id]/activities/create/page.tsx)) o editar ([components/activity-manager.tsx](components/activity-manager.tsx)) una actividad. Ej: la actividad "Running" queda con 🏃 para siempre.
-2. **Ícono por registro** (`user_activities.sport_icon`): solo para las actividades **genéricas**, o sea aquellas cuyo nombre matchea `isOtherActivityName()` — alguna palabra del nombre es `otro`/`otra`/`otros`/`otras`, sin distinguir mayúsculas ni acentos (matchea "Otros", "OTROS DEPORTES", "Otra actividad"; NO matchea "Pullover", porque compara palabras enteras). En esas, el selector aparece **al registrar** ([components/activity-selector.tsx](components/activity-selector.tsx), dentro de la card seleccionada) y elegir es **obligatorio**: lo valida el submit de [app/log/page.tsx](app/log/page.tsx) (botón deshabilitado + mensaje) y de nuevo `logActivity` en el server. Esas actividades no tienen ícono fijo — el formulario de creación/edición reemplaza el selector por un cartel explicándolo.
+1. **Deporte fijo de la actividad del grupo** (`group_activities.icon`): **obligatorio** al crear ([app/groups/[id]/activities/create/page.tsx](app/groups/[id]/activities/create/page.tsx)) o editar ([components/activity-manager.tsx](components/activity-manager.tsx)) una actividad, salvo en las genéricas. De él se deriva `relation_id` server-side vía `resolveRelationId()` — el selector de "Actividad Relacionada" que había en el form de creación **se eliminó**, porque tener dos campos para lo mismo era justo lo que se desincronizaba.
+2. **Deporte por registro** (`user_activities.sport_icon`): ahora se guarda en **todos** los registros, no solo en los genéricos. Al elegir una actividad que ya tiene deporte fijo viene precargado (un tap menos); en las **genéricas** — nombre que matchea `isOtherActivityName()` — alguna palabra del nombre es `otro`/`otra`/`otros`/`otras`, sin distinguir mayúsculas ni acentos (matchea "Otros", "OTROS DEPORTES", "Otra actividad"; NO matchea "Pullover", porque compara palabras enteras). En esas, el selector aparece **al registrar** ([components/activity-selector.tsx](components/activity-selector.tsx), dentro de la card seleccionada) y elegir es **obligatorio**: lo valida el submit de [app/log/page.tsx](app/log/page.tsx) (botón deshabilitado + mensaje) y de nuevo `logActivity` en el server. Esas actividades no tienen ícono fijo — el formulario de creación/edición reemplaza el selector por un cartel explicándolo.
+
+### El bug que borraba las relaciones (arreglado)
+
+`updateGroupActivity` escribía `relation_id: relation_id ? parseInt : null`, y el formulario de edición (`activity-manager.tsx`) **nunca mandaba ese campo**. Resultado: cada vez que un admin editaba una actividad, la relación se borraba en silencio y esa actividad dejaba de sumar en el ranking global. Le pasó a "Gimnasio" de Road To Rio 2027 — la actividad con más uso de toda la app (59 registros solo en agosto).
+
+Ahora lo resuelve `resolveRelationId()` en [lib/actions.ts](lib/actions.ts), con este orden: **`relation_id` explícito del form → derivada del deporte elegido → la que ya tenía**. El último escalón es el que evita que se pierda nunca más.
 
 Resolución al mostrar: `resolveActivityEmoji(sport_icon, group_activities.icon)` — manda el elegido al registrar, y si no hay, el fijo de la actividad; si no hay ninguno, la UI cae al ícono genérico de siempre (mancuerna/reloj). Se ve en el feed de Inicio ([feed-post.tsx](components/feed/feed-post.tsx), el `FeedItem` de tipo `activity` trae el emoji ya resuelto en `sportEmoji`), el detalle del día del calendario ([group-calendar.tsx](components/group-calendar.tsx)), el historial del grupo, el historial propio y las actividades recientes del perfil.
 
@@ -208,7 +216,10 @@ El problema que resuelve: los puntos de grupo no son comparables entre grupos (l
 - **`activity_relations.global_points`**: cuánto suma UNA sesión de ese deporte en el ranking global, igual para todos. **Gimnasio = 100 es el techo** y nada lo supera; el resto baja según cuánto exige una sesión típica (Crossfit/Natación/Boxeo/Rugby/Funcional/Remo 90, Running/Ciclismo/Escalada 85, Fútbol 11/Básquet/Trekking 80, Tenis/Vóley/Surf 70, Padel/Pilates/Baile 60, Yoga/Caminata 50, Golf/Bowling 40, Pesca/Automovilismo 30).
 - **El catálogo pasó de 16 a 55 relaciones**, alineadas con `SPORT_ICONS` de [lib/sport-icons.ts](lib/sport-icons.ts) vía la columna nueva `activity_relations.sport_key`. Ese puente es lo que hace que el deporte elegido al registrar una actividad **genérica** ("Otros", que guarda `user_activities.sport_icon`) también puntúe en el global.
 - **Resolución del puntaje de cada registro**, en orden: `user_activities.sport_icon` → `activity_relations.sport_key`; si no, `group_activities.relation_id`; si no hay ninguno, **0** (no suma). Los reportes de peso insertan filas con `activity_id` NULL: quedan afuera, el global es solo actividad física.
-- Por eso **es importante que cada actividad de grupo tenga su relación**. El backfill del script 46 dejó 11 de 13 resueltas por nombre y alias ("Gym"→Gimnasio, "Bici"→Ciclismo, "Correr"→Running…). Las dos que quedaron sin relación son `Otros` (a propósito: la elige quien registra) y `test`.
+- **UN solo deporte por persona y por día** (script 48). Si hacés gimnasio dos veces el mismo día, en la general suma una sola vez. Esto además resuelve el doble conteo de la réplica entre grupos: `logActivity` inserta una fila por cada grupo del usuario que tenga ese deporte, y el ranking de grupo las cuenta todas (bien), pero el global cuenta una (bien también). Si el mismo día hay dos filas del mismo deporte con puntajes distintos, se toma el **mayor**.
+- La deduplicación vive en la vista `global_activity_days` + el `GROUP BY username, day, relation_id` de los RPC. Por eso la columna `activities` que devuelve `get_global_ranking` son **días-deporte contados**, no filas de `user_activities`.
+- Por eso **es importante que cada actividad de grupo tenga su relación**. El backfill del script 46 la resolvió por nombre y alias ("Gym"→Gimnasio, "Bici"→Ciclismo, "Correr"→Running…), y el 48 completó además el emoji de cada una desde `sport_key`. Hoy las únicas sin deporte son `Otros` (a propósito: lo elige quien registra) y `test`.
+- **Réplica entre grupos:** al registrar, el deporte elegido resuelve la relación y `logRelatedActivity` inserta en todos los grupos del usuario que tengan una actividad de ese deporte. La actividad de origen **siempre** entra en esa lista, aunque no matchee la relación buscada — pasa al registrar una genérica ("Otros", sin relación propia) eligiendo un deporte que el grupo actual no tiene configurado; sin esa salvaguarda el registro se guardaba en los otros grupos y no en el que la persona eligió.
 
 Cálculo en los RPC del script 46 (`get_global_ranking`, `get_global_sport_breakdown`, `get_user_active_days`) para no traerse todo `user_activities` al server en cada request. Server actions: `getGlobalRanking`, `getGlobalSportBreakdown`, `getActivityRelations` en [lib/actions.ts](lib/actions.ts).
 
@@ -216,7 +227,7 @@ Cálculo en los RPC del script 46 (`get_global_ranking`, `get_global_sport_break
 
 UI en `/ranking` ([components/ranking/](components/ranking/)): podio del top 3, tarjeta propia con progreso al próximo rango, tabla y drawer con el desglose por deporte. Se entra por el trofeo del header de Inicio y por la tira de racha — **la barra de abajo quedó igual a propósito**.
 
-**Ya corrido en el proyecto real:** [scripts/46-global-ranking.sql](scripts/46-global-ranking.sql).
+**Ya corrido en el proyecto real:** [scripts/46-global-ranking.sql](scripts/46-global-ranking.sql) y [scripts/48-global-one-per-day.sql](scripts/48-global-one-per-day.sql) (este último trae también los arreglos de datos: restaurar la relación de "Gimnasio", completar los emoji faltantes y unificar "Fútbol 5" contra "Fútbol 11", porque el catálogo de deportes tiene un solo "Fútbol").
 
 ## Rachas
 

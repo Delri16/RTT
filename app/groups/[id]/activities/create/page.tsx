@@ -24,7 +24,6 @@ export default function CreateActivityPage() {
   const [error, setError] = useState("")
   const [activityType, setActivityType] = useState("fixed")
   const [relations, setRelations] = useState<any[]>([])
-  const [selectedRelation, setSelectedRelation] = useState("none")
   const [aerobicPct, setAerobicPct] = useState(50)
   const [name, setName] = useState("")
   const [icon, setIcon] = useState<string | null>(null)
@@ -32,6 +31,9 @@ export default function CreateActivityPage() {
   // Las actividades genéricas ("Otros", "Otra actividad"...) no llevan ícono fijo:
   // el deporte se elige al registrar cada vez.
   const isGeneric = isOtherActivityName(name)
+  // La relación (y con ella el puntaje de la tabla general) sale del deporte
+  // elegido: activity_relations.sport_key es el puente con SPORT_ICONS.
+  const relationForIcon = icon ? relations.find((r) => r.sport_key === icon) : undefined
 
   useEffect(() => {
     loadActivityRelations()
@@ -49,13 +51,21 @@ export default function CreateActivityPage() {
     setLoading(true)
     setError("")
 
+    // El deporte es obligatorio salvo en las genéricas ("Otros"), donde se elige
+    // al registrar cada vez.
+    if (!isGeneric && !icon) {
+      setError("Elegí el deporte de la actividad: define cuánto suma en la tabla general")
+      setLoading(false)
+      return
+    }
+
     formData.append("group_id", groupId)
     formData.append("activity_type", activityType)
     formData.append("aerobic_pct", aerobicPct.toString())
     formData.append("icon", isGeneric ? "" : icon ?? "")
 
-    if (selectedRelation !== "none") {
-      formData.append("relation_id", selectedRelation)
+    if (relationForIcon) {
+      formData.append("relation_id", relationForIcon.id.toString())
     }
 
     const result = await createGroupActivity(formData)
@@ -100,35 +110,6 @@ export default function CreateActivityPage() {
                 required
                 className="mt-1"
               />
-            </div>
-
-            <div>
-              <Label htmlFor="relation">Actividad Relacionada (Opcional)</Label>
-              <Select value={selectedRelation} onValueChange={setSelectedRelation}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Selecciona una relación..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">Sin relación</span>
-                    </div>
-                  </SelectItem>
-                  {relations.map((relation) => (
-                    <SelectItem key={relation.id} value={relation.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <Link2 className="w-4 h-4" />
-                        {relation.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-sm text-gray-600 mt-1">
-                {selectedRelation !== "none"
-                  ? "Esta actividad se sincronizará con otros grupos que tengan la misma relación"
-                  : "Actividad única de este grupo"}
-              </p>
             </div>
 
             <div>
@@ -254,31 +235,33 @@ export default function CreateActivityPage() {
               ) : (
                 <>
                   <p className="text-sm text-gray-600 mt-1 mb-2">
-                    Solo informativo: se muestra en el feed de Inicio y en el calendario del grupo. No cambia los
-                    puntos.
+                    Define cuánto suma esta actividad en la <strong>tabla general</strong> y con qué actividades de tus
+                    otros grupos se sincroniza. Los puntos del grupo los seguís configurando abajo.
                     {icon && (
                       <span className="ml-1 font-medium text-toro-foreground">
                         Elegido: {sportEmoji(icon)} {sportLabel(icon)}
                       </span>
                     )}
                   </p>
-                  <SportIconPicker value={icon} onChange={setIcon} />
+                  <SportIconPicker value={icon} onChange={setIcon} allowNone={false} />
                 </>
               )}
             </div>
 
-            {selectedRelation !== "none" && (
+            {relationForIcon && (
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-3">
-                  <Link2 className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <Link2 className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                   <div>
-                    <h4 className="font-medium text-blue-900">Actividad Relacionada</h4>
+                    <h4 className="font-medium text-blue-900">
+                      {sportEmoji(icon)} {relationForIcon.name} · {relationForIcon.global_points} pts en la general
+                    </h4>
                     <p className="text-sm text-blue-700 mt-1">
-                      Al registrar esta actividad, se sumará automáticamente en todos tus grupos que tengan actividades
-                      relacionadas con "{relations.find((r) => r.id.toString() === selectedRelation)?.name}".
+                      Al registrarla se anota automáticamente en todos tus grupos que tengan una actividad de este
+                      deporte.
                     </p>
                     <p className="text-xs text-blue-600 mt-2">
-                      💡 Para el total en tu dashboard, solo contará el grupo que más puntos otorgue.
+                      💡 En la tabla general cuenta una sola vez por día, aunque se registre en varios grupos.
                     </p>
                   </div>
                 </div>
