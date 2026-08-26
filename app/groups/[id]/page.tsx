@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { ArrowLeft, Users, Plus, Settings, Copy, Check, LogOut, Trophy, Share2, CalendarDays } from 'lucide-react'
+import { ArrowLeft, Users, Plus, Settings, Copy, Check, LogOut, Trophy, Share2, CalendarDays, Scale } from 'lucide-react'
 import { useApp } from "@/app/app-provider"
 import { getGroupDetails, leaveGroup, getWeeklyWinners, getGroupWeeklyRecords } from "@/lib/actions"
 import ActivityManager from "@/components/activity-manager"
@@ -27,6 +27,7 @@ import DownloadApp from "@/components/download-app"
 import GroupActivityHistory from "@/components/group-activity-history"
 import RodeosTab from "@/components/rodeos-tab"
 import GroupCalendar from "@/components/group-calendar"
+import GroupReportsTab from "@/components/group-reports-tab"
 
 export default function GroupDetailPage() {
   const { username } = useApp()
@@ -230,16 +231,22 @@ export default function GroupDetailPage() {
       )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="general" className="flex items-center gap-1.5 px-1">
+        {/* 4 pestañas: en 375px no entran los labels al lado del icono, asi que
+            se apilan y el texto va mas chico. */}
+        <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsTrigger value="general" className="flex flex-col items-center gap-0.5 px-0.5 text-[11px]">
             <Users className="w-4 h-4 shrink-0" />
             General
           </TabsTrigger>
-          <TabsTrigger value="calendario" className="flex items-center gap-1.5 px-1">
+          <TabsTrigger value="calendario" className="flex flex-col items-center gap-0.5 px-0.5 text-[11px]">
             <CalendarDays className="w-4 h-4 shrink-0" />
             Calendario
           </TabsTrigger>
-          <TabsTrigger value="rodeos" className="flex items-center gap-1.5 px-1">
+          <TabsTrigger value="reportes" className="flex flex-col items-center gap-0.5 px-0.5 text-[11px]">
+            <Scale className="w-4 h-4 shrink-0" />
+            Reportes
+          </TabsTrigger>
+          <TabsTrigger value="rodeos" className="flex flex-col items-center gap-0.5 px-0.5 text-[11px]">
             <Trophy className="w-4 h-4 shrink-0" />
             Rodeos
           </TabsTrigger>
@@ -326,6 +333,10 @@ export default function GroupDetailPage() {
 
         <TabsContent value="calendario">
           <GroupCalendar groupId={groupId} members={members} currentUsername={username!} />
+        </TabsContent>
+
+        <TabsContent value="reportes">
+          <GroupReportsTab groupId={groupId} />
         </TabsContent>
 
         <TabsContent value="rodeos">

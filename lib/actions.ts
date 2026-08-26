@@ -4714,3 +4714,125 @@ export async function getRestGameLeaderboard(sinceDay?: string | null, limit = 2
 
   return { success: true, rows }
 }
+
+// ===========================================================================
+// Reportes de peso del grupo (pestaña "Reportes" dentro del grupo)
+// ===========================================================================
+
+export type GroupReportRow = {
+  id: string
+  username: string
+  avatar: string | null
+  goal: string | null
+  weight: number
+  /** Peso del reporte anterior de esa persona EN ESTE grupo (null si es el primero). */
+  prevWeight: number | null
+  reportDate: string
+  createdAt: string | null
+  scalePhotoUrl: string | null
+  bodyPhotoUrl: string | null
+}
+
+export type GroupMemberReportState = {
+  username: string
+  avatar: string | null
+  goal: string | null
+  /** Último reporte en este grupo, si tiene alguno. */
+  last: GroupReportRow | null
+  /** Cuántos reportes subió en este grupo. */
+  count: number
+  /** Días desde el último reporte (null si nunca reportó). */
+  daysSince: number | null
+  /** Le toca reportar: nunca lo hizo, o pasaron >= REPORT_INTERVAL_DAYS. */
+  needsReport: boolean
+  /** Diferencia total entre el primer y el último reporte (null si tiene menos de 2). */
+  totalChange: number | null
+}
+
+/**
+ * Todo lo que necesita la pestaña de reportes del grupo, en 3 queries:
+ * miembros, sus perfiles (avatar + objetivo) y los reportes del grupo.
+ *
+ * El `prevWeight` de cada reporte se calcula acá y no en el cliente para que el
+ * veredicto (lib/report-verdict.ts) se arme igual que en el feed.
+ */
+export async function getGroupReportsOverview(groupId: string) {
+  const [{ data: members }, { data: reports }] = await Promise.all([
+    supabase.from("group_members").select("username").eq("group_id", groupId),
+    supabase
+      .from("bi_weekly_reports")
+      .select("id, username, reported_weight, report_date, created_at, scale_photo_url, body_photo_url")
+      .eq("group_id", groupId)
+      .order("report_date", { ascending: true }),
+  ])
+
+  const usernames = (members ?? []).map((m: any) => m.username)
+  if (usernames.length === 0) {
+    return { success: true, rows: [] as GroupReportRow[], states: [] as GroupMemberReportState[] }
+  }
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("username, avatar, goal")
+    .in("username", usernames)
+
+  const profileBy = new Map((profiles ?? []).map((p: any) => [p.username, p]))
+
+  // Ascendente por persona -> el anterior es el que quedó justo antes.
+  const lastByUser = new Map<string, number>()
+  const rowsAsc: GroupReportRow[] = (reports ?? []).map((r: any) => {
+    const prev = lastByUser.get(r.username) ?? null
+    lastByUser.set(r.username, Number(r.reported_weight))
+    const p = profileBy.get(r.username)
+    return {
+      id: r.id,
+      username: r.username,
+      avatar: p?.avatar ?? null,
+      goal: p?.goal ?? null,
+      weight: Number(r.reported_weight),
+      prevWeight: prev,
+      reportDate: r.report_date,
+      createdAt: r.created_at ?? null,
+      scalePhotoUrl: r.scale_photo_url || null,
+      bodyPhotoUrl: r.body_photo_url || null,
+    }
+  })
+
+  // Estado por miembro: incluye a los que nunca reportaron, que son los que
+  // interesa ver en un panel de grupo.
+  const byUser = new Map<string, GroupReportRow[]>()
+  for (const row of rowsAsc) {
+    const list = byUser.get(row.username) ?? []
+    list.push(row)
+    byUser.set(row.username, list)
+  }
+
+  const today = new Date()
+  const states: GroupMemberReportState[] = usernames.map((username) => {
+    const p = profileBy.get(username)
+    const list = byUser.get(username) ?? []
+    const last = list.length > 0 ? list[list.length - 1] : null
+    const daysSince = last
+      ? Math.floor((today.getTime() - new Date(last.reportDate).getTime()) / (1000 * 60 * 60 * 24))
+      : null
+
+    return {
+      username,
+      avatar: p?.avatar ?? null,
+      goal: p?.goal ?? null,
+      last,
+      count: list.length,
+      daysSince,
+      needsReport: daysSince === null || daysSince >= REPORT_INTERVAL_DAYS,
+      totalChange: list.length >= 2 ? list[list.length - 1].weight - list[0].weight : null,
+    }
+  })
+
+  // Los que deben reportar primero; después por fecha del último reporte.
+  states.sort((a, b) => {
+    if (a.needsReport !== b.needsReport) return a.needsReport ? -1 : 1
+    return (b.last?.reportDate ?? "").localeCompare(a.last?.reportDate ?? "")
+  })
+
+  return { success: true, rows: rowsAsc.reverse(), states }
+}

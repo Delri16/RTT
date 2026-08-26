@@ -196,6 +196,20 @@ Tercera pestaña de [app/groups/[id]/page.tsx](app/groups/[id]/page.tsx) (`Gener
 
 No requiere ninguna migración: usa `user_activities`, que ya tiene policy `Public access`.
 
+## Pestaña Reportes del grupo
+
+Cuarta pestaña de [app/groups/[id]/page.tsx](app/groups/[id]/page.tsx) (`General / Calendario / Reportes / Rodeos`), en [components/group-reports-tab.tsx](components/group-reports-tab.tsx). Es **solo lectura**, igual que el calendario: para reportar se sigue yendo a `/reports/create`.
+
+- **Por persona:** cada miembro con su último peso, la diferencia contra su reporte anterior (coloreada con el mismo veredicto del feed) y un chip rojo con cuántos días hace que le toca. Incluye a los que **nunca reportaron**, que son justamente los que interesa ver en un panel de grupo. Ordena poniendo primero a los que deben.
+- **Historial:** todos los reportes del grupo, del más nuevo al más viejo, con miniaturas de las fotos.
+- Tocar cualquier fila abre [components/feed/report-history-drawer.tsx](components/feed/report-history-drawer.tsx) — el mismo drawer del feed, con el comparador antes/ahora y el gráfico de peso. No se duplicó nada.
+
+Datos: `getGroupReportsOverview(groupId)` en [lib/actions.ts](lib/actions.ts), 3 queries (miembros, perfiles, reportes). El `prevWeight` de cada reporte se calcula server-side para que el veredicto salga igual que en el feed.
+
+> **Ojo con `formatKg`** (de [lib/report-verdict.ts](lib/report-verdict.ts)): devuelve la **magnitud**, no el signo — usa `Math.abs` porque sus otros usuarios se lo agregan aparte. Pasarle un delta negativo tal cual hace desaparecer el menos y "bajó 800 g" se lee como si hubiera subido. Para deltas con signo está el helper `signedKg()` dentro de la pestaña.
+
+No requiere migración: usa `bi_weekly_reports`, que ya tiene policy `Public access`.
+
 ## Web Push (notificaciones al teléfono con la app cerrada)
 
 Web Push real con VAPID — reemplaza al viejo esquema "fake" (polling de `notification-listener.tsx` + `showNotification` local, que solo funcionaba con la app abierta y sigue existiendo para etiquetas de actividad).
