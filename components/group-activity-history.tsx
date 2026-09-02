@@ -320,7 +320,7 @@ export default function GroupActivityHistory({
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <Calendar className="w-6 h-6 mx-auto mb-2 text-green-600" />
+            <Calendar className="w-6 h-6 mx-auto mb-2 text-toro-primary" />
             <div className="text-sm font-bold truncate">{stats.mostPopularActivity}</div>
             <div className="text-sm text-gray-600">Más Popular</div>
           </CardContent>
