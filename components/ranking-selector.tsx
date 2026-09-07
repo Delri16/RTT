@@ -246,13 +246,15 @@ export default function RankingSelector({ groupId, currentUsername }: RankingSel
     <div className="space-y-6">
       <Card className="bg-white shadow-sm">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+          {/* Título y selector en una fila: en 375px "Ranking por Período" + un
+              select de 160px no entraban y el título se partía en dos líneas. */}
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2 shrink-0">
               <Trophy className="w-6 h-6 text-toro-secondary" />
-              Ranking por Período
+              Ranking
             </CardTitle>
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-auto min-w-[9.5rem] max-w-[11rem]" aria-label="Período">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -37,7 +37,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react"
-import { resolveActivityEmoji } from "@/lib/sport-icons"
+import { resolveActivityEmoji, resolveActivityName } from "@/lib/sport-icons"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import Link from "next/link"
@@ -86,7 +86,7 @@ export default function GroupActivityHistory({
     try {
       const result = await getAllGroupActivities(groupId)
       if (result.success) {
-        setAllActivities(result.activities)
+        setAllActivities(result.activities ?? [])
       }
     } catch (error) {
       console.error("Error loading activities:", error)
@@ -296,33 +296,38 @@ export default function GroupActivityHistory({
   return (
     <div className="space-y-6">
       {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* La app siempre vive en un contenedor de ~448px (max-w-md), así que los
+          breakpoints md/lg no sirven: en desktop metían 4 tarjetas en una fila y
+          los textos quedaban truncados ("Gimna..."). Siempre 2x2. */}
+      <div className="grid grid-cols-2 gap-3">
         <Card>
           <CardContent className="p-4 text-center">
             <Activity className="w-6 h-6 mx-auto mb-2 text-toro-primary" />
-            <div className="text-2xl font-bold">{stats.totalActivities}</div>
-            <div className="text-sm text-gray-600">Actividades</div>
+            <div className="text-2xl font-bold tabular-nums">{stats.totalActivities}</div>
+            <div className="text-xs text-gray-600">Actividades</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Trophy className="w-6 h-6 mx-auto mb-2 text-toro-secondary" />
-            <div className="text-2xl font-bold">{stats.totalPoints}</div>
-            <div className="text-sm text-gray-600">Puntos</div>
+            <div className="text-2xl font-bold tabular-nums">{stats.totalPoints}</div>
+            <div className="text-xs text-gray-600">Puntos</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <User className="w-6 h-6 mx-auto mb-2 text-toro-accent" />
-            <div className="text-2xl font-bold">{stats.uniqueMembers}</div>
-            <div className="text-sm text-gray-600">Miembros Activos</div>
+            <div className="text-2xl font-bold tabular-nums">{stats.uniqueMembers}</div>
+            <div className="text-xs text-gray-600">Miembros activos</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Calendar className="w-6 h-6 mx-auto mb-2 text-toro-primary" />
-            <div className="text-sm font-bold truncate">{stats.mostPopularActivity}</div>
-            <div className="text-sm text-gray-600">Más Popular</div>
+            <div className="text-base font-bold leading-tight truncate" title={stats.mostPopularActivity}>
+              {stats.mostPopularActivity}
+            </div>
+            <div className="text-xs text-gray-600">Más popular</div>
           </CardContent>
         </Card>
       </div>
@@ -336,56 +341,67 @@ export default function GroupActivityHistory({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="relative">
+          {/* Buscador a todo el ancho y los tres selectores debajo. Antes en
+              desktop iban los cuatro en una fila de 448px y no se leía ninguno. */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="relative col-span-3">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Buscar..."
+                placeholder="Buscar por persona o actividad..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
 
-            <Select value={selectedMember} onValueChange={setSelectedMember}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todos los miembros" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los miembros</SelectItem>
-                {members.map((member) => (
-                  <SelectItem key={member.username} value={member.username}>
-                    {member.username}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="min-w-0">
+              <Label className="text-[10px] uppercase tracking-wide text-gray-500">Miembro</Label>
+              <Select value={selectedMember} onValueChange={setSelectedMember}>
+                <SelectTrigger className="mt-1 h-9 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  {members.map((member) => (
+                    <SelectItem key={member.username} value={member.username}>
+                      {member.username}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select value={selectedActivity} onValueChange={setSelectedActivity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas las actividades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las actividades</SelectItem>
-                {activities.map((activity) => (
-                  <SelectItem key={activity.id} value={activity.id}>
-                    {activity.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="min-w-0">
+              <Label className="text-[10px] uppercase tracking-wide text-gray-500">Actividad</Label>
+              <Select value={selectedActivity} onValueChange={setSelectedActivity}>
+                <SelectTrigger className="mt-1 h-9 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {activities.map((activity) => (
+                    <SelectItem key={activity.id} value={activity.id}>
+                      {activity.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas las fechas" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las fechas</SelectItem>
-                <SelectItem value="today">Hoy</SelectItem>
-                <SelectItem value="week">Última semana</SelectItem>
-                <SelectItem value="month">Último mes</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="min-w-0">
+              <Label className="text-[10px] uppercase tracking-wide text-gray-500">Fecha</Label>
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="mt-1 h-9 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Siempre</SelectItem>
+                  <SelectItem value="today">Hoy</SelectItem>
+                  <SelectItem value="week">Última semana</SelectItem>
+                  <SelectItem value="month">Último mes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -393,13 +409,13 @@ export default function GroupActivityHistory({
       {/* Activities List */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Historial de Actividades ({filteredActivities.length})
-            {activitiesToShow < filteredActivities.length && (
-              <span className="text-sm font-normal text-gray-500 ml-2">
-                - Mostrando {activitiesToShow} de {filteredActivities.length}
-              </span>
-            )}
+          <CardTitle className="flex items-baseline justify-between gap-2">
+            <span>Historial</span>
+            <span className="text-sm font-normal text-gray-500 tabular-nums">
+              {activitiesToShow < filteredActivities.length
+                ? `${Math.min(activitiesToShow, filteredActivities.length)} de ${filteredActivities.length}`
+                : `${filteredActivities.length} en total`}
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -432,7 +448,7 @@ export default function GroupActivityHistory({
                             {resolveActivityEmoji(activity.sport_icon, activity.group_activities?.icon)}
                           </span>
                         )}
-                        {activity.group_activities?.name}
+                        {resolveActivityName(activity.group_activities?.name, activity.sport_icon)}
                       </div>
                       <div className="text-xs text-gray-500">
                         {formatDistanceToNow(new Date(activity.completed_at), {

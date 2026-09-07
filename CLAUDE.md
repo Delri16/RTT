@@ -163,7 +163,9 @@ Cada actividad lleva un ícono de deporte, y **es obligatorio**.
 Dos usos distintos:
 
 1. **Deporte fijo de la actividad del grupo** (`group_activities.icon`): **obligatorio** al crear ([app/groups/[id]/activities/create/page.tsx](app/groups/[id]/activities/create/page.tsx)) o editar ([components/activity-manager.tsx](components/activity-manager.tsx)) una actividad, salvo en las genéricas. De él se deriva `relation_id` server-side vía `resolveRelationId()` — el selector de "Actividad Relacionada" que había en el form de creación **se eliminó**, porque tener dos campos para lo mismo era justo lo que se desincronizaba.
-2. **Deporte por registro** (`user_activities.sport_icon`): ahora se guarda en **todos** los registros, no solo en los genéricos. Al elegir una actividad que ya tiene deporte fijo viene precargado (un tap menos); en las **genéricas** — nombre que matchea `isOtherActivityName()` — alguna palabra del nombre es `otro`/`otra`/`otros`/`otras`, sin distinguir mayúsculas ni acentos (matchea "Otros", "OTROS DEPORTES", "Otra actividad"; NO matchea "Pullover", porque compara palabras enteras). En esas, el selector aparece **al registrar** ([components/activity-selector.tsx](components/activity-selector.tsx), dentro de la card seleccionada) y elegir es **obligatorio**: lo valida el submit de [app/log/page.tsx](app/log/page.tsx) (botón deshabilitado + mensaje) y de nuevo `logActivity` en el server. Esas actividades no tienen ícono fijo — el formulario de creación/edición reemplaza el selector por un cartel explicándolo.
+2. **Deporte por registro** (`user_activities.sport_icon`): se guarda en **todos** los registros, no solo en los genéricos. **En las actividades con deporte fijo NO se elige**: viene del ícono de la actividad y el selector ni aparece (7/9/2026; antes aparecía precargado y la gente lo cambiaba — quedaron registros de "Gimnasio" guardados como handball/ping-pong que ni puntuaban bien en la general ni se replicaban). `logActivity` lo hace cumplir del lado del server: si la actividad tiene `icon`, ignora lo que mande el cliente. Solo en las **genéricas** — nombre que matchea `isOtherActivityName()` — alguna palabra del nombre es `otro`/`otra`/`otros`/`otras`, sin distinguir mayúsculas ni acentos (matchea "Otros", "OTROS DEPORTES", "Otra actividad"; NO matchea "Pullover", porque compara palabras enteras) — el selector aparece **al registrar** ([components/activity-selector.tsx](components/activity-selector.tsx), dentro de la card seleccionada) y elegir es **obligatorio**: lo valida el submit de [app/log/page.tsx](app/log/page.tsx) (botón deshabilitado + mensaje) y de nuevo `logActivity` en el server. Esas actividades no tienen ícono fijo — el formulario de creación/edición reemplaza el selector por un cartel explicándolo. En el selector de registro las genéricas van siempre al final de la lista.
+
+   Al mostrar un registro genérico se muestra el **nombre del deporte** en vez de "Otros" (`resolveActivityName(name, sport_icon)` en [lib/sport-icons.ts](lib/sport-icons.ts): "Registró Pádel"). Se usa en el feed (`getGroupFeed` ya lo resuelve en `activityName`) y en el historial del grupo.
 
 ### El bug que borraba las relaciones (arreglado)
 
@@ -173,9 +175,21 @@ Ahora lo resuelve `resolveRelationId()` en [lib/actions.ts](lib/actions.ts), con
 
 Resolución al mostrar: `resolveActivityEmoji(sport_icon, group_activities.icon)` — manda el elegido al registrar, y si no hay, el fijo de la actividad; si no hay ninguno, la UI cae al ícono genérico de siempre (mancuerna/reloj). Se ve en el feed de Inicio ([feed-post.tsx](components/feed/feed-post.tsx), el `FeedItem` de tipo `activity` trae el emoji ya resuelto en `sportEmoji`), el detalle del día del calendario ([group-calendar.tsx](components/group-calendar.tsx)), el historial del grupo, el historial propio y las actividades recientes del perfil.
 
-Al aceptar una etiqueta, `acceptActivityTag` copia el `sport_icon` del registro original (es la misma salida). `logRelatedActivity` lo replica en todos los grupos relacionados.
+Al aceptar una etiqueta, `acceptActivityTag` copia el `sport_icon` del registro original (es la misma salida).
 
-**Ya corrido en el proyecto real:** [scripts/44-add-sport-icons.sql](scripts/44-add-sport-icons.sql) (agrega `group_activities.icon` y `user_activities.sport_icon`, ambas nullable). Los registros históricos quedan sin ícono y se ven igual que antes. No hacen falta policies nuevas: las policies existentes son por fila, no por columna.
+### Una sola carga, todos los grupos
+
+`logActivity` siempre pasa por `logRelatedActivity`, que busca en **todos los grupos de la persona** las actividades equivalentes: misma `relation_id` **o** mismo `icon` que el deporte del registro (el `or` cubre actividades que quedaron sin relación). Es lo que hace que "Gym" en un grupo y "Gimnasio" en otro se registren con una sola carga, y que "Otros → Pádel" caiga también en la actividad "Pádel" del otro grupo. Reglas:
+
+- **Una actividad por grupo**: si un grupo tiene dos del mismo deporte, se registra una sola (en el grupo de origen, la que la persona eligió; en los demás, la primera que matchee).
+- La actividad de origen **siempre** entra, aunque no matchee (genérica "Otros" con un deporte que ese grupo no tiene configurado).
+- Las `per_minute` cuyo rango de minutos no cubre lo cargado se saltean en ese grupo.
+
+**Ya corridos en el proyecto real:** [scripts/44-add-sport-icons.sql](scripts/44-add-sport-icons.sql) (agrega `group_activities.icon` y `user_activities.sport_icon`, ambas nullable; los registros históricos quedan sin ícono y se ven igual que antes; no hacen falta policies nuevas porque las existentes son por fila, no por columna) y [scripts/49-fix-sport-icon-of-fixed-activities.sql](scripts/49-fix-sport-icon-of-fixed-activities.sql) (alinea `sport_icon` con el ícono de la actividad en los 4 registros que se habían cambiado a mano).
+
+## Tailwind: `lib/` también se escanea
+
+`tailwind.config.ts` no incluía `./lib/**/*.{ts,tsx}` en `content`. Cualquier clase que viva solo en un módulo de `lib/` (los `gradient`/`bg`/`text`/`ring` de los rangos en [lib/global-points.ts](lib/global-points.ts)) **no se generaba**: la tarjeta propia del ranking global se veía con texto blanco sobre el fondo crema, ilegible. Ya está agregado (7/9/2026); si se define otra clase en `lib/`, ahora sí se genera.
 
 ## Cadencia del reporte de peso: 14 días
 

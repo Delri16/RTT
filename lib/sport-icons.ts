@@ -168,6 +168,19 @@ export function isOtherActivityName(name?: string | null): boolean {
     .some((word) => OTHER_WORDS.has(word))
 }
 
+/**
+ * Nombre a mostrar para un registro: en las genéricas ("Otros") el nombre no
+ * dice nada, así que se muestra el deporte elegido ("Padel" en vez de "Otros").
+ * En el resto, el nombre de la actividad tal cual lo puso el admin.
+ */
+export function resolveActivityName(activityName?: string | null, sportIconId?: string | null): string | null {
+  if (isOtherActivityName(activityName)) {
+    const label = sportLabel(sportIconId)
+    if (label) return label
+  }
+  return activityName ?? null
+}
+
 /** Búsqueda del selector: por label, id o keywords, sin acentos ni mayúsculas. */
 export function searchSportIcons(query: string): SportIcon[] {
   const q = normalize(query).trim()

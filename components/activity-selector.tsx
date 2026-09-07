@@ -166,9 +166,15 @@ export default function ActivitySelector({
     )
   }
 
+  // Las genéricas ("Otros") al final: son el "ninguna de las anteriores" y no
+  // tiene sentido que aparezcan primero que el gimnasio.
+  const ordered = [...activities].sort(
+    (a, b) => Number(isOtherActivityName(a.name)) - Number(isOtherActivityName(b.name)),
+  )
+
   return (
     <div className="space-y-3">
-      {activities.map((activity) => {
+      {ordered.map((activity) => {
         const isSelected = selectedActivity === activity.id
         const currentMinutes = minutesInput[activity.id] || activity.min_minutes || 15
         const hasRelation = activity.relation_id && activity.activity_relations
@@ -205,7 +211,7 @@ export default function ActivitySelector({
                         <div className="flex items-center gap-1">
                           <Link2 className="w-3 h-3 text-blue-500" />
                           <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                            {activity.activity_relations.name}
+                            {activity.activity_relations?.name}
                           </span>
                         </div>
                       )}
@@ -215,8 +221,10 @@ export default function ActivitySelector({
                         <span>
                           {activity.points_per_minute} pts/min • {activity.min_minutes}-{activity.max_minutes} min
                         </span>
+                      ) : isOtherActivityName(activity.name) ? (
+                        <span>Elegís el deporte al registrar</span>
                       ) : (
-                        <span>{hasRelation ? "Actividad relacionada" : "Actividad del grupo"}</span>
+                        <span>{sportLabel(activity.icon) ?? "Actividad del grupo"}</span>
                       )}
                     </div>
                   </div>
@@ -226,10 +234,12 @@ export default function ActivitySelector({
 
               {compositionInfo(activity, activity.activity_type === "per_minute" ? currentMinutes : 0)}
 
-              {/* Deporte del registro. Obligatorio en TODAS las actividades: es lo que
-                  define cuánto suma en la tabla general y en qué otros grupos se
-                  replica. En las que ya tienen deporte fijo viene precargado. */}
-              {isSelected && (
+              {/* Deporte del registro. Define cuánto suma en la tabla general y en
+                  qué otros grupos se replica. Solo se ELIGE en las genéricas
+                  ("Otros"): en el resto lo fijó el admin y se muestra, no se toca —
+                  si no, alguien registraba "Gimnasio" como handball y el registro
+                  ni puntuaba bien ni aparecía en su otro grupo. */}
+              {isSelected && isOtherActivityName(activity.name) && (
                 <div
                   ref={sportPickerRef}
                   className="mt-4 rounded-xl border-2 border-toro-primary/40 bg-white p-3"
@@ -237,8 +247,7 @@ export default function ActivitySelector({
                 >
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <Label className="text-sm font-bold text-toro-foreground">
-                      {isOtherActivityName(activity.name) ? "¿Qué deporte fue?" : "Deporte"}{" "}
-                      <span className="text-toro-primary">*</span>
+                      ¿Qué deporte fue? <span className="text-toro-primary">*</span>
                     </Label>
                     {sportIcon ? (
                       <span className="text-xs font-semibold text-toro-accent">
@@ -249,7 +258,8 @@ export default function ActivitySelector({
                     )}
                   </div>
                   <p className="text-[11px] text-toro-foreground/50 mb-2">
-                    Define los puntos de la tabla general. Los puntos del grupo no cambian.
+                    Define los puntos de la tabla general y en qué otros grupos se registra. Los puntos de este grupo
+                    no cambian.
                   </p>
                   <SportIconPicker
                     value={sportIcon}
@@ -260,12 +270,26 @@ export default function ActivitySelector({
                 </div>
               )}
 
-              {hasRelation && (
-                <div className="mt-2 p-2 bg-blue-50 rounded-lg">
-                  <div className="flex items-center gap-2 text-xs text-blue-700">
-                    <Link2 className="w-3 h-3" />
-                    <span>Se registra en todos tus grupos que tengan este deporte (en la general cuenta una vez)</span>
-                  </div>
+              {isSelected && !isOtherActivityName(activity.name) && (
+                <div
+                  ref={sportPickerRef}
+                  className="mt-3 flex items-start gap-2 rounded-lg bg-blue-50 p-2.5 text-xs text-blue-700"
+                >
+                  <Link2 className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  {sportIcon ? (
+                    <span>
+                      <strong>
+                        {sportEmoji(sportIcon)} {sportLabel(sportIcon)}
+                      </strong>
+                      {" · "}se registra una sola vez en todos tus grupos que tengan este deporte, aunque se llame
+                      distinto. En la tabla general cuenta una vez por día.
+                    </span>
+                  ) : (
+                    <span>
+                      Esta actividad todavía no tiene deporte asignado: pedile a un admin del grupo que la edite para
+                      poder registrarla.
+                    </span>
+                  )}
                 </div>
               )}
 

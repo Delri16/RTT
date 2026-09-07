@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js"
 import { supabaseAnonKey, supabaseUrl } from "./supabase"
 import { applyGoalMultiplier, REPORT_POINTS } from "./points"
 import { sendPushToUser } from "./push-server"
-import { getSportIcon, isOtherActivityName, resolveActivityEmoji } from "./sport-icons"
+import { getSportIcon, isOtherActivityName, resolveActivityEmoji, resolveActivityName } from "./sport-icons"
 import { REPORT_INTERVAL_DAYS, argDayKey, argPeriodStartISO, type RankingPeriod } from "./date-utils"
 import type { GlobalRankingRow, RestGameLeaderRow, SportBreakdownRow } from "./global-points"
 import { computeStreak, EMPTY_STREAK, type StreakInfo } from "./streaks"
@@ -731,9 +731,14 @@ export async function logActivity(formData: FormData) {
     return { success: false, error: "Activity not found" }
   }
 
-  // Si no eligió nada, se hereda el deporte fijo de la actividad del grupo. En
-  // las genéricas ("Otros") no hay herencia posible: hay que elegir sí o sí.
-  const sport_icon = chosenSport ?? getSportIcon(activity.icon)?.id ?? null
+  // El deporte de una actividad con ícono fijo NO se elige: lo definió el admin
+  // y es lo que la conecta con las actividades equivalentes de los otros grupos
+  // ("Gym" en uno, "Gimnasio" en otro). Si el cliente manda otra cosa se ignora:
+  // pasó con registros de "Gimnasio" guardados como handball / ping-pong, que
+  // puntuaban mal en la general y no se replicaban. Solo en las genéricas
+  // ("Otros") manda lo que eligió la persona, y ahí es obligatorio.
+  const fixedSport = getSportIcon(activity.icon)?.id ?? null
+  const sport_icon = fixedSport ?? chosenSport
 
   if (!sport_icon) {
     return {
@@ -767,12 +772,13 @@ export async function logActivity(formData: FormData) {
   console.log("[v0] Optimistic ranking calculated:", rankingData)
 
   // Se replica en todos los grupos del usuario que tengan una actividad del mismo
-  // deporte. La relación sale primero del deporte elegido (que puede diferir del
-  // fijo de la actividad, p. ej. en las genéricas "Otros") y si no, de la relación
-  // de la actividad de origen.
+  // deporte. La relación sale del deporte (el fijo de la actividad, o el elegido
+  // en las genéricas "Otros") y si no, de la relación de la actividad de origen.
+  // Aunque no haya relación, `logRelatedActivity` igual busca por ícono, así que
+  // registrar "Otros → Padel" cae en la actividad "Padel" del otro grupo.
   const targetRelationId = (await relationIdForSport(sport_icon)) ?? activity.relation_id ?? null
 
-  if (targetRelationId) {
+  if (targetRelationId || sport_icon) {
     const result = await logRelatedActivity(
       username,
       { ...activity, relation_id: targetRelationId },
@@ -883,26 +889,41 @@ async function logRelatedActivity(
 
   const groupIds = userGroups.map((g) => g.group_id)
 
-  // Find all activities in user's groups with the same relation
-  const { data: matches, error: relatedActivitiesError } = await supabase
-    .from("group_activities")
-    .select("*")
-    .eq("relation_id", sourceActivity.relation_id)
-    .in("group_id", groupIds)
+  // Actividades equivalentes en los grupos de la persona: misma relación ("Gym"
+  // y "Gimnasio" comparten activity_relations) O mismo ícono de deporte (por si
+  // alguna quedó sin relación). Es lo que hace que una sola carga aparezca en
+  // todos los grupos, incluso "Otros → Padel" contra un grupo que tiene "Padel".
+  const criteria: string[] = []
+  if (sourceActivity.relation_id != null) criteria.push(`relation_id.eq.${sourceActivity.relation_id}`)
+  if (sport_icon) criteria.push(`icon.eq.${sport_icon}`)
 
-  if (relatedActivitiesError) {
-    return { success: false, error: relatedActivitiesError.message }
+  let matches: any[] = []
+  if (criteria.length > 0) {
+    const { data, error: relatedActivitiesError } = await supabase
+      .from("group_activities")
+      .select("*")
+      .in("group_id", groupIds)
+      .or(criteria.join(","))
+
+    if (relatedActivitiesError) {
+      return { success: false, error: relatedActivitiesError.message }
+    }
+    matches = data ?? []
   }
 
+  // Una sola por grupo. Si un grupo tiene dos actividades del mismo deporte
+  // ("Gym" y "Gimnasio" en el mismo grupo), se registra una, no las dos: en el
+  // grupo de origen la que la persona eligió, en los demás la primera que matchee.
   // La actividad de origen SIEMPRE entra, aunque no matchee la relación buscada.
   // Pasa cuando se registra una genérica ("Otros", sin relación propia) y se
-  // elige un deporte: la relación es la del deporte, y el grupo donde la persona
-  // está registrando puede no tener ninguna actividad de ese deporte. Sin esto,
-  // el registro se guardaría en los otros grupos y no en el que eligió.
-  const relatedActivities = [...(matches ?? [])]
-  if (!relatedActivities.some((a) => a.id === sourceActivity.id)) {
-    relatedActivities.unshift(sourceActivity)
+  // elige un deporte que el grupo actual no tiene configurado. Sin esto, el
+  // registro se guardaría en los otros grupos y no en el que la persona eligió.
+  const byGroup = new Map<string, any>()
+  byGroup.set(sourceActivity.group_id, sourceActivity)
+  for (const match of matches) {
+    if (!byGroup.has(match.group_id)) byGroup.set(match.group_id, match)
   }
+  const relatedActivities = Array.from(byGroup.values())
 
   if (relatedActivities.length === 0) {
     return { success: false, error: "No related activities found" }
@@ -1464,7 +1485,8 @@ export async function getGroupFeed(
       ts: a.completed_at,
       groupName: a.groups?.name ?? null,
       avatar: null,
-      activityName: a.group_activities?.name ?? null,
+      // En las genéricas ("Otros") se muestra el deporte elegido: "Registró Padel".
+      activityName: resolveActivityName(a.group_activities?.name, a.sport_icon),
       points: a.points_earned,
       minutes: a.minutes_performed ?? null,
       sportEmoji: resolveActivityEmoji(a.sport_icon, a.group_activities?.icon),
