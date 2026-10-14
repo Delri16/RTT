@@ -106,6 +106,12 @@ const config = {
           "60%": { transform: "scale(1.05)" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        // Barra "falsa" del splash de carga: avanza rápido al principio y se
+        // frena cerca del final, sin llegar nunca al 100%.
+        "progress-fill": {
+          "0%": { width: "0%" },
+          "100%": { width: "92%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -118,6 +124,7 @@ const config = {
         float: "float 3.5s ease-in-out infinite",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
         pop: "pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both",
+        "progress-fill": "progress-fill 7s cubic-bezier(0.1, 0.7, 0.2, 1) forwards",
       },
       boxShadow: {
         soft: "0 2px 12px -2px rgba(58, 58, 58, 0.08), 0 4px 24px -8px rgba(58, 58, 58, 0.06)",

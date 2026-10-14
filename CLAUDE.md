@@ -287,6 +287,23 @@ Cuatro juegos en [components/routine/rest-games/](components/routine/rest-games/
 
 **Ya corrido en el proyecto real:** [scripts/47-rest-games.sql](scripts/47-rest-games.sql) (crea `rest_game_scores` **con policy `Public access`** — sin eso el insert falla en silencio, como toda tabla nueva de este proyecto).
 
+## Splash de carga: barra de progreso + tip "toro"
+
+[components/ui/loading-splash.tsx](components/ui/loading-splash.tsx) es el único splash de la app (lo usan `app-provider.tsx` y todas las páginas que cargan con `LoadingSplash`). **Ya no muestra el logo**: muestra una barra de progreso y un tip al azar de entrenamiento / alimentación / sueño.
+
+- **Tips:** [lib/toro-tips.ts](lib/toro-tips.ts), módulo PURO con 30 tips (`TORO_TIPS`, 3 categorías con emoji/label en `TIP_CATEGORY_META`) y `randomTip()`. Para agregar más, sumar objetos al array y listo.
+- El tip se elige en un `useEffect`, no en el render: `Math.random` en el render daría mismatch de hidratación. Hasta montar se ve un placeholder de la misma altura.
+- La barra es **falsa a propósito**: animación CSS `animate-progress-fill` (keyframe en `tailwind.config.ts`) que va de 0 a 92% con ease-out en 7s y se queda ahí. No hay forma de saber cuánto tarda cada carga, así que da sensación de avance sin prometer un 100%.
+
+## Recordatorio "mañana te toca el reporte"
+
+[components/report-reminder-dialog.tsx](components/report-reminder-dialog.tsx) (montado en `app-provider.tsx`) tiene ahora dos variantes a partir de `getUserReportStatus`:
+
+- **Vencido** (`needs_report`): el cartel de siempre, con "Aceptar" → `/reports`. Una vez por sesión de navegador (`sessionStorage`).
+- **Mañana** (`days_until_next === 1` y nada vencido): "Mañana tenés que subir el reporte" + recordatorio de pesarse en ayunas. Se muestra **una vez por día** (`localStorage` con la fecha en hora Argentina via `argDayKey`), porque la condición dura todo el día y con `sessionStorage` reaparecería en cada apertura de la PWA.
+
+Si hay un grupo vencido y otro que vence mañana, gana el vencido. `days_until_next` sale de `REPORT_INTERVAL_DAYS - floor(días desde el último reporte)`, así que "1" = el último reporte fue hace 13 días.
+
 ## Convenciones existentes (no introducidas por este cambio)
 
 - Colores de marca: `toro-background #FDF7E4`, `toro-foreground #3A3A3A`, `toro-primary #FF6B6B`, `toro-secondary #FFD166`, `toro-accent #06D6A0` (ver `tailwind.config.ts`).
