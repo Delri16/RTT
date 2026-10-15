@@ -217,20 +217,20 @@ export default function RodeosPage() {
 
       <Tabs defaultValue="standings" className="w-full">
         <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="standings">
-            <Trophy className="w-4 h-4 mr-1" />
+          <TabsTrigger value="standings" className="flex flex-col items-center gap-0.5 px-0.5 text-[11px]">
+            <Trophy className="w-4 h-4 shrink-0" />
             Posiciones
           </TabsTrigger>
-          <TabsTrigger value="fixtures">
-            <Flame className="w-4 h-4 mr-1" />
+          <TabsTrigger value="fixtures" className="flex flex-col items-center gap-0.5 px-0.5 text-[11px]">
+            <Flame className="w-4 h-4 shrink-0" />
             Duelos
           </TabsTrigger>
-          <TabsTrigger value="history">
-            <History className="w-4 h-4 mr-1" />
+          <TabsTrigger value="history" className="flex flex-col items-center gap-0.5 px-0.5 text-[11px]">
+            <History className="w-4 h-4 shrink-0" />
             Historial
           </TabsTrigger>
-          <TabsTrigger value="stats">
-            <BarChart3 className="w-4 h-4 mr-1" />
+          <TabsTrigger value="stats" className="flex flex-col items-center gap-0.5 px-0.5 text-[11px]">
+            <BarChart3 className="w-4 h-4 shrink-0" />
             Stats
           </TabsTrigger>
         </TabsList>

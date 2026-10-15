@@ -14,7 +14,10 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      'inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground',
+      // h-auto + min-h-10 (y no h-10 fijo): las pestañas que apilan ícono + texto
+      // (grupo, rodeos) miden más de 40px y con altura fija se salían del
+      // contenedor, dejando la pestaña activa "cortada" arriba y abajo.
+      'inline-flex h-auto min-h-10 items-stretch justify-center rounded-md bg-muted p-1 text-muted-foreground',
       className,
     )}
     {...props}
