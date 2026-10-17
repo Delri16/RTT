@@ -136,8 +136,8 @@ export default function MemberTagSelector({
               <div className="flex items-start gap-2">
                 <Users className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div className="text-xs text-blue-700">
-                  <p className="font-medium">Los miembros etiquetados recibirán una notificación</p>
-                  <p className="mt-1">Podrán aceptar o rechazar la solicitud para registrar la misma actividad</p>
+                  <p className="font-medium">A los miembros etiquetados se les carga la actividad directo</p>
+                  <p className="mt-1">Suma con sus propios puntos y les avisamos para que no la carguen de nuevo</p>
                 </div>
               </div>
             </div>

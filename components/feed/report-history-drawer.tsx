@@ -6,6 +6,7 @@ import { Scale, Loader2, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { getUserReports } from "@/lib/actions"
 import { getReportVerdict, VerdictLevel } from "@/lib/report-verdict"
+import ReportPhotoStrip, { type ReportPhoto } from "@/components/feed/report-photo-strip"
 
 type ReportRow = {
   id: string
@@ -16,48 +17,7 @@ type ReportRow = {
   groups?: { name: string } | null
 }
 
-type Photo = { url: string; date: string; weight: number; label: string }
-
-function BeforeAfter({
-  label,
-  first,
-  last,
-  onOpen,
-}: {
-  label: string
-  first: Photo
-  last: Photo
-  onOpen: (url: string) => void
-}) {
-  return (
-    <div>
-      <h3 className="text-sm font-bold text-toro-foreground mb-1">{label}</h3>
-      <div className="grid grid-cols-2 gap-2">
-        {[
-          { tag: "Antes", ...first },
-          { tag: "Ahora", ...last },
-        ].map((p, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => onOpen(p.url)}
-            className="rounded-xl overflow-hidden bg-toro-background relative text-left"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={p.url || "/placeholder.svg"} alt={p.tag} className="w-full aspect-square object-cover" />
-            <div className="absolute inset-x-0 bottom-0 bg-black/50 text-white text-[11px] px-2 py-1 flex items-center justify-between">
-              <span className="font-bold uppercase tracking-wide">{p.tag}</span>
-              <span>
-                {p.weight} kg ·{" "}
-                {new Date(p.date).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
-              </span>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
+type Photo = ReportPhoto
 
 /** Visor a pantalla completa con carousel: swipe/flechas entre todas las fotos del historial. */
 function PhotoLightbox({
@@ -192,20 +152,15 @@ export default function ReportHistoryDrawer({
     [ascending],
   )
 
-  function firstAndLast(key: "scale_photo_url" | "body_photo_url", label: string) {
-    const withPhoto = ascending.filter((r) => r[key])
-    if (withPhoto.length < 2) return null
-    const first = withPhoto[0]
-    const last = withPhoto[withPhoto.length - 1]
-    if (first.id === last.id) return null
-    return {
-      first: { url: first[key] as string, date: first.report_date, weight: first.reported_weight, label },
-      last: { url: last[key] as string, date: last.report_date, weight: last.reported_weight, label },
-    }
+  // Todas las fotos de cada tipo, en orden cronológico, para las tiras de progreso.
+  function photosOf(key: "scale_photo_url" | "body_photo_url", label: string): Photo[] {
+    return ascending
+      .filter((r) => r[key])
+      .map((r) => ({ url: r[key] as string, date: r.report_date, weight: r.reported_weight, label }))
   }
 
-  const scaleComparison = useMemo(() => firstAndLast("scale_photo_url", "Balanza"), [ascending])
-  const bodyComparison = useMemo(() => firstAndLast("body_photo_url", "Cuerpo"), [ascending])
+  const bodyPhotos = useMemo(() => photosOf("body_photo_url", "Cuerpo"), [ascending])
+  const scalePhotos = useMemo(() => photosOf("scale_photo_url", "Balanza"), [ascending])
 
   // Todas las fotos en orden cronológico, para el carousel del visor a pantalla completa.
   const allPhotos = useMemo<Photo[]>(
@@ -249,8 +204,8 @@ export default function ReportHistoryDrawer({
             <p className="text-sm text-toro-foreground/40 py-2">Todavía no hay reportes.</p>
           ) : (
             <>
-              {bodyComparison && <BeforeAfter label="Antes / Ahora (cuerpo)" onOpen={openPhoto} {...bodyComparison} />}
-              {scaleComparison && <BeforeAfter label="Antes / Ahora (balanza)" onOpen={openPhoto} {...scaleComparison} />}
+              <ReportPhotoStrip title="Progreso (cuerpo)" photos={bodyPhotos} onOpen={openPhoto} />
+              <ReportPhotoStrip title="Progreso (balanza)" photos={scalePhotos} onOpen={openPhoto} />
 
               {chartData.length >= 2 && (
                 <div>

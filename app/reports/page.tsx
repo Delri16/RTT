@@ -6,15 +6,18 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BarChart2, Camera, Clock, AlertCircle, CheckCircle, Plus } from "lucide-react"
+import { BarChart2, Camera, Clock, AlertCircle, CheckCircle, Plus, TrendingUp } from "lucide-react"
 import { useApp } from "@/app/app-provider"
-import { getUserReportStatus, getUserReports } from "@/lib/actions"
+import { getUserReportStatus, getUserReports, getUserProfile } from "@/lib/actions"
+import ReportHistoryDrawer from "@/components/feed/report-history-drawer"
 
 export default function ReportsPage() {
   const { username } = useApp()
   const [reportStatus, setReportStatus] = useState<any[]>([])
   const [recentReports, setRecentReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [goal, setGoal] = useState<string | null>(null)
+  const [evolutionOpen, setEvolutionOpen] = useState(false)
 
   useEffect(() => {
     if (username) {
@@ -25,9 +28,14 @@ export default function ReportsPage() {
   const loadReportData = async () => {
     if (!username) return
 
-    const [statusData, reportsData] = await Promise.all([getUserReportStatus(username), getUserReports(username)])
+    const [statusData, reportsData, profileData] = await Promise.all([
+      getUserReportStatus(username),
+      getUserReports(username),
+      getUserProfile(username),
+    ])
 
     setReportStatus(statusData)
+    if (profileData.success) setGoal((profileData as any).profile?.goal ?? null)
     if (reportsData.success) {
       setRecentReports(reportsData.reports.slice(0, 5))
     }
@@ -51,6 +59,20 @@ export default function ReportsPage() {
         <h1 className="text-3xl text-toro-foreground font-display">Seguimiento</h1>
         <p className="text-toro-foreground/70">Tu progreso y reportes quincenales</p>
       </header>
+
+      {/* Evolución: todas las fotos una al lado de la otra + gráfico (mismo drawer que el feed) */}
+      {recentReports.length > 0 && username && (
+        <>
+          <Button
+            onClick={() => setEvolutionOpen(true)}
+            className="w-full mb-6 h-12 bg-toro-accent hover:bg-toro-accent/90 text-white font-bold rounded-2xl shadow-soft"
+          >
+            <TrendingUp className="w-5 h-5 mr-2" />
+            Ver mi evolución (todas las fotos)
+          </Button>
+          <ReportHistoryDrawer username={username} goal={goal} open={evolutionOpen} onOpenChange={setEvolutionOpen} />
+        </>
+      )}
 
       {/* Pending Reports Alert */}
       {pendingReports.length > 0 && (

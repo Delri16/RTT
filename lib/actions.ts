@@ -779,15 +779,22 @@ export async function logActivity(formData: FormData) {
   const targetRelationId = (await relationIdForSport(sport_icon)) ?? activity.relation_id ?? null
 
   if (targetRelationId || sport_icon) {
-    const result = await logRelatedActivity(
-      username,
-      { ...activity, relation_id: targetRelationId },
-      points_earned,
-      minutes_performed,
-      taggedMembers,
-      goal,
-      sport_icon,
-    )
+    const sourceActivity = { ...activity, relation_id: targetRelationId }
+    const result = await logRelatedActivity(username, sourceActivity, points_earned, minutes_performed, goal, sport_icon)
+
+    // La fila del grupo de origen es la que referencian las etiquetas.
+    const sourceRow = (result.inserted ?? []).find((r: any) => r.group_id === group_id) ?? result.inserted?.[0]
+    if (result.success && taggedMembers.length > 0 && sourceRow) {
+      await logActivityForTaggedMembers({
+        taggedBy: username,
+        taggedMembers,
+        sourceActivity,
+        sourceUserActivityId: sourceRow.id,
+        groupId: group_id,
+        minutes: minutes_performed,
+        sportIcon: sport_icon,
+      })
+    }
 
     revalidatePath("/")
     revalidatePath("/log")
@@ -831,30 +838,15 @@ export async function logActivity(formData: FormData) {
   }
 
   if (taggedMembers.length > 0) {
-    try {
-      console.log("[v0] ===== CREATING ACTIVITY TAGS =====")
-      console.log("[v0] User activity ID:", userActivityData.id)
-      console.log("[v0] Tagged by:", username)
-      console.log("[v0] Tagged users:", taggedMembers)
-      console.log("[v0] Group ID:", group_id)
-
-      const { data: rpcData, error: tagsError } = await supabase.rpc("create_activity_tags", {
-        p_activity_id: userActivityData.id,
-        p_group_id: group_id,
-        p_tagged_by: username,
-        p_tagged_users: taggedMembers,
-      })
-
-      console.log("[v0] RPC call completed")
-      console.log("[v0] RPC result:", rpcData)
-      console.log("[v0] RPC error:", tagsError)
-
-      if (tagsError) {
-        console.error("[v0] Error creating activity tags:", tagsError.message)
-      }
-    } catch (err) {
-      console.error("[v0] Exception creating activity tags:", err)
-    }
+    await logActivityForTaggedMembers({
+      taggedBy: username,
+      taggedMembers,
+      sourceActivity: activity,
+      sourceUserActivityId: userActivityData.id,
+      groupId: group_id,
+      minutes: minutes_performed,
+      sportIcon: sport_icon,
+    })
   }
 
   revalidatePath("/")
@@ -868,12 +860,18 @@ export async function logActivity(formData: FormData) {
   }
 }
 
+/**
+ * Registra una actividad a `username` en TODOS sus grupos que tengan una
+ * actividad equivalente (misma relación o mismo deporte). Los puntos se
+ * recalculan por grupo desde la definición de cada actividad y se ajustan con
+ * `goal`. Lo usa `logActivity` tanto para quien registra como para las personas
+ * etiquetadas (ver `logActivityForTaggedMembers`).
+ */
 async function logRelatedActivity(
   username: string,
   sourceActivity: any,
   points_earned: number,
   minutes_performed: number | null,
-  taggedMembers: string[], // Added taggedMembers parameter
   goal: string = "maintain",
   sport_icon: string | null = null,
 ) {
@@ -970,30 +968,6 @@ async function logRelatedActivity(
       return null // Continue with other groups
     }
 
-    // Create activity tags if tagged members exist
-    if (taggedMembers.length > 0 && userActivityData) {
-      try {
-        console.log("[v0] ===== CREATING ACTIVITY TAGS FOR RELATED ACTIVITY =====")
-        console.log("[v0] User activity ID:", userActivityData.id)
-        console.log("[v0] Tagged by:", username)
-        console.log("[v0] Tagged users:", taggedMembers)
-        console.log("[v0] Group ID:", relatedActivity.group_id)
-
-        const { error: tagsError } = await supabase.rpc("create_activity_tags", {
-          p_activity_id: userActivityData.id,
-          p_group_id: relatedActivity.group_id,
-          p_tagged_by: username,
-          p_tagged_users: taggedMembers,
-        })
-
-        if (tagsError) {
-          console.error("[v0] Error creating activity tags for related activity:", tagsError.message)
-        }
-      } catch (err) {
-        console.error("[v0] Exception creating activity tags for related activity:", err)
-      }
-    }
-
     return userActivityData
   })
 
@@ -1026,6 +1000,7 @@ async function logRelatedActivity(
     return {
       success: true,
       data: successfulInserts[0],
+      inserted: successfulInserts,
       relatedCount: successfulInserts.length,
       message: `Actividad registrada en ${successfulInserts.length} grupo(s)`,
     }
@@ -1033,6 +1008,71 @@ async function logRelatedActivity(
     console.error("Error logging related activities:", error)
     return { success: false, error: "Error al registrar actividades relacionadas" }
   }
+}
+
+/**
+ * Etiquetas de actividad SIN aceptar: a cada persona etiquetada se le registra
+ * la actividad en el momento, en todos sus grupos que la tengan (mismo criterio
+ * que para quien registra), con los puntos recalculados según SU objetivo.
+ * Después se guarda la etiqueta ya en 'accepted' (RPC del script 50; el trigger
+ * de `activity_tags` crea la notificación `activity_auto_logged`) y se manda un
+ * push avisando que ya está cargada, para que no la carguen dos veces.
+ *
+ * Best-effort: si algo falla para una persona, la actividad de quien registró
+ * ya quedó guardada y se sigue con las demás.
+ */
+async function logActivityForTaggedMembers(input: {
+  taggedBy: string
+  taggedMembers: string[]
+  sourceActivity: any
+  sourceUserActivityId: string
+  groupId: string
+  minutes: number | null
+  sportIcon: string | null
+}) {
+  const members = [...new Set(input.taggedMembers)].filter((m) => m && m !== input.taggedBy)
+  if (members.length === 0) return
+
+  const activityName = resolveActivityName(input.sourceActivity?.name ?? "una actividad", input.sportIcon)
+  const { data: group } = await supabase.from("groups").select("name").eq("id", input.groupId).single()
+  const groupName = group?.name ?? null
+
+  const logged: string[] = []
+  for (const member of members) {
+    try {
+      const goal = await getUserGoal(member)
+      const result = await logRelatedActivity(member, input.sourceActivity, 0, input.minutes, goal, input.sportIcon)
+      if (result.success) {
+        logged.push(member)
+      } else {
+        console.error(`[v0] No se pudo cargar la actividad etiquetada a ${member}:`, result.error)
+      }
+    } catch (err) {
+      console.error(`[v0] Excepción cargando actividad etiquetada a ${member}:`, err)
+    }
+  }
+
+  if (logged.length === 0) return
+
+  // Etiqueta ya aceptada → el trigger crea la notificación in-app.
+  const { error: tagsError } = await supabase.rpc("create_accepted_activity_tags", {
+    p_activity_id: input.sourceUserActivityId,
+    p_group_id: input.groupId,
+    p_tagged_by: input.taggedBy,
+    p_tagged_users: logged,
+  })
+  if (tagsError) console.error("[v0] Error guardando etiquetas aceptadas:", tagsError.message)
+
+  await Promise.all(
+    logged.map((member) =>
+      sendPushToUser(member, {
+        title: "Te cargaron una actividad",
+        body: `${input.taggedBy} registró ${activityName}${groupName ? ` en ${groupName}` : ""} y te etiquetó. Ya suma en tu cuenta, no la cargues de nuevo.`,
+        url: "/activities/history",
+        tag: `auto-logged-${input.sourceUserActivityId}-${member}`,
+      }).catch((err) => console.error("[v0] Push de actividad etiquetada falló:", err)),
+    ),
+  )
 }
 
 export async function uploadPhoto(file: File, bucket: string, path: string) {
@@ -3357,6 +3397,7 @@ export type NotificationType =
   | "report_available"
   | "post_reaction"
   | "post_comment"
+  | "activity_auto_logged"
 
 export type AppNotification = {
   id: string
@@ -3412,6 +3453,35 @@ export async function getUserNotifications(username: string) {
 
   const enriched = rows.map((n: any) => ({ ...n, group_name: groupNames.get(n.group_id) ?? null }))
 
+  return { success: true, notifications: enriched as AppNotification[] }
+}
+
+/** Notificaciones NO leídas de un tipo, con el nombre del grupo resuelto. Lo usa
+ *  el cartel "te cargaron una actividad" al abrir la app. */
+export async function getUnreadNotificationsByType(username: string, type: NotificationType) {
+  const { data, error } = await notificationsClient()
+    .from("notifications")
+    .select("*")
+    .eq("user_username", username)
+    .eq("notification_type", type)
+    .eq("is_read", false)
+    .order("created_at", { ascending: false })
+    .limit(20)
+
+  if (error) {
+    console.error("[v0] Error fetching notifications by type:", error)
+    return { success: false, error: error.message, notifications: [] as AppNotification[] }
+  }
+
+  const rows = data || []
+  const groupIds = [...new Set(rows.map((n: any) => n.group_id).filter(Boolean))]
+  let groupNames = new Map<string, string>()
+  if (groupIds.length > 0) {
+    const { data: groups } = await supabase.from("groups").select("id, name").in("id", groupIds)
+    groupNames = new Map((groups || []).map((g: any) => [g.id, g.name]))
+  }
+
+  const enriched = rows.map((n: any) => ({ ...n, group_name: groupNames.get(n.group_id) ?? null }))
   return { success: true, notifications: enriched as AppNotification[] }
 }
 

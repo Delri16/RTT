@@ -149,6 +149,20 @@ Flujo: `logActivity` crea filas en `activity_tags` (RPC `create_activity_tags`) 
 - **`getPendingActivityTags` devuelve datos reales.** Antes fabricaba el objeto (`points: 0`, `group.name: ""`, el que etiquetó salía de partir el título de la notificación) y por eso la pantalla mostraba "te ha etiquetado en una actividad" sin nombre, "Grupo desconocido" y "0 pts". Ahora: notificaciones no leídas → RPC `get_activity_tags_by_ids` (SECURITY DEFINER, script 23, necesario porque `activity_tags` también tiene RLS por claim de JWT) → filtra `status = 'pending'` → enriquece con `user_activities` + `group_activities`, `groups` y el avatar de quien etiquetó.
 - **Los puntos NO se copian de quien etiquetó.** `acceptActivityTag` recalcula el puntaje base desde `group_activities` (helper `computeBaseActivityPoints`, mismo criterio que `logActivity`: fijo o `minutos * points_per_minute`) y le aplica `applyGoalMultiplier` con el objetivo de **quien acepta**. Antes insertaba `originalActivity.points_earned` tal cual, así que una actividad 100% aeróbica de 45 pts le daba 45 a alguien con objetivo `gain` en vez de 38. El panel muestra ese mismo número como "X pts para vos" antes de aceptar.
 
+### Etiquetas sin aceptar: se cargan directo (17/10/2026)
+
+⚠️ **El flujo de arriba (aceptar/rechazar) ya no es el camino normal.** Ahora, al registrar una actividad etiquetando gente, `logActivity` llama a `logActivityForTaggedMembers` (en [lib/actions.ts](lib/actions.ts)), que para cada etiquetado:
+
+1. Le registra la actividad en el momento con `logRelatedActivity` — o sea, en **todos sus grupos** que tengan ese deporte, con los puntos recalculados según **su** objetivo (mismo criterio que si la cargara él/ella). `logRelatedActivity` ya no crea etiquetas: solo registra.
+2. Guarda la etiqueta ya en `accepted` vía el RPC `create_accepted_activity_tags` (script 50; referencia la fila del grupo de origen de quien registró). El trigger de `activity_tags` detecta el status y crea una notificación de tipo nuevo **`activity_auto_logged`** ("X registró «Gimnasio» en Grupo y te etiquetó. Ya suma en tu cuenta: no la cargues de nuevo").
+3. Manda un Web Push con el mismo aviso.
+
+Al abrir la app, [components/tagged-activity-notice.tsx](components/tagged-activity-notice.tsx) (montado en `app-provider.tsx`) busca esas notificaciones sin leer (`getUnreadNotificationsByType`) y muestra un cartel con la lista para que la persona sepa que **ya está cargada y no la cargue dos veces**; al cerrarlo se marcan como leídas. En la página de notificaciones, ese tipo linkea a `/activities/history`.
+
+El panel de `/activity-tags` (aceptar/rechazar) y `getPendingActivityTags` siguen existiendo solo para etiquetas viejas que hayan quedado en `pending`; el flujo nuevo nunca crea pendientes. No hay validación que impida que el etiquetado cargue la misma actividad igual: el aviso es informativo.
+
+**Falta correr en Supabase:** [scripts/50-auto-accept-activity-tags.sql](scripts/50-auto-accept-activity-tags.sql) (amplía los CHECK de `notifications` con `activity_auto_logged`, redefine el trigger `create_activity_tag_notification` y crea el RPC `create_accepted_activity_tags`). Sin esto, el RPC no existe y las etiquetas no se guardan (la actividad del etiquetado **sí** se registra igual, porque eso va antes), y no sale ni la notificación ni el cartel.
+
 ## Íconos de deporte en las actividades
 
 Cada actividad lleva un ícono de deporte, y **es obligatorio**.
@@ -219,6 +233,10 @@ Cuarta pestaña de [app/groups/[id]/page.tsx](app/groups/[id]/page.tsx) (`Genera
 - Tocar cualquier fila abre [components/feed/report-history-drawer.tsx](components/feed/report-history-drawer.tsx) — el mismo drawer del feed, con el comparador antes/ahora y el gráfico de peso. No se duplicó nada.
 
 Datos: `getGroupReportsOverview(groupId)` en [lib/actions.ts](lib/actions.ts), 3 queries (miembros, perfiles, reportes). El `prevWeight` de cada reporte se calcula server-side para que el veredicto salga igual que en el feed.
+
+### Todas las fotos, una al lado de la otra
+
+[components/feed/report-photo-strip.tsx](components/feed/report-photo-strip.tsx): tira horizontal con **todas** las fotos de un tipo (cuerpo o balanza) en orden cronológico, con peso y fecha en cada una, "Antes"/"Ahora" en los extremos y el delta total en el título. Reemplazó al comparador que mostraba solo la primera y la última. Se usa en el drawer de evolución (propio y ajeno, [report-history-drawer.tsx](components/feed/report-history-drawer.tsx), tocar una foto abre el visor a pantalla completa con carousel), arriba del historial propio (`/reports/history`) y la página de Seguimiento (`/reports`) tiene un botón "Ver mi evolución" que abre ese mismo drawer.
 
 > **Ojo con `formatKg`** (de [lib/report-verdict.ts](lib/report-verdict.ts)): devuelve la **magnitud**, no el signo — usa `Math.abs` porque sus otros usuarios se lo agregan aparte. Pasarle un delta negativo tal cual hace desaparecer el menos y "bajó 800 g" se lee como si hubiera subido. Para deltas con signo está el helper `signedKg()` dentro de la pestaña.
 

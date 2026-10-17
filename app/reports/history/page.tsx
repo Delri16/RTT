@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ArrowLeft, Camera, TrendingDown, TrendingUp, Minus } from "lucide-react"
 import { useApp } from "@/app/app-provider"
 import { getUserReports } from "@/lib/actions"
+import ReportPhotoStrip, { type ReportPhoto } from "@/components/feed/report-photo-strip"
 
 export default function ReportHistoryPage() {
   const { username } = useApp()
@@ -33,6 +34,15 @@ export default function ReportHistoryPage() {
     }
     setLoading(false)
   }
+
+  // getUserReports viene del más nuevo al más viejo; las tiras van en orden cronológico.
+  const photosOf = (key: "body_photo_url" | "scale_photo_url", label: string): ReportPhoto[] =>
+    [...reports]
+      .sort((a, b) => String(a.report_date).localeCompare(String(b.report_date)))
+      .filter((r) => r[key])
+      .map((r) => ({ url: r[key], date: r.report_date, weight: r.reported_weight, label }))
+  const bodyPhotos = photosOf("body_photo_url", "Cuerpo")
+  const scalePhotos = photosOf("scale_photo_url", "Balanza")
 
   const openPhotoDialog = (photoUrl: string) => {
     setSelectedPhoto(photoUrl)
@@ -66,6 +76,15 @@ export default function ReportHistoryPage() {
         </Link>
         <h1 className="text-3xl text-toro-foreground font-display">Historial</h1>
       </header>
+
+      {(bodyPhotos.length > 0 || scalePhotos.length > 0) && (
+        <Card className="bg-white shadow-sm mb-4">
+          <CardContent className="p-4 space-y-4">
+            <ReportPhotoStrip title="Tu progreso (cuerpo)" photos={bodyPhotos} onOpen={openPhotoDialog} />
+            <ReportPhotoStrip title="Tu progreso (balanza)" photos={scalePhotos} onOpen={openPhotoDialog} />
+          </CardContent>
+        </Card>
+      )}
 
       {reports.length > 0 ? (
         <div className="space-y-4">

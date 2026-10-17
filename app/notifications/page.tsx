@@ -79,14 +79,17 @@ export default function NotificationsPage() {
           notifications.map((n) => (
             <Link
               key={n.id}
-              // Reacciones/comentarios pasan en el feed de Inicio; las etiquetas hay
-              // que aceptarlas/rechazarlas en Actividades Compartidas; el resto, en el grupo.
+              // Reacciones/comentarios pasan en el feed de Inicio; las etiquetas viejas
+              // (pendientes) se aceptan/rechazan en Actividades Compartidas; las que ya
+              // se cargaron solas van al historial propio; el resto, al grupo.
               href={
                 n.notification_type === "post_reaction" || n.notification_type === "post_comment"
                   ? "/"
                   : n.notification_type === "activity_tag"
                     ? "/activity-tags"
-                    : `/groups/${n.group_id}`
+                    : n.notification_type === "activity_auto_logged"
+                      ? "/activities/history"
+                      : `/groups/${n.group_id}`
               }
               onClick={() => markAsRead(n.id)}
               className="block active:scale-[0.99] transition"

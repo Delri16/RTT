@@ -9,6 +9,7 @@ import { ActivityTagsBadge } from "@/components/activity-tags-badge"
 import { NotificationListener } from "@/components/notification-listener"
 import { PushSubscriber } from "@/components/push-subscriber"
 import { ReportReminderDialog } from "@/components/report-reminder-dialog"
+import { TaggedActivityNotice } from "@/components/tagged-activity-notice"
 import { supabase } from "@/lib/supabase"
 import { getProfileByAuthUserId, joinGroupByInviteCode } from "@/lib/actions"
 
@@ -99,6 +100,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           <NotificationListener />
           <PushSubscriber />
           <ReportReminderDialog />
+          <TaggedActivityNotice />
           <ActivityTagsBadge username={username} />
           <main className="flex-1 overflow-y-auto overscroll-contain pb-16">{children}</main>
           <BottomNav />

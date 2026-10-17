@@ -1,4 +1,4 @@
-import { Tag, Trophy, Crown, Users, ClipboardCheck, Camera, Bell, SmilePlus, MessageCircle } from "lucide-react"
+import { Tag, Trophy, Crown, Users, ClipboardCheck, Camera, Bell, SmilePlus, MessageCircle, Dumbbell } from "lucide-react"
 import type { NotificationType } from "@/lib/actions"
 
 const ICON_BY_TYPE: Record<NotificationType, { icon: typeof Bell; className: string }> = {
@@ -12,6 +12,7 @@ const ICON_BY_TYPE: Record<NotificationType, { icon: typeof Bell; className: str
   report_available: { icon: Camera, className: "text-toro-accent bg-toro-accent/10" },
   post_reaction: { icon: SmilePlus, className: "text-toro-primary bg-toro-primary/10" },
   post_comment: { icon: MessageCircle, className: "text-toro-accent bg-toro-accent/10" },
+  activity_auto_logged: { icon: Dumbbell, className: "text-toro-accent bg-toro-accent/10" },
 }
 
 export default function NotificationIcon({ type }: { type: NotificationType }) {

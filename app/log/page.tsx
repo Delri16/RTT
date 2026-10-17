@@ -272,7 +272,7 @@ export default function LogActivityPage() {
     }
 
     if (taggedMembers.length > 0) {
-      successMessage += ` Se notificó a ${taggedMembers.length} miembro${taggedMembers.length > 1 ? "s" : ""}.`
+      successMessage += ` También se cargó a ${taggedMembers.length} miembro${taggedMembers.length > 1 ? "s" : ""} etiquetado${taggedMembers.length > 1 ? "s" : ""}.`
     }
 
     console.log("[v0] Showing instant success message:", successMessage)
