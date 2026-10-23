@@ -238,6 +238,12 @@ Datos: `getGroupReportsOverview(groupId)` en [lib/actions.ts](lib/actions.ts), 3
 
 [components/feed/report-photo-strip.tsx](components/feed/report-photo-strip.tsx): tira horizontal con **todas** las fotos de un tipo (cuerpo o balanza) en orden cronológico, con peso y fecha en cada una, "Antes"/"Ahora" en los extremos y el delta total en el título. Reemplazó al comparador que mostraba solo la primera y la última. Se usa en el drawer de evolución (propio y ajeno, [report-history-drawer.tsx](components/feed/report-history-drawer.tsx), tocar una foto abre el visor a pantalla completa con carousel), arriba del historial propio (`/reports/history`) y la página de Seguimiento (`/reports`) tiene un botón "Ver mi evolución" que abre ese mismo drawer.
 
+### Borrar reportes (solo los propios)
+
+`deleteReport(reportId, username)` en [lib/actions.ts](lib/actions.ts). La RLS de `bi_weekly_reports` es `Public access`, así que **la autoría se chequea a mano** en el server (como `deletePostComment`): si el reporte no es de quien lo pide, no se borra. Además deshace lo que hizo `createReport`: borra la fila de puntos del reporte en `user_activities` (`activity_id` NULL + `REPORT_POINTS`, ese día UTC y ese grupo), vuelve `profiles.current_weight` al último reporte que quede, borra reacciones y comentarios del post y, best-effort, las fotos del bucket `report_photos`.
+
+UI: [components/delete-report-button.tsx](components/delete-report-button.tsx), tachito con confirmación que **solo se renderiza si el reporte es del usuario logueado**. Está en el post del feed (el post desaparece al borrar), en cada fila del drawer de evolución, en el historial propio y en "Reportes Recientes" de Seguimiento. No requiere migración.
+
 > **Ojo con `formatKg`** (de [lib/report-verdict.ts](lib/report-verdict.ts)): devuelve la **magnitud**, no el signo — usa `Math.abs` porque sus otros usuarios se lo agregan aparte. Pasarle un delta negativo tal cual hace desaparecer el menos y "bajó 800 g" se lee como si hubiera subido. Para deltas con signo está el helper `signedKg()` dentro de la pestaña.
 
 No requiere migración: usa `bi_weekly_reports`, que ya tiene policy `Public access`.

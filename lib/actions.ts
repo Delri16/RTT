@@ -1143,6 +1143,95 @@ async function awardReportPoints(username: string, groupId: string) {
   }
 }
 
+/** Path dentro del bucket `report_photos` a partir de la URL pública, o null. */
+function reportPhotoPath(url: string | null | undefined): string | null {
+  if (!url) return null
+  const marker = "/storage/v1/object/public/report_photos/"
+  const i = url.indexOf(marker)
+  return i >= 0 ? decodeURIComponent(url.slice(i + marker.length).split("?")[0]) : null
+}
+
+/**
+ * Borra un reporte de peso. SOLO el dueño: la RLS de `bi_weekly_reports` es
+ * pública, así que la autoría se chequea acá a mano (mismo criterio que
+ * `deletePostComment`). Deshace también lo que hizo `createReport`:
+ *  - los puntos del reporte (fila de `user_activities` con activity_id NULL y
+ *    REPORT_POINTS, cargada ese mismo día en ese grupo),
+ *  - `profiles.current_weight`, que vuelve al último reporte que quede,
+ *  - reacciones y comentarios del post (clave `report` + id),
+ *  - las fotos en storage (best-effort).
+ */
+export async function deleteReport(reportId: string, username: string) {
+  const { data: report, error: fetchError } = await supabase
+    .from("bi_weekly_reports")
+    .select("id, username, group_id, report_date, scale_photo_url, body_photo_url")
+    .eq("id", reportId)
+    .single()
+
+  if (fetchError || !report) return { success: false, error: "No se encontró el reporte" }
+  if (report.username !== username) return { success: false, error: "Solo podés borrar tus propios reportes" }
+
+  const { error: deleteError } = await supabase
+    .from("bi_weekly_reports")
+    .delete()
+    .eq("id", reportId)
+    .eq("username", username)
+  if (deleteError) return { success: false, error: deleteError.message }
+
+  // Lo que sigue es limpieza: si algo falla, el reporte ya quedó borrado.
+  try {
+    // report_date se guarda como la fecha UTC del momento del reporte (ver createReport),
+    // así que los puntos se cargaron dentro de ese mismo día UTC.
+    const dayStart = `${report.report_date}T00:00:00.000Z`
+    const dayEnd = new Date(new Date(dayStart).getTime() + 24 * 60 * 60 * 1000).toISOString()
+    const { data: pointsRow } = await supabase
+      .from("user_activities")
+      .select("id")
+      .eq("username", username)
+      .eq("group_id", report.group_id)
+      .is("activity_id", null)
+      .eq("points_earned", REPORT_POINTS)
+      .gte("completed_at", dayStart)
+      .lt("completed_at", dayEnd)
+      .order("completed_at", { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (pointsRow) await supabase.from("user_activities").delete().eq("id", pointsRow.id)
+
+    const { data: latest } = await supabase
+      .from("bi_weekly_reports")
+      .select("reported_weight")
+      .eq("username", username)
+      .order("report_date", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    await supabase
+      .from("profiles")
+      .update({ current_weight: latest?.reported_weight ?? null })
+      .eq("username", username)
+
+    await Promise.all([
+      supabase.from("post_reactions").delete().eq("post_type", "report").eq("post_id", reportId),
+      supabase.from("post_comments").delete().eq("post_type", "report").eq("post_id", reportId),
+    ])
+
+    const paths = [reportPhotoPath(report.scale_photo_url), reportPhotoPath(report.body_photo_url)].filter(
+      (p): p is string => !!p,
+    )
+    if (paths.length > 0) {
+      const { error: storageError } = await supabase.storage.from("report_photos").remove(paths)
+      if (storageError) console.warn("[report] no se pudieron borrar las fotos:", storageError.message)
+    }
+  } catch (err) {
+    console.error("[report] error limpiando después de borrar el reporte:", err)
+  }
+
+  revalidatePath("/")
+  revalidatePath("/reports")
+  revalidatePath("/reports/history")
+  return { success: true }
+}
+
 export async function createBiWeeklyReport(formData: FormData) {
   const username = formData.get("username") as string
   const group_id = formData.get("group_id") as string

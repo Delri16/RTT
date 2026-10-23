@@ -10,10 +10,11 @@ import RoutineFeedCard from "@/components/feed/routine-feed-card"
 import PostInteractions from "@/components/feed/post-interactions"
 import ReportVerdictCard, { VERDICT_RING } from "@/components/feed/report-verdict-card"
 import ReportHistoryDrawer from "@/components/feed/report-history-drawer"
+import DeleteReportButton from "@/components/delete-report-button"
 import { getReportVerdict } from "@/lib/report-verdict"
 import type { PostInteractions as PostInteractionsData } from "@/lib/actions"
 
-function PostHeader({ item }: { item: FeedItem }) {
+function PostHeader({ item, action }: { item: FeedItem; action?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 px-4 pt-3">
       <Link href={`/profile/${item.username}`}>
@@ -29,12 +30,14 @@ function PostHeader({ item }: { item: FeedItem }) {
           <span className="whitespace-nowrap">{timeAgo(item.ts)}</span>
         </div>
       </div>
+      {action}
     </div>
   )
 }
 
 export default function FeedPost({ item, interactions }: { item: FeedItem; interactions?: PostInteractionsData }) {
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [deleted, setDeleted] = useState(false)
 
   if (item.type === "activity") {
     return (
@@ -112,6 +115,8 @@ export default function FeedPost({ item, interactions }: { item: FeedItem; inter
   }
 
   // report
+  // Al borrar tu propio reporte desde el feed, el post desaparece en el momento.
+  if (deleted) return null
   const photos = [item.scalePhotoUrl, item.bodyPhotoUrl].filter(Boolean) as string[]
   const verdict = getReportVerdict({
     weight: item.weight,
@@ -123,7 +128,10 @@ export default function FeedPost({ item, interactions }: { item: FeedItem; inter
     <article
       className={`bg-white rounded-2xl shadow-soft border-2 overflow-hidden card-interactive ${VERDICT_RING[verdict.level]}`}
     >
-      <PostHeader item={item} />
+      <PostHeader
+        item={item}
+        action={<DeleteReportButton reportId={item.id} owner={item.username} onDeleted={() => setDeleted(true)} />}
+      />
       <button
         type="button"
         onClick={() => setHistoryOpen(true)}

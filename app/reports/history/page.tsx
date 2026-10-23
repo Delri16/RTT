@@ -11,6 +11,7 @@ import { ArrowLeft, Camera, TrendingDown, TrendingUp, Minus } from "lucide-react
 import { useApp } from "@/app/app-provider"
 import { getUserReports } from "@/lib/actions"
 import ReportPhotoStrip, { type ReportPhoto } from "@/components/feed/report-photo-strip"
+import DeleteReportButton from "@/components/delete-report-button"
 
 export default function ReportHistoryPage() {
   const { username } = useApp()
@@ -96,9 +97,17 @@ export default function ReportHistoryPage() {
               <Card key={report.id} className="bg-white shadow-sm">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{report.groups?.name}</CardTitle>
-                      <p className="text-sm text-gray-600">{new Date(report.report_date).toLocaleDateString()}</p>
+                    <div className="flex items-start gap-1">
+                      <DeleteReportButton
+                        reportId={report.id}
+                        owner={report.username}
+                        onDeleted={() => setReports((prev) => prev.filter((x) => x.id !== report.id))}
+                        className="-ml-1.5"
+                      />
+                      <div>
+                        <CardTitle className="text-lg">{report.groups?.name}</CardTitle>
+                        <p className="text-sm text-gray-600">{new Date(report.report_date).toLocaleDateString()}</p>
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-2">

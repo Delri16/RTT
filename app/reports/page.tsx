@@ -10,6 +10,7 @@ import { BarChart2, Camera, Clock, AlertCircle, CheckCircle, Plus, TrendingUp } 
 import { useApp } from "@/app/app-provider"
 import { getUserReportStatus, getUserReports, getUserProfile } from "@/lib/actions"
 import ReportHistoryDrawer from "@/components/feed/report-history-drawer"
+import DeleteReportButton from "@/components/delete-report-button"
 
 export default function ReportsPage() {
   const { username } = useApp()
@@ -179,20 +180,23 @@ export default function ReportsPage() {
                       <span className="text-sm text-gray-600">{new Date(report.report_date).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-bold text-toro-foreground block">{report.reported_weight} kg</span>
-                    <div className="flex gap-1 mt-1">
-                      {report.scale_photo_url && (
-                        <Badge variant="outline" className="text-xs">
-                          Balanza
-                        </Badge>
-                      )}
-                      {report.body_photo_url && (
-                        <Badge variant="outline" className="text-xs">
-                          Progreso
-                        </Badge>
-                      )}
+                  <div className="flex items-start gap-1">
+                    <div className="text-right">
+                      <span className="font-bold text-toro-foreground block">{report.reported_weight} kg</span>
+                      <div className="flex gap-1 mt-1">
+                        {report.scale_photo_url && (
+                          <Badge variant="outline" className="text-xs">
+                            Balanza
+                          </Badge>
+                        )}
+                        {report.body_photo_url && (
+                          <Badge variant="outline" className="text-xs">
+                            Progreso
+                          </Badge>
+                        )}
+                      </div>
                     </div>
+                    <DeleteReportButton reportId={report.id} owner={report.username} onDeleted={loadReportData} />
                   </div>
                 </div>
               ))}

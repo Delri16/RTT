@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { getUserReports } from "@/lib/actions"
 import { getReportVerdict, VerdictLevel } from "@/lib/report-verdict"
 import ReportPhotoStrip, { type ReportPhoto } from "@/components/feed/report-photo-strip"
+import DeleteReportButton from "@/components/delete-report-button"
 
 type ReportRow = {
   id: string
@@ -263,9 +264,16 @@ export default function ReportHistoryDrawer({
                           )}
                         </div>
                       </div>
-                      <span className="text-xs text-toro-foreground/40 shrink-0 ml-2">
-                        {new Date(r.report_date).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
-                      </span>
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
+                        <span className="text-xs text-toro-foreground/40">
+                          {new Date(r.report_date).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                        </span>
+                        <DeleteReportButton
+                          reportId={r.id}
+                          owner={username}
+                          onDeleted={() => setReports((prev) => prev.filter((x) => x.id !== r.id))}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
