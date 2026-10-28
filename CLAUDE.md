@@ -46,6 +46,8 @@ El login dejó de ser "solo username". Ahora (`components/login-screen.tsx`):
 3. El usuario ingresa el código → `supabase.auth.verifyOtp(...)` → sesión de Supabase Auth creada.
 4. `lib/actions.ts` → `linkProfileToAuthUser(username, email, authUserId)` crea o completa la fila en `profiles` (username sigue siendo la PK de negocio en todo el resto del código, no se tocó nada de eso).
 
+**Olvidé mi contraseña** (28/10/2026): link debajo del formulario de contraseña en `login-screen.tsx` → modo `reset`. Reusa el mismo OTP del login (`signInWithOtp` con `shouldCreateUser: false`, así un email no registrado da error en vez de crear cuenta), y tras `verifyOtp` muestra un paso `newPassword` que llama a `supabase.auth.updateUser({ password })` con la sesión recién creada y después hace el `linkProfileToAuthUser` de siempre. No usa `resetPasswordForEmail` a propósito: evita depender de redirect URLs y plantillas de recovery en Supabase, y el SMTP del OTP ya está probado.
+
 Cuentas viejas (username sin email todavía): la primera vez que vuelvan a entrar pasan por el mismo flujo y `linkProfileToAuthUser` les completa `email`/`auth_user_id` sin perder su historial.
 
 Sesión persistente ("nunca más se desloguea salvo manual"): es el comportamiento default de `supabase-js` (`persistSession` + `autoRefreshToken`), no hay nada custom armado para eso — `app/app-provider.tsx` solo lee `supabase.auth.getSession()` al montar y escucha `onAuthStateChange`. Logout real = `supabase.auth.signOut()` (en `app/logout/page.tsx`, sin cambios).

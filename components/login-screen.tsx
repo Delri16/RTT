@@ -19,8 +19,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Spinner } from "@/components/ui/spinner"
 import { KeyRound, LogIn, Mail, ShieldCheck, User } from "lucide-react"
 
-type AuthMode = "password" | "otp"
-type Step = "form" | "verify"
+type AuthMode = "password" | "otp" | "reset"
+type Step = "form" | "verify" | "newPassword"
 
 export default function LoginScreen() {
   const { login } = useApp()
@@ -30,6 +30,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [code, setCode] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -141,11 +143,17 @@ export default function LoginScreen() {
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: normalizedEmail,
-        options: { shouldCreateUser: true },
+        // Para recuperar la contraseña la cuenta tiene que existir: no creamos usuarios nuevos.
+        options: { shouldCreateUser: mode !== "reset" },
       })
 
       if (otpError) {
-        setError(otpError.message || "No pudimos enviar el código. Probá de nuevo.")
+        const msg = (otpError.message || "").toLowerCase()
+        if (mode === "reset" && (msg.includes("signup") || msg.includes("not allowed") || msg.includes("not found"))) {
+          setError("No encontramos una cuenta con ese email. Si es tu primera vez, entrá con «Contraseña» y se crea sola.")
+        } else {
+          setError(otpError.message || "No pudimos enviar el código. Probá de nuevo.")
+        }
         setLoading(false)
         return
       }
@@ -181,6 +189,13 @@ export default function LoginScreen() {
         return
       }
 
+      if (mode === "reset") {
+        // El código ya validó que el email es suyo: ahora elige la contraseña nueva.
+        setStep("newPassword")
+        setLoading(false)
+        return
+      }
+
       const linkError = await finishLogin(data.session.user.id, trimmedUsername, normalizedEmail)
       if (linkError) {
         setError(linkError)
@@ -194,12 +209,58 @@ export default function LoginScreen() {
     }
   }
 
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.")
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Las contraseñas no coinciden.")
+      return
+    }
+
+    setLoading(true)
+    setError("")
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const authUserId = sessionData.session?.user.id
+      if (!authUserId) {
+        setError("La verificación venció. Pedí un código nuevo.")
+        setStep("form")
+        setCode("")
+        setLoading(false)
+        return
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+      if (updateError) {
+        setError(updateError.message || "No pudimos guardar la contraseña nueva.")
+        setLoading(false)
+        return
+      }
+
+      const linkError = await finishLogin(authUserId, username.trim(), email.trim().toLowerCase())
+      if (linkError) {
+        setError(linkError)
+        setStep("form")
+        setLoading(false)
+      }
+    } catch {
+      setError("Error de conexión")
+      setLoading(false)
+    }
+  }
+
   const switchMode = (next: AuthMode) => {
     setMode(next)
     setStep("form")
     setCode("")
     setError("")
     setPassword("")
+    setNewPassword("")
+    setConfirmPassword("")
   }
 
   const handleBackFromOtp = () => {
@@ -227,6 +288,16 @@ export default function LoginScreen() {
                   <ShieldCheck className="w-5 h-5" />
                   Ingresá el código
                 </>
+              ) : step === "newPassword" ? (
+                <>
+                  <KeyRound className="w-5 h-5" />
+                  Nueva contraseña
+                </>
+              ) : mode === "reset" ? (
+                <>
+                  <KeyRound className="w-5 h-5" />
+                  Recuperar contraseña
+                </>
               ) : (
                 <>
                   <User className="w-5 h-5" />
@@ -235,7 +306,7 @@ export default function LoginScreen() {
               )}
             </CardTitle>
 
-            {step === "form" && (
+            {step === "form" && mode !== "reset" && (
               <div className="flex rounded-lg border border-toro-primary/20 p-1 bg-toro-background/40">
                 <button
                   type="button"
@@ -330,11 +401,24 @@ export default function LoginScreen() {
                     </div>
                   )}
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => switchMode("reset")}
+                  disabled={loading}
+                  className="w-full text-center text-sm text-toro-primary hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
               </form>
             )}
 
-            {step === "form" && mode === "otp" && (
+            {step === "form" && (mode === "otp" || mode === "reset") && (
               <form onSubmit={handleOtpRequest} className="space-y-4">
+                {mode === "reset" && (
+                  <p className="text-sm text-toro-foreground/70 text-center">
+                    Te mandamos un código al email de tu cuenta y después elegís una contraseña nueva.
+                  </p>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="username-otp">Nombre de usuario</Label>
                   <Input
@@ -379,6 +463,77 @@ export default function LoginScreen() {
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
                       Enviar código
+                    </div>
+                  )}
+                </Button>
+                {mode === "reset" && (
+                  <button
+                    type="button"
+                    onClick={() => switchMode("password")}
+                    disabled={loading}
+                    className="w-full text-center text-sm text-toro-foreground/60 hover:underline"
+                  >
+                    Volver a iniciar sesión
+                  </button>
+                )}
+              </form>
+            )}
+
+            {step === "newPassword" && (
+              <form onSubmit={handleSetNewPassword} className="space-y-4">
+                <div className="text-center p-3 bg-toro-background/50 rounded-lg">
+                  <div className="text-2xl mb-1">✅</div>
+                  <p className="text-sm text-toro-foreground/70">
+                    Código verificado. Elegí tu contraseña nueva.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">Nueva contraseña</Label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder="Mínimo 6 caracteres"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={loading}
+                      className="pl-9"
+                      autoComplete="new-password"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Repetí la contraseña</Label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="La misma de arriba"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={loading}
+                      className="pl-9"
+                      autoComplete="new-password"
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-toro-primary hover:bg-toro-primary/90 text-white"
+                  disabled={loading || newPassword.length < 6 || !confirmPassword}
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <Spinner className="w-4 h-4" />
+                      Guardando...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <LogIn className="w-4 h-4" />
+                      Guardar y entrar
                     </div>
                   )}
                 </Button>
@@ -429,8 +584,8 @@ export default function LoginScreen() {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <LogIn className="w-4 h-4" />
-                        Entrar
+                        {mode === "reset" ? <ShieldCheck className="w-4 h-4" /> : <LogIn className="w-4 h-4" />}
+                        {mode === "reset" ? "Verificar" : "Entrar"}
                       </div>
                     )}
                   </Button>
@@ -441,9 +596,13 @@ export default function LoginScreen() {
             <div className="text-center text-xs text-toro-foreground/60 pt-4 border-t">
               {step === "verify"
                 ? "Revisá también la carpeta de spam si no lo ves."
-                : mode === "password"
-                  ? "Si no tenés cuenta, se crea al entrar. La sesión queda guardada."
-                  : "Te mandamos un código de 6 dígitos al email."}
+                : step === "newPassword"
+                  ? "La vas a usar la próxima vez que entres con «Contraseña»."
+                  : mode === "password"
+                    ? "Si no tenés cuenta, se crea al entrar. La sesión queda guardada."
+                    : mode === "reset"
+                      ? "Solo funciona con el email con el que ya entraste antes."
+                      : "Te mandamos un código de 6 dígitos al email."}
             </div>
           </CardContent>
         </Card>
